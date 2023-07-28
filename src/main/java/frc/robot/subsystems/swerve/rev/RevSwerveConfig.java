@@ -11,30 +11,30 @@ import edu.wpi.first.math.util.Units;
 import frc.lib.util.swerveUtil.COTSFalconSwerveConstants;
 
 
-public class RevSwerveConfig 
+public class RevSwerveConfig
 {
-    
+
     public CANCoderConfiguration canCoderConfig;
 
     //
-    public static final IdleMode driveIdleMode = IdleMode.kBrake;
-    public static final IdleMode angleIdleMode = IdleMode.kBrake;
+    public static final IdleMode driveIdleMode = IdleMode.kCoast;
+    public static final IdleMode angleIdleMode = IdleMode.kCoast;
     public static final double drivePower = 1;
     public static final double anglePower = .9;
 
 
     public static final boolean invertGyro = false; // Always ensure Gyro is CCW+ CW-
 
-    public static final COTSFalconSwerveConstants chosenModule =  
+    public static final COTSFalconSwerveConstants chosenModule =
         COTSFalconSwerveConstants.SDSMK4i(COTSFalconSwerveConstants.driveGearRatios.SDSMK4i_L2);
 
     /* Drivetrain Constants */
-    public static final double trackWidth = Units.inchesToMeters(23.75); 
-    public static final double wheelBase = Units.inchesToMeters(23.75); 
+    public static final double trackWidth = Units.inchesToMeters(23.75);
+    public static final double wheelBase = Units.inchesToMeters(23.75);
     public static final double wheelCircumference = chosenModule.wheelCircumference;
 
 
-    /* Swerve Kinematics 
+    /* Swerve Kinematics
      * No need to ever change this unless you are not doing a traditional rectangular/square 4 module swerve */
      public static final SwerveDriveKinematics swerveKinematics = new SwerveDriveKinematics(
         new Translation2d(wheelBase / 2.0, trackWidth / 2.0),
@@ -54,7 +54,7 @@ public class RevSwerveConfig
     // the number of degrees that a single rotation of the turn motor turns the wheel.
     public static final double DegreesPerTurnRotation = 360/angleGearRatio;
 
-    
+
     /* Motor Inverts */
     public static final boolean angleMotorInvert = chosenModule.angleMotorInvert;
     public static final boolean driveMotorInvert = chosenModule.driveMotorInvert;
@@ -85,14 +85,14 @@ public class RevSwerveConfig
     public static final double angleKF = 0;
 
     /* Drive Motor PID Values */
-    public static final double driveKP = 0.2; 
+    public static final double driveKP = 0.2;
     public static final double driveKI = 0.0;
     public static final double driveKD = 0.0;
     public static final double driveKF = 0.0;
 
-    /* Drive Motor Characterization Values 
+    /* Drive Motor Characterization Values
      * Divide SYSID values by 12 to convert from volts to percent output for CTRE */
-    public static final double driveKS = (0.32 / 12); 
+    public static final double driveKS = (0.32 / 12);
     public static final double driveKV = (1.51 / 12);
     public static final double driveKA = (0.27 / 12);
 
@@ -100,12 +100,12 @@ public class RevSwerveConfig
     /** Meters per Second */
     public static final double maxSpeed = 4.2;
     /** Radians per Second */
-    public static final double maxAngularVelocity = 10.0; 
-   
+    public static final double maxAngularVelocity = 10.0;
 
- 
- 
-   
+
+
+
+
 
     public RevSwerveConfig()
     {
