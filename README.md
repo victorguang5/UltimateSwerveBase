@@ -1,4 +1,4 @@
-# This is a for of our needs. We will not be accepting contributions
+# This is a fork of our needs. We will not be accepting contributions
 ## Changes
 
 - NavX Support
