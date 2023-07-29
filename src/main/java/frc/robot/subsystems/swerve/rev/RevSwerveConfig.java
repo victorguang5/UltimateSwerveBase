@@ -98,9 +98,9 @@ public class RevSwerveConfig
 
     /* Swerve Profiling Values */
     /** Meters per Second */
-    public static final double maxSpeed = 4.2;
+    public static final double maxSpeed = 1000000000;
     /** Radians per Second */
-    public static final double maxAngularVelocity = 10.0;
+    public static final double maxAngularVelocity = 1.0;
 
 
 

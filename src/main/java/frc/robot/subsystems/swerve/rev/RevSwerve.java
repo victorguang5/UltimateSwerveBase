@@ -7,8 +7,6 @@ import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 
-import com.ctre.phoenix.sensors.Pigeon2;
-
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -21,9 +19,12 @@ import frc.robot.subsystems.NavXGyro;
 public class RevSwerve extends SubsystemBase {
 
 
-    public SwerveDriveOdometry swerveOdometry;
-    public SwerveModule[] mSwerveMods;
+    public SwerveDriveOdometry swerveOdometer;
+    public RevSwerveModule[] SwerveMods;
     public NavXGyro gyro;
+
+    private int moduleSynchronizationCounter = 0;
+    private double avgOmega = 0;
 
 
 
@@ -31,7 +32,7 @@ public class RevSwerve extends SubsystemBase {
 
         gyro = new NavXGyro();
 
-        mSwerveMods = new SwerveModule[] {
+        SwerveMods = new RevSwerveModule[] {
 
             new RevSwerveModule(0, RevSwerveConstants.Swerve.Mod0.constants),
             new RevSwerveModule(1, RevSwerveConstants.Swerve.Mod1.constants),
@@ -39,7 +40,7 @@ public class RevSwerve extends SubsystemBase {
             new RevSwerveModule(3, RevSwerveConstants.Swerve.Mod3.constants)
         };
 
-        swerveOdometry = new SwerveDriveOdometry(RevSwerveConfig.swerveKinematics, getYaw(), getModulePositions());
+        swerveOdometer = new SwerveDriveOdometry(RevSwerveConfig.swerveKinematics, getYaw(), getModulePositions());
         zeroGyro();
 
     }
@@ -73,7 +74,7 @@ public class RevSwerve extends SubsystemBase {
         desiredChassisSpeeds = correctForDynamics(desiredChassisSpeeds);
         SwerveModuleState[] swerveModuleStates = RevSwerveConfig.swerveKinematics.toSwerveModuleStates(desiredChassisSpeeds);
         SwerveDriveKinematics.desaturateWheelSpeeds(swerveModuleStates, RevSwerveConfig.maxSpeed);
-        for(SwerveModule mod : mSwerveMods){
+        for(SwerveModule mod : SwerveMods){
             mod.setDesiredState(swerveModuleStates[mod.getModuleNumber()], isOpenLoop);
         }
 
@@ -84,23 +85,23 @@ public class RevSwerve extends SubsystemBase {
        // System.out.println("setting module states: "+desiredStates[0]);
         SwerveDriveKinematics.desaturateWheelSpeeds(desiredStates, RevSwerveConfig.maxSpeed);
 
-        for(SwerveModule mod : mSwerveMods){
+        for(SwerveModule mod : SwerveMods){
             mod.setDesiredState(desiredStates[mod.getModuleNumber()], false);
         }
     }
     public Pose2d getPose() {
-        Pose2d p =  swerveOdometry.getPoseMeters();
+        Pose2d p =  swerveOdometer.getPoseMeters();
         return new Pose2d(-p.getX(),-p.getY(),  p.getRotation());
     }
     public void resetOdometry(Pose2d pose) {
 
-        swerveOdometry.resetPosition(new Rotation2d(), getModulePositions(), pose);
+        swerveOdometer.resetPosition(new Rotation2d(), getModulePositions(), pose);
         zeroGyro(pose.getRotation().getDegrees());
 
     }
     public SwerveModuleState[] getModuleStates() {
         SwerveModuleState[] states = new SwerveModuleState[4];
-        for(SwerveModule mod : mSwerveMods) {
+        for(SwerveModule mod : SwerveMods) {
             states[mod.getModuleNumber()] = mod.getState();
         }
         return states;
@@ -108,7 +109,7 @@ public class RevSwerve extends SubsystemBase {
 
     public SwerveModulePosition[] getModulePositions() {
         SwerveModulePosition[] positions = new SwerveModulePosition[4];
-        for(SwerveModule mod : mSwerveMods) {
+        for(SwerveModule mod : SwerveMods) {
             positions[mod.getModuleNumber()] = mod.getPosition();
         }
         return positions;
@@ -116,7 +117,7 @@ public class RevSwerve extends SubsystemBase {
 
     public void zeroGyro(double deg) {
         gyro.zeroNavHeading();
-        swerveOdometry.update(getYaw(), getModulePositions());
+        swerveOdometer.update(getYaw(), getModulePositions());
     }
 
     public void zeroGyro() {
@@ -127,12 +128,42 @@ public class RevSwerve extends SubsystemBase {
         return (RevSwerveConfig.invertGyro) ? Rotation2d.fromDegrees(360 - gyro.getHeading()) : Rotation2d.fromDegrees(gyro.getHeading());
     }
 
+    public void synchronizeModuleEncoders() {
+        for(RevSwerveModule mod : SwerveMods) {
+            mod.synchronizeEncoders();
+        }
+    }
+    public double getAvgOmega() {
+        double sum = 0;
+        for(RevSwerveModule mod : SwerveMods) {
+            sum += Math.abs(mod.getState().omegaPerSecond);
+        }
+        return sum / 4;
+    }
+
     @Override
     public void periodic() {
-        for(SwerveModule mod : mSwerveMods) {
+        avgOmega = getAvgOmega();
+
+        for(SwerveModule mod : SwerveMods) {
             SmartDashboard.putNumber("REV Mod " + mod.getModuleNumber() + " Cancoder", mod.getCanCoder().getDegrees());
             SmartDashboard.putNumber("REV Mod " + mod.getModuleNumber() + " Integrated", mod.getPosition().angle.getDegrees());
             SmartDashboard.putNumber("REV Mod " + mod.getModuleNumber() + " Velocity", mod.getState().speedMetersPerSecond);
+        }
+
+        // If the robot isn't moving synchronize the encoders every 100ms (Inspired by democrat's SDS
+        // lib)
+        // To ensure that everytime we initialize it works.
+        if (avgOmega <= .005 && ++moduleSynchronizationCounter > 20)
+        {
+            SmartDashboard.putBoolean("Synchronizing Encoders", !SmartDashboard.getBoolean("Synchronizing Encoders", false));
+            synchronizeModuleEncoders();
+            moduleSynchronizationCounter = 0;
+        }
+        if(avgOmega <= .005){
+            SmartDashboard.putBoolean("Can Synchronizing Encoders", true);
+        }else {
+            SmartDashboard.putBoolean("Can Synchronizing Encoders", false);
         }
     }
 }

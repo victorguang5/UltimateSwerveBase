@@ -15,6 +15,7 @@ import com.revrobotics.SparkMaxPIDController;
 import com.revrobotics.CANSparkMax.ControlType;
 import com.revrobotics.CANSparkMax.FaultID;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
+import frc.robot.util.SwerveModuleState2;
 
 /**
  * a Swerve Modules using REV Robotics motor controllers and CTRE CANcoder absolute encoders.
@@ -83,7 +84,7 @@ public class RevSwerveModule implements SwerveModule
         relAngleEncoder.setVelocityConversionFactor(RevSwerveConfig.DegreesPerTurnRotation / 60);
 
 
-        resetToAbsolute();
+        synchronizeEncoders();
         mDriveMotor.burnFlash();
         mAngleMotor.burnFlash();
 
@@ -154,7 +155,7 @@ public class RevSwerveModule implements SwerveModule
         if(isOpenLoop)
         {
             double percentOutput = desiredState.speedMetersPerSecond / RevSwerveConfig.maxSpeed;
-            mDriveMotor.set(percentOutput);
+            mDriveMotor.set(percentOutput*0.2);
             return;
         }
 
@@ -210,7 +211,7 @@ public class RevSwerveModule implements SwerveModule
         this.moduleNumber = moduleNumber;
     }
 
-    private void resetToAbsolute()
+    public void synchronizeEncoders()
     {
 
         double absolutePosition =getCanCoder().getDegrees() - angleOffset.getDegrees();
@@ -219,11 +220,12 @@ public class RevSwerveModule implements SwerveModule
 
 
 
-    public SwerveModuleState getState()
+    public SwerveModuleState2 getState()
     {
-        return new SwerveModuleState(
+        return new SwerveModuleState2(
             relDriveEncoder.getVelocity(),
-            getAngle()
+            getAngle(),
+            angleEncoder.getVelocity()/360
         );
     }
 
