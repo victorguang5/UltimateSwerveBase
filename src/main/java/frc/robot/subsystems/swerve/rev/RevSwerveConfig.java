@@ -14,11 +14,12 @@ import frc.lib.util.swerveUtil.COTSFalconSwerveConstants;
 public class RevSwerveConfig
 {
 
+    public static double angleRampRate = 0;
     public CANCoderConfiguration canCoderConfig;
 
     //
-    public static final IdleMode driveIdleMode = IdleMode.kCoast;
-    public static final IdleMode angleIdleMode = IdleMode.kCoast;
+    public static final IdleMode driveIdleMode = IdleMode.kBrake;
+    public static final IdleMode angleIdleMode = IdleMode.kBrake;
     public static final double drivePower = 1;
     public static final double anglePower = .9;
 
@@ -98,9 +99,9 @@ public class RevSwerveConfig
 
     /* Swerve Profiling Values */
     /** Meters per Second */
-    public static final double maxSpeed = 1000000000;
+    public static final double maxSpeed = 3.6576;
     /** Radians per Second */
-    public static final double maxAngularVelocity = 1.0;
+    public static final double maxAngularVelocity = 15.0;
 
 
 

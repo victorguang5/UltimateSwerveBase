@@ -136,7 +136,7 @@ public class RevSwerve extends SubsystemBase {
     public double getAvgOmega() {
         double sum = 0;
         for(RevSwerveModule mod : SwerveMods) {
-            sum += Math.abs(mod.getState().omegaPerSecond);
+            sum += Math.abs(mod.getOmega());
         }
         return sum / 4;
     }
@@ -154,7 +154,7 @@ public class RevSwerve extends SubsystemBase {
         // If the robot isn't moving synchronize the encoders every 100ms (Inspired by democrat's SDS
         // lib)
         // To ensure that everytime we initialize it works.
-        if (avgOmega <= .005 && ++moduleSynchronizationCounter > 20)
+        if (avgOmega <= .03 && ++moduleSynchronizationCounter > 20)
         {
             SmartDashboard.putBoolean("Synchronizing Encoders", !SmartDashboard.getBoolean("Synchronizing Encoders", false));
             synchronizeModuleEncoders();
@@ -165,5 +165,6 @@ public class RevSwerve extends SubsystemBase {
         }else {
             SmartDashboard.putBoolean("Can Synchronizing Encoders", false);
         }
+        SmartDashboard.putNumber("avgOmega", avgOmega);
     }
 }
