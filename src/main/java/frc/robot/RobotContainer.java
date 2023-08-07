@@ -8,7 +8,7 @@ import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 
 import frc.robot.commands.*;
-import frc.robot.subsystems.swerve.rev.RevSwerve;
+import frc.robot.subsystems.swerve.SwerveBase;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -29,7 +29,7 @@ public class RobotContainer {
     private final JoystickButton zeroGyro = new JoystickButton(driver, XboxController.Button.kY.value);
 
     /* Subsystems */
-    private final RevSwerve s_Swerve = new RevSwerve();
+    private final SwerveBase s_Swerve = new SwerveBase();
 
 
     /** The container for the robot. Contains subsystems, OI devices, and commands. */

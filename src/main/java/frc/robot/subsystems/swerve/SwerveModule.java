@@ -1,4 +1,4 @@
-package frc.robot.subsystems.swerve.rev;
+package frc.robot.subsystems.swerve;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
@@ -14,8 +14,8 @@ public interface SwerveModule
     public SwerveModuleState getState();
 
     public SwerveModulePosition getPosition();
-    
-    public int getModuleNumber(); 
+
+    public int getModuleNumber();
 
     public void setModuleNumber(int moduleNumber);
 

@@ -1,7 +1,7 @@
-package frc.robot.subsystems.swerve.rev;
+package frc.robot.subsystems.swerve;
 
 import frc.lib.math.GeometryUtils;
-import frc.robot.constants.RevSwerveConstants;
+import frc.robot.Constants;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
@@ -16,7 +16,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.subsystems.NavXGyro;
 
-public class RevSwerve extends SubsystemBase {
+public class SwerveBase extends SubsystemBase {
 
 
     public SwerveDriveOdometry swerveOdometer;
@@ -28,19 +28,19 @@ public class RevSwerve extends SubsystemBase {
 
 
 
-    public RevSwerve() {
+    public SwerveBase() {
 
         gyro = new NavXGyro();
 
         SwerveMods = new RevSwerveModule[] {
 
-            new RevSwerveModule(0, RevSwerveConstants.Swerve.Mod0.constants),
-            new RevSwerveModule(1, RevSwerveConstants.Swerve.Mod1.constants),
-            new RevSwerveModule(2, RevSwerveConstants.Swerve.Mod2.constants),
-            new RevSwerveModule(3, RevSwerveConstants.Swerve.Mod3.constants)
+            new RevSwerveModule(0, Constants.Swerve.Modules.Mod0.constants),
+            new RevSwerveModule(1, Constants.Swerve.Modules.Mod1.constants),
+            new RevSwerveModule(2, Constants.Swerve.Modules.Mod2.constants),
+            new RevSwerveModule(3, Constants.Swerve.Modules.Mod3.constants)
         };
 
-        swerveOdometer = new SwerveDriveOdometry(RevSwerveConfig.swerveKinematics, getYaw(), getModulePositions());
+        swerveOdometer = new SwerveDriveOdometry(Constants.Swerve.swerveKinematics, getYaw(), getModulePositions());
         zeroGyro();
 
     }
@@ -72,8 +72,8 @@ public class RevSwerve extends SubsystemBase {
                 translation.getY(),
                 rotation);
         desiredChassisSpeeds = correctForDynamics(desiredChassisSpeeds);
-        SwerveModuleState[] swerveModuleStates = RevSwerveConfig.swerveKinematics.toSwerveModuleStates(desiredChassisSpeeds);
-        SwerveDriveKinematics.desaturateWheelSpeeds(swerveModuleStates, RevSwerveConfig.maxSpeed);
+        SwerveModuleState[] swerveModuleStates = Constants.Swerve.swerveKinematics.toSwerveModuleStates(desiredChassisSpeeds);
+        SwerveDriveKinematics.desaturateWheelSpeeds(swerveModuleStates, Constants.Swerve.maxSpeed);
         for(SwerveModule mod : SwerveMods){
             mod.setDesiredState(swerveModuleStates[mod.getModuleNumber()], isOpenLoop);
         }
@@ -83,7 +83,7 @@ public class RevSwerve extends SubsystemBase {
     public void setModuleStates(SwerveModuleState[] desiredStates) {
 
        // System.out.println("setting module states: "+desiredStates[0]);
-        SwerveDriveKinematics.desaturateWheelSpeeds(desiredStates, RevSwerveConfig.maxSpeed);
+        SwerveDriveKinematics.desaturateWheelSpeeds(desiredStates, Constants.Swerve.maxSpeed);
 
         for(SwerveModule mod : SwerveMods){
             mod.setDesiredState(desiredStates[mod.getModuleNumber()], false);
@@ -125,7 +125,7 @@ public class RevSwerve extends SubsystemBase {
     }
 
     public Rotation2d getYaw() {
-        return (RevSwerveConfig.invertGyro) ? Rotation2d.fromDegrees(360 - gyro.getHeading()) : Rotation2d.fromDegrees(gyro.getHeading());
+        return (Constants.Swerve.invertGyro) ? Rotation2d.fromDegrees(360 - gyro.getHeading()) : Rotation2d.fromDegrees(gyro.getHeading());
     }
 
     public void synchronizeModuleEncoders() {

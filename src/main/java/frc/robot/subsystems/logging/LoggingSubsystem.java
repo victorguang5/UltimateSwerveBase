@@ -5,38 +5,33 @@
 package frc.robot.subsystems.logging;
 import frc.lib.util.loggingUtil.LogManager;
 // import frc.lib.util.loggingUtil.LogManager;
-import frc.robot.subsystems.swerve.falcon.CTRESwerve;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.subsystems.swerve.SwerveBase;
 
 public class LoggingSubsystem extends SubsystemBase {
-  private CTRESwerve s_Swerve;
-  
-  /** Creates a new LoggingSubsystem. */
-  public LoggingSubsystem(CTRESwerve s_Swerve) {
-    
+
+    private final SwerveBase s_Swerve;
+
+    /** Creates a new LoggingSubsystem. */
+  public LoggingSubsystem(SwerveBase s_Swerve) {
+
     this.s_Swerve = s_Swerve;
   }
   public void updateSwerveLogs() {
     double[] actualStates = {
-      s_Swerve.mSwerveMods[0].getAngle().getDegrees(),
-      s_Swerve.mSwerveMods[0].getState().speedMetersPerSecond,
-      s_Swerve.mSwerveMods[1].getAngle().getDegrees(),
-      s_Swerve.mSwerveMods[1].getState().speedMetersPerSecond,
-      s_Swerve.mSwerveMods[2].getAngle().getDegrees(),
-      s_Swerve.mSwerveMods[2].getState().speedMetersPerSecond,
-      s_Swerve.mSwerveMods[3].getAngle().getDegrees(),
-      s_Swerve.mSwerveMods[3].getState().speedMetersPerSecond
+      s_Swerve.SwerveMods[0].getAngle().getDegrees(),
+      s_Swerve.SwerveMods[0].getState().speedMetersPerSecond,
+      s_Swerve.SwerveMods[1].getAngle().getDegrees(),
+      s_Swerve.SwerveMods[1].getState().speedMetersPerSecond,
+      s_Swerve.SwerveMods[2].getAngle().getDegrees(),
+      s_Swerve.SwerveMods[2].getState().speedMetersPerSecond,
+      s_Swerve.SwerveMods[3].getAngle().getDegrees(),
+      s_Swerve.SwerveMods[3].getState().speedMetersPerSecond
     };
     LogManager.addDoubleArray("Swerve/actual swerve states", actualStates);
     double[] desiredStates = {
-      s_Swerve.mSwerveMods[0].getDesiredAngle().getDegrees(),
-      s_Swerve.mSwerveMods[0].getDesiredVelocity(),
-      s_Swerve.mSwerveMods[1].getDesiredAngle().getDegrees(),
-      s_Swerve.mSwerveMods[1].getDesiredVelocity(),
-      s_Swerve.mSwerveMods[2].getDesiredAngle().getDegrees(),
-      s_Swerve.mSwerveMods[2].getDesiredVelocity(),
-      s_Swerve.mSwerveMods[3].getDesiredAngle().getDegrees(),
-      s_Swerve.mSwerveMods[3].getDesiredVelocity()
+      s_Swerve.SwerveMods[0].desiredState.angle.getDegrees(),
+      s_Swerve.SwerveMods[0].desiredState.speedMetersPerSecond,
     };
     LogManager.addDoubleArray("Swerve/Desired Swerve States", desiredStates);
   }
@@ -44,6 +39,6 @@ public class LoggingSubsystem extends SubsystemBase {
   @Override
   public void periodic() {
     updateSwerveLogs();
-    
+
   }
 }
