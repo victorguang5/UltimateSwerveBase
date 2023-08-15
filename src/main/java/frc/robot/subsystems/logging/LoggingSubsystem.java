@@ -19,19 +19,19 @@ public class LoggingSubsystem extends SubsystemBase {
   }
   public void updateSwerveLogs() {
     double[] actualStates = {
-      s_Swerve.SwerveMods[0].getAngle().getDegrees(),
-      s_Swerve.SwerveMods[0].getState().speedMetersPerSecond,
-      s_Swerve.SwerveMods[1].getAngle().getDegrees(),
-      s_Swerve.SwerveMods[1].getState().speedMetersPerSecond,
-      s_Swerve.SwerveMods[2].getAngle().getDegrees(),
-      s_Swerve.SwerveMods[2].getState().speedMetersPerSecond,
-      s_Swerve.SwerveMods[3].getAngle().getDegrees(),
-      s_Swerve.SwerveMods[3].getState().speedMetersPerSecond
+      s_Swerve.swerveMods[0].getAngle().getDegrees(),
+      s_Swerve.swerveMods[0].getState().speedMetersPerSecond,
+      s_Swerve.swerveMods[1].getAngle().getDegrees(),
+      s_Swerve.swerveMods[1].getState().speedMetersPerSecond,
+      s_Swerve.swerveMods[2].getAngle().getDegrees(),
+      s_Swerve.swerveMods[2].getState().speedMetersPerSecond,
+      s_Swerve.swerveMods[3].getAngle().getDegrees(),
+      s_Swerve.swerveMods[3].getState().speedMetersPerSecond
     };
     LogManager.addDoubleArray("Swerve/actual swerve states", actualStates);
     double[] desiredStates = {
-      s_Swerve.SwerveMods[0].desiredState.angle.getDegrees(),
-      s_Swerve.SwerveMods[0].desiredState.speedMetersPerSecond,
+      s_Swerve.swerveMods[0].desiredState.angle.getDegrees(),
+      s_Swerve.swerveMods[0].desiredState.speedMetersPerSecond,
     };
     LogManager.addDoubleArray("Swerve/Desired Swerve States", desiredStates);
   }
