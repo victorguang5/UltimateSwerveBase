@@ -8,7 +8,7 @@ import edu.wpi.first.wpilibj.DriverStation;
 import frc.lib.util.swerveUtil.CTREModuleState;
 import frc.lib.util.swerveUtil.RevSwerveModuleConstants;
 
-import com.ctre.phoenix6.hardware.CANcoder;
+import com.ctre.phoenix.sensors.CANCoder;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.SparkMaxPIDController;
@@ -20,18 +20,18 @@ import frc.robot.Constants;
 import static frc.robot.Constants.Swerve.swerveCANcoderConfig;
 
 /**
- * a Swerve Modules using REV Robotics motor controllers and CTRE CANcoder absolute encoders.
+ * a Swerve Modules using REV Robotics motor controllers and CTRE CANCoder absolute encoders.
  */
 public class RevSwerveModule implements SwerveModule
 {
     public int moduleNumber;
     private Rotation2d angleOffset;
-   // private Rotation2d lastAngle;
+    // private Rotation2d lastAngle;
 
     private CANSparkMax mAngleMotor;
     private CANSparkMax mDriveMotor;
 
-    private CANcoder angleEncoder;
+    private CANCoder angleEncoder;
     private RelativeEncoder relAngleEncoder;
     private RelativeEncoder relDriveEncoder;
 
@@ -54,20 +54,20 @@ public class RevSwerveModule implements SwerveModule
         mDriveMotor = new CANSparkMax(moduleConstants.driveMotorID,  MotorType.kBrushless);
         configDriveMotor();
 
-         /* Angle Encoder Config */
+        /* Angle Encoder Config */
 
-        angleEncoder = new CANcoder(moduleConstants.cancoderID);
+        angleEncoder = new CANCoder(moduleConstants.cancoderID);
         configEncoders();
 
 
-       // lastAngle = getState().angle;
+        // lastAngle = getState().angle;
     }
 
 
     private void configEncoders()
     {
         // absolute encoder
-        angleEncoder.getConfigurator().apply(swerveCANcoderConfig);
+        angleEncoder.configAllSettings(swerveCANcoderConfig);
 
         relDriveEncoder = mDriveMotor.getEncoder();
         relDriveEncoder.setPosition(0);
@@ -197,7 +197,7 @@ public class RevSwerveModule implements SwerveModule
     public Rotation2d getCanCoder()
     {
 
-        return Rotation2d.fromDegrees(angleEncoder.getAbsolutePosition().getValue());
+        return Rotation2d.fromDegrees(angleEncoder.getAbsolutePosition());
         //return getAngle();
     }
 
@@ -223,21 +223,21 @@ public class RevSwerveModule implements SwerveModule
     public SwerveModuleState getState()
     {
         return new SwerveModuleState(
-            relDriveEncoder.getVelocity(),
-            getAngle()
+                relDriveEncoder.getVelocity(),
+                getAngle()
         );
     }
 
     public double getOmega()
     {
-        return angleEncoder.getVelocity().getValue()/360;
+        return angleEncoder.getVelocity()/360;
     }
 
     public SwerveModulePosition getPosition()
     {
         return new SwerveModulePosition(
-            relDriveEncoder.getPosition(),
-            getAngle()
+                relDriveEncoder.getPosition(),
+                getAngle()
         );
     }
 }

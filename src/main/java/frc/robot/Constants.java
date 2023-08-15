@@ -1,5 +1,6 @@
 package frc.robot;
 
+import com.ctre.phoenix.sensors.CANCoderConfiguration;
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.revrobotics.CANSparkMax;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -80,7 +81,7 @@ public final class Constants {
         public static double angleRampRate = 0;
 
         /* CanCoder Constants */
-        public static final CANcoderConfiguration swerveCANcoderConfig = new CANcoderConfiguration();
+        public static final CANCoderConfiguration swerveCANcoderConfig = new CANCoderConfiguration();
 
         public static class Modules {
             /* Module Specific Constants */
