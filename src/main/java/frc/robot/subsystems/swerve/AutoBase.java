@@ -8,6 +8,7 @@ import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.SwerveControllerCommand;
 import frc.robot.Constants;
+import frc.robot.RobotContainer;
 
 /**
  * Parent class for all autonomous commands
@@ -19,6 +20,10 @@ public class AutoBase extends SequentialCommandGroup {
             Constants.AutoConstants.kThetaControllerConstraints);
     public static final PIDController thetaController =
         new PIDController(Constants.AutoConstants.kPThetaController, 0, 0);
+    public static final PIDController pidX =
+        new PIDController(Constants.AutoConstants.kPXController, 0, 0);
+    public static final PIDController pidY =
+        new PIDController(Constants.AutoConstants.kPYController, 0, 0);
 
     /**
      * Autonomous that aligns limelight then executes a trajectory.
@@ -53,11 +58,7 @@ public class AutoBase extends SequentialCommandGroup {
      * @return A SwerveControllerCommand for the robot to move
      */
     public PPSwerveControllerCommand baseSwerveCommand(PathPlannerTrajectory trajectory) {
-        PPSwerveControllerCommand command = new PPSwerveControllerCommand(trajectory,
-            swerve::getPose, Constants.Swerve.swerveKinematics,
-            new PIDController(Constants.AutoConstants.kPXController, 0, 0),
-            new PIDController(Constants.AutoConstants.kPYController, 0, 0), thetaController,
-            swerve::setModuleStates, swerve);
+        PPSwerveControllerCommand command = new PPSwerveControllerCommand(trajectory, swerve::getPose, Constants.Swerve.swerveKinematics, pidX, pidY, thetaController, swerve::setModuleStates, swerve);
         return command;
     }
 }

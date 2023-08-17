@@ -1,12 +1,16 @@
 package frc.robot;
 
+import com.pathplanner.lib.server.PathPlannerServer;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 
+import frc.robot.auto.Taxi;
 import frc.robot.commands.*;
 import frc.robot.subsystems.swerve.SwerveBase;
 
@@ -31,6 +35,9 @@ public class RobotContainer {
     /* Subsystems */
     private final SwerveBase s_Swerve = new SwerveBase();
 
+    /* Network Tables Elements */
+
+    SendableChooser<Command> autoChooser = new SendableChooser<Command>();
 
     /** The container for the robot. Contains subsystems, OI devices, and commands. */
     public RobotContainer() {
@@ -43,6 +50,10 @@ public class RobotContainer {
                 () -> false
             )
         );
+        /* Auto */
+        PathPlannerServer.startServer(5811);
+        autoChooser.setDefaultOption("taxi", new Taxi(s_Swerve));
+        SmartDashboard.putData("auto", autoChooser);
 
         // Configure the button bindings
         configureButtonBindings();
@@ -65,6 +76,6 @@ public class RobotContainer {
      * @return the command to run in autonomous
      */
     public Command getAutonomousCommand() {
-        return null;
+        return autoChooser.getSelected();
     }
 }

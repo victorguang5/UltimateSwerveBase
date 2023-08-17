@@ -153,6 +153,8 @@ public class SwerveBase extends SubsystemBase {
     public void periodic() {
         avgOmega = getAvgOmega();
 
+        swerveOdometer.update(getYaw(), getModulePositions());
+
         for(SwerveModule mod : swerveMods) {
             SmartDashboard.putNumber("REV Mod " + mod.getModuleNumber() + " Cancoder", mod.getCanCoder().getDegrees());
             SmartDashboard.putNumber("REV Mod " + mod.getModuleNumber() + " Integrated", mod.getPosition().angle.getDegrees());
