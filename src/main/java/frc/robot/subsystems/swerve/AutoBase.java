@@ -44,10 +44,12 @@ public class AutoBase extends SequentialCommandGroup {
      */
     public SwerveControllerCommand baseSwerveCommand(Trajectory trajectory) {
         SwerveControllerCommand command = new SwerveControllerCommand(trajectory, swerve::getPose,
-            Constants.Swerve.swerveKinematics,
-            new PIDController(Constants.AutoConstants.kPXController, 0, 0),
-            new PIDController(Constants.AutoConstants.kPYController, 0, 0), profiledthetaController,
-            swerve::setModuleStates, swerve);
+                Constants.Swerve.swerveKinematics,
+                new PIDController(Constants.AutoConstants.kPXController, 0, 0),
+                new PIDController(Constants.AutoConstants.kPYController, 0, 0),
+                new ProfiledPIDController(Constants.AutoConstants.kPThetaController, 0, 0,
+                        Constants.AutoConstants.kThetaControllerConstraints),
+                swerve::setModuleStates, swerve);
         return command;
     }
 
