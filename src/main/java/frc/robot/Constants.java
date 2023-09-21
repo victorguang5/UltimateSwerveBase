@@ -3,11 +3,12 @@ package frc.robot;
 import com.ctre.phoenix.sensors.CANCoderConfiguration;
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.revrobotics.CANSparkMax;
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.geometry.*;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
+import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import frc.lib.util.swerveUtil.COTSFalconSwerveConstants;
 import frc.lib.util.swerveUtil.RevSwerveModuleConstants;
 
@@ -16,6 +17,7 @@ public final class Constants {
 
 
     public static final class Swerve {
+
         // Spark Max Idle Modes
         public static final CANSparkMax.IdleMode driveIdleMode = CANSparkMax.IdleMode.kBrake;
         public static final CANSparkMax.IdleMode angleIdleMode = CANSparkMax.IdleMode.kBrake;
@@ -29,7 +31,7 @@ public final class Constants {
 
         // Swerve Module Type
         public static final COTSFalconSwerveConstants chosenModule =
-            COTSFalconSwerveConstants.SDSMK4i(COTSFalconSwerveConstants.driveGearRatios.SDSMK4i_L2);
+            COTSFalconSwerveConstants.SDSMK4i(COTSFalconSwerveConstants.driveGearRatios.SDSMK4i_L1);
         /* Angle Encoder Invert */
         public static final boolean canCoderInvert = chosenModule.canCoderInvert;
         public static final boolean driveMotorInvert = chosenModule.driveMotorInvert;
@@ -128,15 +130,28 @@ public final class Constants {
         }
     }
 
+    public static class CameraConstants {
+
+        public static final double ROLL = -Math.PI / 2;
+        public static final double PITCH = 0.0;
+        public static final double YAW = 0.0;
+        public static final Transform3d KCAMERA_TO_ROBOT =
+                new Transform3d(new Translation3d(Units.inchesToMeters(0), Units.inchesToMeters(8),
+                        Units.inchesToMeters(22.125)), new Rotation3d(ROLL, PITCH, YAW)).inverse();
+
+        public static final String CAMERA_NAME = "CSI";
+        public static final double LARGEST_DISTANCE = 0.1;
+    }
+
     public static final class AutoConstants {
         public static final double kMaxSpeedMetersPerSecond = 2;
         public static final double kMaxAccelerationMetersPerSecondSquared = 1;
         public static final double kMaxAngularSpeedRadiansPerSecond = Math.PI * 16;
         public static final double kMaxAngularSpeedRadiansPerSecondSquared = Math.PI * 16;
 
-        public static final double kPXController = 1;
-        public static final double kPYController = 1;
-        public static final double kPThetaController = 1;
+        public static final double kPXController = 18;
+        public static final double kPYController = 18;
+        public static final double kPThetaController = 30;
 
         // Motion profilied robot angle controller
         public static final TrapezoidProfile.Constraints kThetaControllerConstraints =

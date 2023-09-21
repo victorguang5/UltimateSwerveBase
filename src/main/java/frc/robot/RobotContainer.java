@@ -1,9 +1,12 @@
 package frc.robot;
 
 import com.pathplanner.lib.server.PathPlannerServer;
+import edu.wpi.first.net.PortForwarder;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
+import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -21,6 +24,8 @@ import frc.robot.subsystems.swerve.SwerveBase;
  * subsystems, commands, and button mappings) should be declared here.
  */
 public class RobotContainer {
+    /* Shuffleboard */
+    public static ShuffleboardTab autoTab = Shuffleboard.getTab("Auto");
     /* Controllers */
     private final Joystick driver = new Joystick(0);
 
@@ -37,7 +42,7 @@ public class RobotContainer {
 
     /* Network Tables Elements */
 
-    SendableChooser<Command> autoChooser = new SendableChooser<Command>();
+    SendableChooser<Command> movementChooser = new SendableChooser<Command>();
 
     /** The container for the robot. Contains subsystems, OI devices, and commands. */
     public RobotContainer() {
@@ -47,13 +52,19 @@ public class RobotContainer {
                 () -> -driver.getRawAxis(translationAxis),
                 () -> -driver.getRawAxis(strafeAxis),
                 () -> -driver.getRawAxis(rotationAxis),
+                () -> false,
                 () -> false
             )
         );
         /* Auto */
         PathPlannerServer.startServer(5811);
-        autoChooser.setDefaultOption("taxi", new Taxi(s_Swerve));
-        SmartDashboard.putData("auto", autoChooser);
+        movementChooser.setDefaultOption("taxi", new Taxi(s_Swerve));
+        movementChooser.addOption("No Movement", new InstantCommand());
+        SmartDashboard.putData("Movement", movementChooser);
+
+        /* Networking */
+        PortForwarder.add(5800, "10.75.20.40", 5800);
+        PortForwarder.add(1181, "10.75.20.40", 1181);
 
         // Configure the button bindings
         configureButtonBindings();
@@ -76,6 +87,6 @@ public class RobotContainer {
      * @return the command to run in autonomous
      */
     public Command getAutonomousCommand() {
-        return autoChooser.getSelected();
+        return movementChooser.getSelected();
     }
 }

@@ -1,6 +1,13 @@
 package frc.robot.subsystems.swerve;
 
+import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
+import edu.wpi.first.networktables.GenericEntry;
+import edu.wpi.first.wpilibj.shuffleboard.BuiltInWidgets;
+import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
+import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
+import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import frc.lib.math.GeometryUtils;
+import frc.lib.util.PhotonCameraWrapper;
 import frc.robot.Constants;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
@@ -14,23 +21,35 @@ import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.RobotContainer;
 import frc.robot.util.NavXGyro;
+
+import java.util.Map;
 
 public class SwerveBase extends SubsystemBase {
 
+    public PhotonCameraWrapper cam = new PhotonCameraWrapper(Constants.CameraConstants.CAMERA_NAME,
+            Constants.CameraConstants.KCAMERA_TO_ROBOT.inverse());
 
-    public SwerveDriveOdometry swerveOdometer;
+    public SwerveDrivePoseEstimator swerveOdometer;
     public RevSwerveModule[] swerveMods;
-    public NavXGyro gyro;
+    public NavXGyro gyro = NavXGyro.getInstance();
 
     private int moduleSynchronizationCounter = 0;
     private double avgOmega = 0;
 
+    private double fieldOffset = gyro.getYaw();
+    private final Field2d field = new Field2d();
+    private boolean hasInitialized = false;
+
+    private GenericEntry aprilTagTarget = RobotContainer.autoTab
+            .add("Currently Seeing April Tag", false).withWidget(BuiltInWidgets.kBooleanBox)
+            .withProperties(Map.of("Color when true", "green", "Color when false", "red"))
+            .withPosition(8, 4).withSize(2, 2).getEntry();
+
 
 
     public SwerveBase() {
-
-        gyro = new NavXGyro();
 
         swerveMods = new RevSwerveModule[] {
 
@@ -40,7 +59,7 @@ public class SwerveBase extends SubsystemBase {
             new RevSwerveModule(3, Constants.Swerve.Modules.Mod3.constants)
         };
 
-        swerveOdometer = new SwerveDriveOdometry(Constants.Swerve.swerveKinematics, getYaw(), getModulePositions(), new Pose2d());
+        swerveOdometer = new SwerveDrivePoseEstimator(Constants.Swerve.swerveKinematics, getYaw(), getModulePositions(), new Pose2d());
         zeroGyro();
 
     }
@@ -99,7 +118,7 @@ public class SwerveBase extends SubsystemBase {
         }
     }
     public Pose2d getPose() {
-        return swerveOdometer.getPoseMeters();
+        return swerveOdometer.getEstimatedPosition();
     }
     public void resetOdometry(Pose2d pose) {
 
@@ -151,9 +170,35 @@ public class SwerveBase extends SubsystemBase {
 
     @Override
     public void periodic() {
-        avgOmega = getAvgOmega();
-
+        Rotation2d yaw = getYaw();
         swerveOdometer.update(getYaw(), getModulePositions());
+        SmartDashboard.putBoolean("photonGood", cam.latency() < 0.6);
+        if (!hasInitialized /* || DriverStation.isDisabled() */) {
+            var robotPose = cam.getInitialPose();
+            if (robotPose.isPresent()) {
+                swerveOdometer.resetPosition(getYaw(), getModulePositions(), robotPose.get());
+                hasInitialized = true;
+            }
+        } else {
+            var result = cam.getEstimatedGlobalPose(swerveOdometer.getEstimatedPosition());
+            if (result.isPresent()) {
+                var camPose = result.get();
+                if (camPose.targetsUsed.get(0).getArea() > 0.7) {
+                    swerveOdometer.addVisionMeasurement(camPose.estimatedPose.toPose2d(),
+                            camPose.timestampSeconds);
+                }
+                field.getObject("Cam Est Pose").setPose(camPose.estimatedPose.toPose2d());
+            } else {
+                field.getObject("Cam Est Pose").setPose(new Pose2d(-100, -100, new Rotation2d()));
+            }
+        }
+
+        SmartDashboard.putData("field", field);
+
+        field.setRobotPose(getPose());
+        aprilTagTarget.setBoolean(cam.seesTarget());
+
+        avgOmega = getAvgOmega();
 
         for(SwerveModule mod : swerveMods) {
             SmartDashboard.putNumber("REV Mod " + mod.getModuleNumber() + " Cancoder", mod.getCanCoder().getDegrees());

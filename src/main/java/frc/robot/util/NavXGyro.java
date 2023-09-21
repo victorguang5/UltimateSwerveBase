@@ -15,7 +15,7 @@ public class NavXGyro extends AHRS{
     public static double zeroAngle;
 
     /** Creates a new NavXGyro. */
-    public NavXGyro() {
+    private NavXGyro() {
         super(SPI.Port.kMXP);
 
         zeroHeading = getNavHeading();
