@@ -222,4 +222,10 @@ public class SwerveBase extends SubsystemBase {
         }
         SmartDashboard.putNumber("avgOmega", avgOmega);
     }
+
+    public void stop() {
+        for(SwerveModule mod : swerveMods) {
+            mod.setDesiredState(mod.getState(), false);
+        }
+    }
 }

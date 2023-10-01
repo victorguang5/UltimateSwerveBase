@@ -1,6 +1,8 @@
 package frc.robot;
 
 import com.pathplanner.lib.server.PathPlannerServer;
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.net.PortForwarder;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.Joystick;
@@ -36,9 +38,20 @@ public class RobotContainer {
 
     /* Driver Buttons */
     private final JoystickButton zeroGyro = new JoystickButton(driver, XboxController.Button.kA.value);
+    private final JoystickButton autoMove = new JoystickButton(driver, XboxController.Button.kB.value);
 
     /* Subsystems */
     private final SwerveBase s_Swerve = new SwerveBase();
+
+    /* Commands */
+
+    //example of auto move
+    DriveToPoseCommand autoMoveCommand = new DriveToPoseCommand(
+            s_Swerve,
+            s_Swerve::getPose,
+            new Pose2d(15.01, 1.52, new Rotation2d(0)),
+            false
+    );
 
     /* Network Tables Elements */
 
@@ -46,6 +59,7 @@ public class RobotContainer {
 
     /** The container for the robot. Contains subsystems, OI devices, and commands. */
     public RobotContainer() {
+        SmartDashboard.putBoolean("auto driving", false);
         s_Swerve.setDefaultCommand(
             new TeleopSwerve(
                 s_Swerve,
@@ -79,6 +93,10 @@ public class RobotContainer {
     private void configureButtonBindings() {
         /* Driver Buttons */
         zeroGyro.onTrue(new InstantCommand(() -> s_Swerve.zeroGyro()));
+
+        //example of auto move
+        autoMove.whileTrue(autoMoveCommand);
+        autoMove.toggleOnFalse(new InstantCommand(() -> autoMoveCommand.cancel()));
     }
 
     /**

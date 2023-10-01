@@ -8,7 +8,6 @@ import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.SwerveControllerCommand;
 import frc.robot.Constants;
-import frc.robot.RobotContainer;
 
 /**
  * Parent class for all autonomous commands
@@ -16,14 +15,14 @@ import frc.robot.RobotContainer;
 public class AutoBase extends SequentialCommandGroup {
     public SwerveBase swerve;
     public static final ProfiledPIDController profiledthetaController =
-        new ProfiledPIDController(Constants.AutoConstants.kPThetaController, 0, 0,
+        new ProfiledPIDController(Constants.AutoConstants.THETA_kP, 0, 0,
             Constants.AutoConstants.kThetaControllerConstraints);
     public static final PIDController thetaController =
-        new PIDController(Constants.AutoConstants.kPThetaController, 0, 0);
+        new PIDController(Constants.AutoConstants.THETA_kP, 0, 0);
     public static final PIDController pidX =
-        new PIDController(Constants.AutoConstants.kPXController, 0, 0);
+        new PIDController(Constants.AutoConstants.X_kP, 0, 0);
     public static final PIDController pidY =
-        new PIDController(Constants.AutoConstants.kPYController, 0, 0);
+        new PIDController(Constants.AutoConstants.Y_kP, 0, 0);
 
     /**
      * Autonomous that aligns limelight then executes a trajectory.
@@ -45,9 +44,9 @@ public class AutoBase extends SequentialCommandGroup {
     public SwerveControllerCommand baseSwerveCommand(Trajectory trajectory) {
         SwerveControllerCommand command = new SwerveControllerCommand(trajectory, swerve::getPose,
                 Constants.Swerve.swerveKinematics,
-                new PIDController(Constants.AutoConstants.kPXController, 0, 0),
-                new PIDController(Constants.AutoConstants.kPYController, 0, 0),
-                new ProfiledPIDController(Constants.AutoConstants.kPThetaController, 0, 0,
+                new PIDController(Constants.AutoConstants.X_kP, 0, 0),
+                new PIDController(Constants.AutoConstants.Y_kP, 0, 0),
+                new ProfiledPIDController(Constants.AutoConstants.THETA_kP, 0, 0,
                         Constants.AutoConstants.kThetaControllerConstraints),
                 swerve::setModuleStates, swerve);
         return command;

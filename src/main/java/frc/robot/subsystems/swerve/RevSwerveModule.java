@@ -96,7 +96,7 @@ public class RevSwerveModule implements SwerveModule
         controller.setP(Constants.Swerve.angleKP, 0);
         controller.setI(Constants.Swerve.angleKI,0);
         controller.setD(Constants.Swerve.angleKD,0);
-        controller.setFF(Constants.Swerve.angleKF,0);
+        controller.setFF(Constants.Swerve.angleKFF,0);
         controller.setOutputRange(-Constants.Swerve.anglePower, Constants.Swerve.anglePower);
         mAngleMotor.setSmartCurrentLimit(Constants.Swerve.angleContinuousCurrentLimit);
 
@@ -115,7 +115,7 @@ public class RevSwerveModule implements SwerveModule
         controller.setP(Constants.Swerve.driveKP,0);
         controller.setI(Constants.Swerve.driveKI,0);
         controller.setD(Constants.Swerve.driveKD,0);
-        controller.setFF(Constants.Swerve.driveKF,0);
+        controller.setFF(Constants.Swerve.driveKFF,0);
         controller.setOutputRange(-Constants.Swerve.drivePower, Constants.Swerve.drivePower);
         mDriveMotor.setSmartCurrentLimit(Constants.Swerve.driveContinuousCurrentLimit);
         mDriveMotor.setInverted(Constants.Swerve.driveMotorInvert);
@@ -155,7 +155,7 @@ public class RevSwerveModule implements SwerveModule
         if(isOpenLoop)
         {
             double percentOutput = desiredState.speedMetersPerSecond / Constants.Swerve.maxSpeed;
-            mDriveMotor.set(percentOutput*0.5);
+            mDriveMotor.set(percentOutput);
             return;
         }
 

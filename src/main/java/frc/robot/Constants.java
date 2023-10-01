@@ -1,14 +1,11 @@
 package frc.robot;
 
 import com.ctre.phoenix.sensors.CANCoderConfiguration;
-import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.revrobotics.CANSparkMax;
 import edu.wpi.first.math.geometry.*;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
-import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
-import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import frc.lib.util.swerveUtil.COTSFalconSwerveConstants;
 import frc.lib.util.swerveUtil.RevSwerveModuleConstants;
 
@@ -42,6 +39,7 @@ public final class Constants {
         public static final double DegreesPerTurnRotation = 360/angleGearRatio;
         /* Module Gear Ratios */
         public static final double driveGearRatio = chosenModule.driveGearRatio;
+
         // encoder setup
         // meters per rotation
         public static final double wheelCircumference = chosenModule.wheelCircumference;
@@ -70,12 +68,19 @@ public final class Constants {
         public static final double angleKP = 0.05;
         public static final double angleKI = 0;
         public static final double angleKD = 0;
-        public static final double angleKF = 0;
+        public static final double angleKFF = 0;
+
+        /* Drive Motor info  */
+        public static final double kDrivingMotorFreeSpeedRps = NeoMotorConstants.kFreeSpeedRpm / 60;
+
+        public static final double kDriveWheelFreeSpeedRps = (kDrivingMotorFreeSpeedRps * wheelCircumference)
+                / driveGearRatio;
+
         /* Drive Motor PID Values */
-        public static final double driveKP = 0.2;
+        public static final double driveKP = 0.04;
         public static final double driveKI = 0.0;
         public static final double driveKD = 0.0;
-        public static final double driveKF = 0.0;
+        public static final double driveKFF = 1 / kDriveWheelFreeSpeedRps;
         /** Meters per Second */
         public static final double maxSpeed = 3.6576;
         /** Radians per Second */
@@ -149,13 +154,26 @@ public final class Constants {
         public static final double kMaxAngularSpeedRadiansPerSecond = Math.PI * 16;
         public static final double kMaxAngularSpeedRadiansPerSecondSquared = Math.PI * 16;
 
-        public static final double kPXController = 18;
-        public static final double kPYController = 18;
-        public static final double kPThetaController = 30;
+        public static final double X_kP = 18;
+        public static final double X_kI = 0;
+        public static final double X_kD = 0;
+
+        public static final double Y_kP = 18;
+        public static final double Y_kI = 0;
+        public static final double Y_kD = 0;
+
+        public static final double THETA_kP = 30;
+        public static final double THETA_kI = 0;
+        public static final double THETA_kD = 0;
+
 
         // Motion profilied robot angle controller
         public static final TrapezoidProfile.Constraints kThetaControllerConstraints =
                 new TrapezoidProfile.Constraints(kMaxAngularSpeedRadiansPerSecond,
                         kMaxAngularSpeedRadiansPerSecondSquared);
+    }
+
+    public static final class NeoMotorConstants {
+        public static final double kFreeSpeedRpm = 5676;
     }
 }
