@@ -84,7 +84,7 @@ public final class Constants {
         /** Meters per Second */
         public static final double maxSpeed = 3.6576;
         /** Radians per Second */
-        public static final double maxAngularVelocity = 15.0;
+        public static final double maxAngularVelocity = 5.0;
         public static double angleRampRate = 0;
 
         /* CanCoder Constants */
@@ -135,7 +135,7 @@ public final class Constants {
         }
     }
 
-    public static class CameraConstants {
+    public static final class CameraConstants {
 
         public static final double ROLL = -Math.PI / 2;
         public static final double PITCH = 0.0;
@@ -154,15 +154,15 @@ public final class Constants {
         public static final double kMaxAngularSpeedRadiansPerSecond = Math.PI * 16;
         public static final double kMaxAngularSpeedRadiansPerSecondSquared = Math.PI * 16;
 
-        public static final double X_kP = 18;
+        public static final double X_kP = 5;
         public static final double X_kI = 0;
         public static final double X_kD = 0;
 
-        public static final double Y_kP = 18;
+        public static final double Y_kP = 5;
         public static final double Y_kI = 0;
         public static final double Y_kD = 0;
 
-        public static final double THETA_kP = 30;
+        public static final double THETA_kP = 6.2;
         public static final double THETA_kI = 0;
         public static final double THETA_kD = 0;
 

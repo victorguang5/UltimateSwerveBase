@@ -1,10 +1,5 @@
 package frc.robot.commands;
 
-import static frc.robot.Constants.AutoConstants.*;
-import static frc.robot.Constants.Swerve.*;
-
-import java.util.function.Supplier;
-
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -16,6 +11,11 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import frc.robot.subsystems.swerve.SwerveBase;
+
+import java.util.function.Supplier;
+
+import static frc.robot.Constants.AutoConstants.*;
+import static frc.robot.Constants.Swerve.*;
 
 /**
  * Command to drive to a pose.
