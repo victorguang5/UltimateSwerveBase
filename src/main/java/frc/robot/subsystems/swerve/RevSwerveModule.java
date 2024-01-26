@@ -12,6 +12,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.lib.util.swerveUtil.CTREModuleState;
 import frc.lib.util.swerveUtil.RevSwerveModuleConstants;
 import frc.robot.Constants;
@@ -103,6 +104,10 @@ public class RevSwerveModule implements SwerveModule
         mAngleMotor.setIdleMode(Constants.Swerve.angleIdleMode);
         mAngleMotor.setClosedLoopRampRate(Constants.Swerve.angleRampRate);
 
+        controller.setSmartMotionMinOutputVelocity(Constants.Swerve.minVel, 0);
+        controller.setSmartMotionMaxVelocity(Constants.Swerve.maxVel, 0);
+        controller.setSmartMotionMaxAccel(Constants.Swerve.maxAcc, 0);
+        controller.setSmartMotionAllowedClosedLoopError(Constants.Swerve.allowedErr, 0);
 
 
     }
@@ -121,7 +126,11 @@ public class RevSwerveModule implements SwerveModule
         mDriveMotor.setIdleMode(Constants.Swerve.driveIdleMode);
 
 
-
+        controller.setSmartMotionMinOutputVelocity(Constants.Swerve.minVel, 0);
+        controller.setSmartMotionMaxVelocity(Constants.Swerve.maxVel, 0);
+        controller.setSmartMotionMaxAccel(Constants.Swerve.maxAcc, 0);
+        controller.setSmartMotionAllowedClosedLoopError(Constants.Swerve.allowedErr, 0);
+    
 
     }
 
@@ -135,7 +144,7 @@ public class RevSwerveModule implements SwerveModule
         // CTREModuleState actually works for any type of motor.
         this.desiredState = CTREModuleState.optimize(desiredState, getState().angle);
         setAngle(this.desiredState);
-        setSpeed(this.desiredState, isOpenLoop);
+        setSpeed(this.desiredState,false);//isOpenLoop);
 
         if(mDriveMotor.getFault(FaultID.kSensorFault))
         {
@@ -161,7 +170,9 @@ public class RevSwerveModule implements SwerveModule
         double velocity = desiredState.speedMetersPerSecond;
 
         SparkMaxPIDController controller = mDriveMotor.getPIDController();
-        controller.setReference(velocity, ControlType.kVelocity, 0);
+        controller.setReference(velocity, CANSparkMax.ControlType.kSmartVelocity, 0);
+        SmartDashboard.putNumber("Speed",velocity);
+        SmartDashboard.putNumber("output",mDriveMotor.getAppliedOutput());
 
     }
 
@@ -182,7 +193,7 @@ public class RevSwerveModule implements SwerveModule
 
 
 
-        controller.setReference (degReference, ControlType.kPosition, 0);
+        controller.setReference (degReference, ControlType.kSmartMotion, 0);
 
     }
 

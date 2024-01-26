@@ -86,7 +86,7 @@ public class SwerveBase extends SubsystemBase {
     }
 
     public void drive(Translation2d translation, double rotation, boolean fieldRelative, boolean isOpenLoop) {
-        ChassisSpeeds desiredChassisSpeeds =
+            ChassisSpeeds desiredChassisSpeeds =
         fieldRelative ?
         ChassisSpeeds.fromFieldRelativeSpeeds(
                 translation.getX(),
@@ -102,7 +102,7 @@ public class SwerveBase extends SubsystemBase {
         desiredChassisSpeeds = correctForDynamics(desiredChassisSpeeds);
         SwerveModuleState[] swerveModuleStates = Constants.Swerve.swerveKinematics.toSwerveModuleStates(desiredChassisSpeeds);
         SwerveDriveKinematics.desaturateWheelSpeeds(swerveModuleStates, Constants.Swerve.maxSpeed);
-        for(SwerveModule mod : swerveMods){
+       for(SwerveModule mod : swerveMods){
             mod.setDesiredState(swerveModuleStates[mod.getModuleNumber()], isOpenLoop);
         }
 
@@ -112,7 +112,7 @@ public class SwerveBase extends SubsystemBase {
 
        // System.out.println("setting module states: "+desiredStates[0]);
         SwerveDriveKinematics.desaturateWheelSpeeds(desiredStates, Constants.Swerve.maxSpeed);
-
+        
         for(SwerveModule mod : swerveMods){
             mod.setDesiredState(desiredStates[mod.getModuleNumber()], false);
         }
