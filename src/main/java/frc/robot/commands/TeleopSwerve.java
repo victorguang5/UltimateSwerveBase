@@ -10,7 +10,6 @@ import frc.robot.subsystems.swerve.SwerveBase;
 import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
 
-
 public class TeleopSwerve extends CommandBase {
     private SwerveBase s_Swerve;
     private DoubleSupplier translationSup;
@@ -39,7 +38,7 @@ public class TeleopSwerve extends CommandBase {
 
     @Override
     public void execute() {
-        /* Get Values, Deadband*/
+        /* Get Values, Deadband */
         double translationVal = MathUtil.applyDeadband(translationSup.getAsDouble(), Constants.stickDeadband);
         double strafeVal = MathUtil.applyDeadband(strafeSup.getAsDouble(), Constants.stickDeadband);
         double rotationVal = MathUtil.applyDeadband(rotationSup.getAsDouble(), Constants.stickDeadband);
@@ -51,10 +50,10 @@ public class TeleopSwerve extends CommandBase {
 
         /* Drive */
         s_Swerve.drive(
-                new Translation2d(translationVal, strafeVal).times(Constants.Swerve.maxSpeed).times( speedCutoffVal ? 0.5 : 1),
+                new Translation2d(translationVal, strafeVal).times(Constants.Swerve.maxSpeed)
+                        .times(speedCutoffVal ? 0.5 : 1),
                 rotationVal * Constants.Swerve.maxAngularVelocity * (speedCutoffVal ? 0.5 : 1),
                 !robotCentricSup.getAsBoolean(),
-                true
-        );
+                true);
     }
 }

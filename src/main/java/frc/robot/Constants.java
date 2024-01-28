@@ -80,7 +80,8 @@ public final class Constants {
                 / driveGearRatio;
 
         /* Drive Motor PID Values */
-        public static final double driveKP = 0.1;
+        public static final double driveKP_v = 0.1;
+        public static final double driveKP_p = 0.00005;
         public static final double driveKI = 0.0;
         public static final double driveKD = 0.0;
         public static final double driveKFF = 0.000156; // 1 / kDriveWheelFreeSpeedRps;
@@ -90,7 +91,8 @@ public final class Constants {
         public static final double maxAngularVelocity = 0.1; // 5.0;
         public static double angleRampRate = 0;
 
-        public static double maxVel = 3;
+        public static double maxVel_v = 3;
+        public static double maxVel_p = 1;
         public static double minVel = 0;
         public static double maxAcc = 0.1;
         public static double allowedErr = 0.21;

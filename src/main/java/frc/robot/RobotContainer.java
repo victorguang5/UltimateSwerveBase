@@ -12,7 +12,15 @@ import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.RamseteCommand;
+import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.RamseteCommand;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 
 import frc.robot.auto.Taxi;
@@ -30,6 +38,9 @@ public class RobotContainer {
     public static ShuffleboardTab autoTab = Shuffleboard.getTab("Auto");
     /* Controllers */
     private final Joystick driver = new Joystick(0);
+    CommandXboxController m_driverController = new CommandXboxController(1);
+
+  //  SwerveBase m_robotDrive = new SwerveBase();
 
     /* Drive Controls */
     private final int translationAxis = XboxController.Axis.kLeftY.value;
@@ -40,9 +51,12 @@ public class RobotContainer {
     private final JoystickButton zeroGyro = new JoystickButton(driver, XboxController.Button.kA.value);
     private final JoystickButton autoMove = new JoystickButton(driver, XboxController.Button.kB.value);
 
+
     /* Subsystems */
     private final SwerveBase s_Swerve = new SwerveBase();
-
+   // private final Command m_driveSmartPosition = Commands.runOnce(()->s_Swerve.setSmartPosition());
+   private final Command m_driveSmartPosition = Commands.runOnce(()->s_Swerve.setSmartPosition());
+   //private final Command m_driveSmartPosition = Commands.runOnce(()->mytest());
     /* Commands */
 
     //example of auto move
@@ -93,12 +107,18 @@ public class RobotContainer {
     private void configureButtonBindings() {
         /* Driver Buttons */
         zeroGyro.onTrue(new InstantCommand(() -> s_Swerve.zeroGyro()));
-
+ //       m_driverController.y().onTrue(m_driveSmartPosition);
+ autoMove.whileTrue(m_driveSmartPosition);
         //example of auto move
-        autoMove.whileTrue(autoMoveCommand);
-        autoMove.toggleOnFalse(new InstantCommand(() -> autoMoveCommand.cancel()));
+ //       autoMove.whileTrue(autoMoveCommand);
+  //      autoMove.toggleOnFalse(new InstantCommand(() -> autoMoveCommand.cancel()));
+        SmartDashboard.putNumber("setSmartPosition",0);
     }
 
+    private void mytest()
+    {
+        SmartDashboard.putNumber("setSmartPosition",33);
+    }
     /**
      * Use this to pass the autonomous command to the main {@link Robot} class.
      *

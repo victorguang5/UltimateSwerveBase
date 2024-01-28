@@ -85,9 +85,9 @@ public class SwerveBase extends SubsystemBase {
         return updatedSpeeds;
     }
 
-    public void drive(Translation2d translation, double rotation, boolean fieldRelative, boolean isOpenLoop) {
-            ChassisSpeeds desiredChassisSpeeds =
-        fieldRelative ?
+    public void drive(Translation2d translation, double rotation, boolean fieldRelative, boolean isOpenLoop) 
+    {
+        ChassisSpeeds desiredChassisSpeeds = fieldRelative ?
         ChassisSpeeds.fromFieldRelativeSpeeds(
                 translation.getX(),
                 translation.getY(),
@@ -107,6 +107,21 @@ public class SwerveBase extends SubsystemBase {
         }
 
     }
+    
+    public void setSmartPosition()
+    {
+        ChassisSpeeds desiredChassisSpeeds = new ChassisSpeeds(2,0,0);
+
+        SwerveModuleState[] swerveModuleStates = Constants.Swerve.swerveKinematics.toSwerveModuleStates(desiredChassisSpeeds);
+        SwerveDriveKinematics.desaturateWheelSpeeds(swerveModuleStates, Constants.Swerve.maxSpeed);
+//        for(SwerveModule mod : swerveMods){
+//            mod.setDesiredState(swerveModuleStates[mod.getModuleNumber()], false);
+//        }
+        SwerveModule mod = swerveMods[0];
+        mod.setPosition(2);
+        SmartDashboard.putNumber("setSmartPosition",swerveModuleStates[0].speedMetersPerSecond);
+        SmartDashboard.putNumber("setSmartPosition-1",swerveModuleStates[0].angle.getDegrees());
+    }
     /* Used by SwerveControllerCommand in Auto */
     public void setModuleStates(SwerveModuleState[] desiredStates) {
 
@@ -117,6 +132,7 @@ public class SwerveBase extends SubsystemBase {
             mod.setDesiredState(desiredStates[mod.getModuleNumber()], false);
         }
     }
+
     public Pose2d getPose() {
         return swerveOdometer.getEstimatedPosition();
     }
@@ -167,7 +183,7 @@ public class SwerveBase extends SubsystemBase {
         for(RevSwerveModule mod : swerveMods) {
             sum += Math.abs(mod.getOmega());
         }
-        return sum / 4;
+       return sum / 4;
     }
 
     @Override
