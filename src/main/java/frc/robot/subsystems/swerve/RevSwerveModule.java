@@ -161,7 +161,7 @@ public class RevSwerveModule implements SwerveModule
         }
     }
 
-    private void setSpeed(SwerveModuleState desiredState, boolean isOpenLoop)
+    public void setSpeed(SwerveModuleState desiredState, boolean isOpenLoop)
     {
 
         if(isOpenLoop)
@@ -180,7 +180,7 @@ public class RevSwerveModule implements SwerveModule
 
     }
 
-    private void setAngle(SwerveModuleState desiredState)
+    public void setAngle(SwerveModuleState desiredState)
     {
         if(Math.abs(desiredState.speedMetersPerSecond) <= (Constants.Swerve.maxSpeed * 0.01))
         {

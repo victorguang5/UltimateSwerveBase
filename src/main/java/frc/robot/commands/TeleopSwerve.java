@@ -18,7 +18,8 @@ public class TeleopSwerve extends CommandBase {
     private BooleanSupplier robotCentricSup;
     private BooleanSupplier speedCutoffSup;
     private Boolean speedCutoffVal = false;
-
+    static int teleSwerveCounter = 0;
+    boolean manualDriveState = false;
     public TeleopSwerve(
             SwerveBase s_Swerve,
             DoubleSupplier translationSup,
@@ -49,11 +50,26 @@ public class TeleopSwerve extends CommandBase {
         SmartDashboard.putBoolean("Speed Cut Off", speedCutoffVal);
 
         /* Drive */
-        s_Swerve.drive(
+        if(Math.abs(translationVal) > 0.05  ||
+            Math.abs(strafeVal) > 0.05      ||
+            Math.abs(rotationVal) > 0.05)
+        {
+            manualDriveState = true;
+            SmartDashboard.putNumber("teleSwerve Counter",teleSwerveCounter++);
+            s_Swerve.drive(
                 new Translation2d(translationVal, strafeVal).times(Constants.Swerve.maxSpeed)
                         .times(speedCutoffVal ? 0.5 : 1),
                 rotationVal * Constants.Swerve.maxAngularVelocity * (speedCutoffVal ? 0.5 : 1),
                 !robotCentricSup.getAsBoolean(),
                 true);
+        }
+        else if(manualDriveState)
+            {
+                s_Swerve.drive(
+                    new Translation2d(0, 0),
+                    0,
+                    !robotCentricSup.getAsBoolean(),
+                    true);
+            }
     }
 }

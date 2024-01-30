@@ -111,7 +111,7 @@ public class SwerveBase extends SubsystemBase {
     public void setSmartPosition()
     {
 
-        ChassisSpeeds desiredChassisSpeeds = new ChassisSpeeds(2,0,0);
+//        ChassisSpeeds desiredChassisSpeeds = new ChassisSpeeds(2,0,0);
 
 //        SwerveModuleState[] swerveModuleStates = Constants.Swerve.swerveKinematics.toSwerveModuleStates(desiredChassisSpeeds);
 //        SwerveDriveKinematics.desaturateWheelSpeeds(swerveModuleStates, Constants.Swerve.maxSpeed);
@@ -120,6 +120,12 @@ public class SwerveBase extends SubsystemBase {
 //        }
 //        SwerveModule mod = swerveMods[0];
 //        mod.setPosition(2);
+
+    double speedMetersPerSecond = 1;
+    Rotation2d angle = Rotation2d.fromDegrees(45);
+
+    SwerveModuleState state = new SwerveModuleState(speedMetersPerSecond, angle);
+        swerveMods[0].setAngle(state);
         SmartDashboard.putNumber("setSmartPosition",smartPositionCounter++);
 }
     /* Used by SwerveControllerCommand in Auto */
