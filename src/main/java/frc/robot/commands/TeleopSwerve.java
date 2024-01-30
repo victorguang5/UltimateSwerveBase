@@ -65,6 +65,7 @@ public class TeleopSwerve extends CommandBase {
         }
         else if(manualDriveState)
             {
+                manualDriveState = false;
                 s_Swerve.drive(
                     new Translation2d(0, 0),
                     0,

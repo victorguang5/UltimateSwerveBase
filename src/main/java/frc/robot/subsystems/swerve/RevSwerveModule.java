@@ -38,6 +38,10 @@ public class RevSwerveModule implements SwerveModule
 
     public SwerveModuleState desiredState;
 
+    public int angleCounter = 0;
+    public int positionCounter = 0;
+    public int setDesireCounter = 0;
+    
     //SimpleMotorFeedforward feedforward = new SimpleMotorFeedforward(Constants.Swerve.driveKS, Constants.Swerve.driveKV, Constants.Swerve.driveKA);
 
     public RevSwerveModule(int moduleNumber, RevSwerveModuleConstants moduleConstants)
@@ -77,14 +81,14 @@ public class RevSwerveModule implements SwerveModule
 
 
         relAngleEncoder = mAngleMotor.getEncoder();
-        relAngleEncoder.setPositionConversionFactor(Constants.Swerve.DegreesPerTurnRotation);
+    //    relAngleEncoder.setPositionConversionFactor(Constants.Swerve.DegreesPerTurnRotation);
         // in degrees/sec
         relAngleEncoder.setVelocityConversionFactor(Constants.Swerve.DegreesPerTurnRotation / 60);
 
 
         synchronizeEncoders();
-        mDriveMotor.burnFlash();
-        mAngleMotor.burnFlash();
+    //    mDriveMotor.burnFlash();
+    //    mAngleMotor.burnFlash();
 
     }
 
@@ -92,6 +96,8 @@ public class RevSwerveModule implements SwerveModule
     {
         mAngleMotor.restoreFactoryDefaults();
         SparkMaxPIDController controller = mAngleMotor.getPIDController();
+
+        // set pid profile in slot 0 for speed control
         controller.setP(Constants.Swerve.angleKP, 0);
         controller.setI(Constants.Swerve.angleKI,0);
         controller.setD(Constants.Swerve.angleKD,0);
@@ -104,10 +110,20 @@ public class RevSwerveModule implements SwerveModule
         mAngleMotor.setClosedLoopRampRate(Constants.Swerve.angleRampRate);
 
         controller.setSmartMotionMinOutputVelocity(Constants.Swerve.minVel, 0);
-        controller.setSmartMotionMaxVelocity(Constants.Swerve.maxVel_p, 0);
-        controller.setSmartMotionMaxAccel(Constants.Swerve.maxAcc, 0);
-        controller.setSmartMotionAllowedClosedLoopError(Constants.Swerve.allowedErr, 0);
+        controller.setSmartMotionMaxVelocity(Constants.Swerve.maxVel_v, 0);
+        controller.setSmartMotionMaxAccel(Constants.Swerve.maxAcc_v, 0);
+        controller.setSmartMotionAllowedClosedLoopError(Constants.Swerve.allowedErr_v, 0);
 
+        //Set pid profile in slot 1 for position control
+        controller.setP(Constants.Swerve.angleKP, 1);
+        controller.setI(Constants.Swerve.angleKI,1);
+        controller.setD(Constants.Swerve.angleKD,1);
+        controller.setFF(Constants.Swerve.angleKFF,1);
+
+        controller.setSmartMotionMinOutputVelocity(Constants.Swerve.minVel, 1);
+        controller.setSmartMotionMaxVelocity(Constants.Swerve.maxVel_p, 1);
+        controller.setSmartMotionMaxAccel(Constants.Swerve.maxAcc_p, 1);
+        controller.setSmartMotionAllowedClosedLoopError(Constants.Swerve.allowedErr_p, 1);
 
     }
 
@@ -126,24 +142,25 @@ public class RevSwerveModule implements SwerveModule
         controller.setFF(Constants.Swerve.driveKFF,0);
         controller.setSmartMotionMinOutputVelocity(Constants.Swerve.minVel, 0);
         controller.setSmartMotionMaxVelocity(Constants.Swerve.maxVel_v, 0);
-        controller.setSmartMotionMaxAccel(Constants.Swerve.maxAcc, 0);
-        controller.setSmartMotionAllowedClosedLoopError(Constants.Swerve.allowedErr, 0);
+        controller.setSmartMotionMaxAccel(Constants.Swerve.maxAcc_v, 0);
+        controller.setSmartMotionAllowedClosedLoopError(Constants.Swerve.allowedErr_v, 0);
     
+        // set pid profile in slot 1 for position control
         controller.setP(Constants.Swerve.driveKP_p,1);
         controller.setI(Constants.Swerve.driveKI,1);
         controller.setD(Constants.Swerve.driveKD,1);
         controller.setFF(Constants.Swerve.driveKFF,1);
         controller.setSmartMotionMinOutputVelocity(Constants.Swerve.minVel, 1);
         controller.setSmartMotionMaxVelocity(Constants.Swerve.maxVel_p, 1);
-        controller.setSmartMotionMaxAccel(Constants.Swerve.maxAcc, 1);
-        controller.setSmartMotionAllowedClosedLoopError(Constants.Swerve.allowedErr, 1);
+        controller.setSmartMotionMaxAccel(Constants.Swerve.maxAcc_p, 1);
+        controller.setSmartMotionAllowedClosedLoopError(Constants.Swerve.allowedErr_p, 1);
 
     }
 
     public void setDesiredState(SwerveModuleState desiredState, boolean isOpenLoop)
     {
 
-
+        SmartDashboard.putNumber("setDesireState",setDesireCounter++);
         /* This is a custom optimize function, since default WPILib optimize assumes continuous controller which CTRE and Rev onboard is not */
         // CTREModuleState actually works for any type of motor.
         this.desiredState = CTREModuleState.optimize(desiredState, getState().angle);
@@ -182,12 +199,11 @@ public class RevSwerveModule implements SwerveModule
 
     public void setAngle(SwerveModuleState desiredState)
     {
-        if(Math.abs(desiredState.speedMetersPerSecond) <= (Constants.Swerve.maxSpeed * 0.01))
-        {
-            mAngleMotor.stopMotor();
-            return;
-
-        }
+       // if(Math.abs(desiredState.speedMetersPerSecond) <= (Constants.Swerve.maxSpeed * 0.01))
+       // {
+       //     mAngleMotor.stopMotor();
+       //     return;
+       // }
         Rotation2d angle = desiredState.angle;
         //Prevent rotating module if speed is less then 1%. Prevents Jittering.
 
@@ -195,9 +211,9 @@ public class RevSwerveModule implements SwerveModule
 
         double degReference = angle.getDegrees();
 
-
-
-        controller.setReference (degReference, ControlType.kSmartMotion, 0);
+        controller.setReference (degReference/15, ControlType.kSmartMotion, 1);
+        SmartDashboard.putNumber("Angle Counter",angleCounter++);
+        SmartDashboard.putNumber("angle",degReference);
 
     }
 
@@ -237,7 +253,7 @@ public class RevSwerveModule implements SwerveModule
     {
 
         double absolutePosition =getCanCoder().getDegrees() - angleOffset.getDegrees();
-        relAngleEncoder.setPosition(absolutePosition);
+    //    relAngleEncoder.setPosition(absolutePosition);
     }
 
     public SwerveModuleState getState()

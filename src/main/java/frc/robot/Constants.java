@@ -67,18 +67,20 @@ public final class Constants {
         public static final int drivePeakCurrentLimit = 60;
         public static final double drivePeakCurrentDuration = 0.1;
         public static final boolean driveEnableCurrentLimit = true;
+       
+           /* Drive Motor info */
+           public static final double kDrivingMotorFreeSpeedRps = NeoMotorConstants.kFreeSpeedRpm / 60;
+
+           public static final double kDriveWheelFreeSpeedRps = (kDrivingMotorFreeSpeedRps * wheelCircumference)
+                   / driveGearRatio;
+   
         /* Angle Motor PID Values */
-        public static final double angleKP = 0.00005;
+        public static final double angleKP = 0.0005;
         public static final double angleKI = 0;
         public static final double angleKD = 0;
         public static final double angleKFF = 0.000156;
 
-        /* Drive Motor info */
-        public static final double kDrivingMotorFreeSpeedRps = NeoMotorConstants.kFreeSpeedRpm / 60;
-
-        public static final double kDriveWheelFreeSpeedRps = (kDrivingMotorFreeSpeedRps * wheelCircumference)
-                / driveGearRatio;
-
+    
         /* Drive Motor PID Values */
         public static final double driveKP_v = 0.1;
         public static final double driveKP_p = 0.00005;
@@ -91,11 +93,13 @@ public final class Constants {
         public static final double maxAngularVelocity = 0.1; // 5.0;
         public static double angleRampRate = 0;
 
-        public static double maxVel_v = 3;
-        public static double maxVel_p = 1;
+        public static double maxVel_v = 3;          // for velocity setting
+        public static double maxVel_p = 300;          // for position setting
         public static double minVel = 0;
-        public static double maxAcc = 0.1;
-        public static double allowedErr = 0.21;
+        public static double maxAcc_v = 0.1;
+        public static double maxAcc_p = 300;
+        public static double allowedErr_v = 0.21;
+        public static double allowedErr_p = 0.2;
         /* CanCoder Constants */
         public static final CANCoderConfiguration swerveCANcoderConfig = new CANCoderConfiguration();
 
