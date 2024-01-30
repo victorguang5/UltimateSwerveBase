@@ -76,7 +76,7 @@ public class RevSwerveModule implements SwerveModule
         relDriveEncoder.setPosition(0);
 
 
-        relDriveEncoder.setPositionConversionFactor(Constants.Swerve.driveRevToMeters);
+   //     relDriveEncoder.setPositionConversionFactor(Constants.Swerve.driveRevToMeters);
         relDriveEncoder.setVelocityConversionFactor(Constants.Swerve.driveRpmToMetersPerSecond);
 
 
@@ -213,15 +213,13 @@ public class RevSwerveModule implements SwerveModule
 
         controller.setReference (degReference/15, ControlType.kSmartMotion, 1);
         SmartDashboard.putNumber("Angle Counter",angleCounter++);
-        SmartDashboard.putNumber("angle",degReference);
-
     }
 
     public void setPosition(double position)
     {
-        SparkMaxPIDController controller = mAngleMotor.getPIDController();
-
-        controller.setReference (position, ControlType.kSmartMotion,1);
+        SparkMaxPIDController controller = mDriveMotor.getPIDController();
+        double currentPosition = mDriveMotor.getEncoder().getPosition();
+        controller.setReference (currentPosition + position, ControlType.kSmartMotion,1);
     }
     private void setYaw()
     {
