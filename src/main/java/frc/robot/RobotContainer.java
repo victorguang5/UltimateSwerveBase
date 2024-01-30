@@ -38,10 +38,7 @@ public class RobotContainer {
     public static ShuffleboardTab autoTab = Shuffleboard.getTab("Auto");
     /* Controllers */
     private final Joystick driver = new Joystick(0);
-    CommandXboxController m_driverController = new CommandXboxController(1);
-
-  //  SwerveBase m_robotDrive = new SwerveBase();
-
+ 
     /* Drive Controls */
     private final int translationAxis = XboxController.Axis.kLeftY.value;
     private final int strafeAxis = XboxController.Axis.kLeftX.value;
@@ -50,7 +47,7 @@ public class RobotContainer {
     /* Driver Buttons */
     private final JoystickButton zeroGyro = new JoystickButton(driver, XboxController.Button.kA.value);
     private final JoystickButton autoMove = new JoystickButton(driver, XboxController.Button.kB.value);
-
+    private final JoystickButton autoY    = new JoystickButton(driver, XboxController.Button.kY.value);
 
     /* Subsystems */
     private final SwerveBase s_Swerve = new SwerveBase();
@@ -108,7 +105,8 @@ public class RobotContainer {
         /* Driver Buttons */
         zeroGyro.onTrue(new InstantCommand(() -> s_Swerve.zeroGyro()));
  //       m_driverController.y().onTrue(m_driveSmartPosition);
- autoMove.whileTrue(m_driveSmartPosition);
+         autoMove.whileTrue(m_driveSmartPosition);
+         autoY.onTrue(m_driveSmartPosition);
         //example of auto move
  //       autoMove.whileTrue(autoMoveCommand);
   //      autoMove.toggleOnFalse(new InstantCommand(() -> autoMoveCommand.cancel()));

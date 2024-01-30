@@ -34,7 +34,7 @@ public class SwerveBase extends SubsystemBase {
 
     private int moduleSynchronizationCounter = 0;
     private double avgOmega = 0;
-
+    static int smartPositionCounter=0;
 //    private Rotation2d fieldOffset = new Rotation2d(gyro.getYaw()).rotateBy(new Rotation2d(180));
     private final Field2d field = new Field2d();
     private boolean hasInitialized = false;
@@ -110,18 +110,18 @@ public class SwerveBase extends SubsystemBase {
     
     public void setSmartPosition()
     {
+
         ChassisSpeeds desiredChassisSpeeds = new ChassisSpeeds(2,0,0);
 
-        SwerveModuleState[] swerveModuleStates = Constants.Swerve.swerveKinematics.toSwerveModuleStates(desiredChassisSpeeds);
-        SwerveDriveKinematics.desaturateWheelSpeeds(swerveModuleStates, Constants.Swerve.maxSpeed);
+//        SwerveModuleState[] swerveModuleStates = Constants.Swerve.swerveKinematics.toSwerveModuleStates(desiredChassisSpeeds);
+//        SwerveDriveKinematics.desaturateWheelSpeeds(swerveModuleStates, Constants.Swerve.maxSpeed);
 //        for(SwerveModule mod : swerveMods){
 //            mod.setDesiredState(swerveModuleStates[mod.getModuleNumber()], false);
 //        }
-        SwerveModule mod = swerveMods[0];
-        mod.setPosition(2);
-        SmartDashboard.putNumber("setSmartPosition",swerveModuleStates[0].speedMetersPerSecond);
-        SmartDashboard.putNumber("setSmartPosition-1",swerveModuleStates[0].angle.getDegrees());
-    }
+//        SwerveModule mod = swerveMods[0];
+//        mod.setPosition(2);
+        SmartDashboard.putNumber("setSmartPosition",smartPositionCounter++);
+}
     /* Used by SwerveControllerCommand in Auto */
     public void setModuleStates(SwerveModuleState[] desiredStates) {
 
