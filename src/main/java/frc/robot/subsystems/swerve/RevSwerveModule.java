@@ -9,6 +9,7 @@ import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.SparkMaxPIDController;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -220,6 +221,7 @@ public class RevSwerveModule implements SwerveModule
         SparkMaxPIDController controller = mDriveMotor.getPIDController();
         double currentPosition = mDriveMotor.getEncoder().getPosition();
         controller.setReference (currentPosition + position, ControlType.kSmartMotion,1);
+     //   Translation2d e;
     }
     private void setYaw()
     {

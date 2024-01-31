@@ -108,12 +108,73 @@ public class SwerveBase extends SubsystemBase {
         desiredChassisSpeeds = correctForDynamics(desiredChassisSpeeds);
         SwerveModuleState[] swerveModuleStates = Constants.Swerve.swerveKinematics.toSwerveModuleStates(desiredChassisSpeeds);
         SwerveDriveKinematics.desaturateWheelSpeeds(swerveModuleStates, Constants.Swerve.maxSpeed);
-       for(SwerveModule mod : swerveMods){
+        for(SwerveModule mod : swerveMods){
             mod.setDesiredState(swerveModuleStates[mod.getModuleNumber()], isOpenLoop);
         }
 
     }
     
+    /**
+     * Sets the overal robot state based on a desired velocities, and angle if the given velocity is meant to be field oriented. <code>By Robin</code>
+     * This is a testing method
+     * @param velocity the Translation2d vector 
+     * @param angularVelocity the Rotation2d angular velocity
+     * @param angleOfRobot the Rotation2d angle that the robot is facing according to the field orientation
+     * @param fieldOriented a boolean indicating if the given velocities are meant to be field oriented
+     */
+    public void setDriveDirection(Translation2d velocity, Rotation2d angularVelocity, Rotation2d angleOfRobot, boolean fieldOriented) {
+        //SmartDashboard.putNumber("drive Counter", driveCounter++);
+        ChassisSpeeds desiredChassisSpeeds;
+        if (fieldOriented) {
+            ChassisSpeeds fieldRSpeed = new ChassisSpeeds(velocity.getX(), velocity.getY(), angularVelocity.getRadians());
+            desiredChassisSpeeds = ChassisSpeeds.fromFieldRelativeSpeeds(fieldRSpeed, angleOfRobot);
+        } else {
+            desiredChassisSpeeds = new ChassisSpeeds(velocity.getX(), velocity.getY(), angularVelocity.getRadians());
+        }
+            // I'm guessing that this line is required to prevent errors or exceptions in cases where the set values exceed certain boundaries?
+        desiredChassisSpeeds = correctForDynamics(desiredChassisSpeeds); 
+            // Give me the states of all modules if the chassis was theoretical at the given velocity
+        SwerveModuleState[] swerveModuleStates = Constants.Swerve.swerveKinematics.toSwerveModuleStates(desiredChassisSpeeds);
+            // Make sure that any calculated wheel speeds do not pass maximum limit
+        SwerveDriveKinematics.desaturateWheelSpeeds(swerveModuleStates, Constants.Swerve.maxSpeed);
+            // For every instance of swerve module part of this base, set each module it's desired state
+        for(SwerveModule mod : swerveMods){
+            mod.setDesiredState(swerveModuleStates[mod.getModuleNumber()], false);
+        }
+    }
+
+    /**
+     * Drives the robot from one location to another within a given time range. The locations must be field oriented.
+     * <code>By Robin</code>
+     * 
+     * @param locationTo the Translation2d destination
+     * @param locationFrom the Translation2d starting point
+     * @param timeToTravel the amount of time the trip should take <code>NOT USED</code>
+     * @param angleOfRobot the facing of the robot relative to field
+     * 
+     */
+    public void setSmartPositionPoint(Translation2d locationTo, Translation2d locationFrom, double timeToTravel, Rotation2d angleOfRobot) {
+        //SmartDashboard.putNumber("drive Counter", driveCounter++);
+        ChassisSpeeds desiredChassisSpeeds;
+        // Determine a vector velocity using the change in position
+        double deltaX = locationTo.getX() - locationFrom.getX(); // In meters
+        double deltaY = locationTo.getY() - locationFrom.getY();
+        Translation2d velocity = new Translation2d(deltaX/timeToTravel, deltaY/timeToTravel);
+        double distance = velocity.getNorm();
+
+        ChassisSpeeds fieldRSpeed = new ChassisSpeeds(velocity.getX(), velocity.getY(), 0);
+        desiredChassisSpeeds = ChassisSpeeds.fromFieldRelativeSpeeds(fieldRSpeed, angleOfRobot);
+
+        desiredChassisSpeeds = correctForDynamics(desiredChassisSpeeds); 
+        SwerveModuleState[] swerveModuleStates = Constants.Swerve.swerveKinematics.toSwerveModuleStates(desiredChassisSpeeds);
+        SwerveDriveKinematics.desaturateWheelSpeeds(swerveModuleStates, Constants.Swerve.maxSpeed);
+        
+        for(RevSwerveModule mod : swerveMods){
+            mod.setAngle(swerveModuleStates[mod.getModuleNumber()]);
+            mod.setPosition(distance);
+        }
+    }
+
     public void setSmartPosition()
     {
 
@@ -132,7 +193,8 @@ public class SwerveBase extends SubsystemBase {
             mod.setAngle(state);
         }
         SmartDashboard.putNumber("setSmartPosition",smartPositionCounter++);
-}
+    }
+
     /* Used by SwerveControllerCommand in Auto */
     public void setModuleStates(SwerveModuleState[] desiredStates) 
     {

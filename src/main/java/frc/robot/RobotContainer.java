@@ -3,6 +3,7 @@ package frc.robot;
 import com.pathplanner.lib.server.PathPlannerServer;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.net.PortForwarder;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.Joystick;
@@ -47,13 +48,25 @@ public class RobotContainer {
     /* Driver Buttons */
     private final JoystickButton zeroGyro = new JoystickButton(driver, XboxController.Button.kA.value);
     private final JoystickButton autoMove = new JoystickButton(driver, XboxController.Button.kB.value);
-    private final JoystickButton autoY    = new JoystickButton(driver, XboxController.Button.kX.value);
+    private final JoystickButton autoY    = new JoystickButton(driver, XboxController.Button.kY.value);
 
     /* Subsystems */
     private final SwerveBase s_Swerve = new SwerveBase();
    // private final Command m_driveSmartPosition = Commands.runOnce(()->s_Swerve.setSmartPosition());
-   private final Command m_driveSmartPosition = Commands.runOnce(()->s_Swerve.setSmartPosition());
-   //private final Command m_driveSmartPosition = Commands.runOnce(()->mytest());
+
+    // Testing Use of Translation2d and Rotation2d with FieldOrientation
+    private Translation2d velocity = new Translation2d(0.5, new Rotation2d(Math.PI*(0)));
+    private Rotation2d angularVelocity = new Rotation2d();
+    private Rotation2d angleOfRobot = new Rotation2d(0); // Angle of the robot must be dependent on the gyro's angle to be field oriented at all times
+    private boolean fieldOriented = true;
+    //private final Command m_driveSmartPosition = Commands.runOnce(()->s_Swerve.setDriveDirection(velocity, angularVelocity, angleOfRobot, fieldOriented));
+    
+    private Translation2d spot1 = new Translation2d();
+    private Translation2d spot2 = new Translation2d(5, 0);
+    private final Command m_driveSmartPosition = Commands.runOnce(()->s_Swerve.setSmartPositionPoint(spot2, spot1, 1, new Rotation2d()));
+    
+    
+    //private final Command m_driveSmartPosition = Commands.runOnce(()->mytest());
     /* Commands */
 
     //example of auto move
@@ -91,6 +104,8 @@ public class RobotContainer {
         PortForwarder.add(5800, "10.75.20.40", 5800);
         PortForwarder.add(1181, "10.75.20.40", 1181);
 
+        
+
         // Configure the button bindings
         configureButtonBindings();
     }
@@ -105,7 +120,7 @@ public class RobotContainer {
         /* Driver Buttons */
         zeroGyro.onTrue(new InstantCommand(() -> s_Swerve.zeroGyro()));
  //       m_driverController.y().onTrue(m_driveSmartPosition);
-         autoMove.whileTrue(m_driveSmartPosition);
+         //autoMove.whileTrue(m_driveSmartPosition);
          autoY.onTrue(m_driveSmartPosition);
         //example of auto move
  //       autoMove.whileTrue(autoMoveCommand);
