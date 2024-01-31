@@ -39,6 +39,7 @@ public class SwerveBase extends SubsystemBase {
     static int setDesireCounters = 0;
     static int stopCounter = 0;
     static int wheelinCounter =0;
+    static int smartDirectionCounter = 0;
 //    private Rotation2d fieldOffset = new Rotation2d(gyro.getYaw()).rotateBy(new Rotation2d(180));
     private final Field2d field = new Field2d();
     private boolean hasInitialized = false;
@@ -188,6 +189,26 @@ public class SwerveBase extends SubsystemBase {
         SmartDashboard.putNumber("setSmartPosition",smartPositionCounter++);
     }
 
+    public void setSmartDirection(double angle)
+    {
+        Rotation2d direction = Rotation2d.fromDegrees(45);
+        SwerveModuleState state = new SwerveModuleState(0.0, direction);
+        swerveMods[0].setAngle(state);
+        SmartDashboard.putNumber("wheel 1",state.angle.getDegrees());
+        state.angle = Rotation2d.fromDegrees(-45);
+        swerveMods[1].setAngle(state);
+        SmartDashboard.putNumber("wheel 2",state.angle.getDegrees());
+        state.angle = Rotation2d.fromDegrees(135);
+        swerveMods[2].setAngle(state);
+        SmartDashboard.putNumber("wheel 3",state.angle.getDegrees());
+        state.angle = Rotation2d.fromDegrees(-135);
+        swerveMods[3].setAngle(state);
+        SmartDashboard.putNumber("wheel 4",state.angle.getDegrees());
+        for(RevSwerveModule mod : swerveMods){
+            mod.setPosition(angle * Constants.Swerve.turnRatio);
+        } 
+        SmartDashboard.putNumber("setSmartDirection",smartDirectionCounter++);
+    }
     /* Used by SwerveControllerCommand in Auto */
     public void setModuleStates(SwerveModuleState[] desiredStates) 
     {

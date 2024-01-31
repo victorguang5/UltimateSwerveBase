@@ -225,10 +225,7 @@ public class RevSwerveModule implements SwerveModule
         SmartDashboard.putNumber("SetPosition",encoderDelta);
      //   Translation2d e;
     }
-    private void setYaw()
-    {
 
-    }
     public Rotation2d getAngle()
     {
         return Rotation2d.fromDegrees(relAngleEncoder.getPosition());

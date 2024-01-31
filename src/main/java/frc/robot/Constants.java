@@ -103,6 +103,8 @@ public final class Constants {
         /* CanCoder Constants */
         public static final CANCoderConfiguration swerveCANcoderConfig = new CANCoderConfiguration();
 
+        // wheel travel distance / degree, used for base rotation
+        public static double turnRatio = wheelBase * Math.PI / 360;
         public static class Modules {
             /* Module Specific Constants */
             /* Front Left Module - Module 0 */

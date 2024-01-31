@@ -64,7 +64,8 @@ public class RobotContainer {
     
     private Translation2d spot1 = new Translation2d();
     private Translation2d spot2 = new Translation2d(5, 0);
-    private final Command m_driveSmartPositionPoint = Commands.runOnce(()->s_Swerve.setSmartPositionPoint(spot2, spot1, 1, new Rotation2d()));
+    //private final Command m_driveSmartPositionPoint = Commands.runOnce(()->s_Swerve.setSmartPositionPoint(spot2, spot1, 1, new Rotation2d()));
+    private final Command m_driveSmartPositionPoint = Commands.runOnce(()->s_Swerve.setSmartDirection(90));
     private final Command m_driveSmartPosition = Commands.runOnce(()->s_Swerve.setSmartPosition());
    
     
