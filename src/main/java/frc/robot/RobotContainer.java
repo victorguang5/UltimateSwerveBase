@@ -48,7 +48,8 @@ public class RobotContainer {
     /* Driver Buttons */
     private final JoystickButton zeroGyro = new JoystickButton(driver, XboxController.Button.kA.value);
     private final JoystickButton autoMove = new JoystickButton(driver, XboxController.Button.kB.value);
-    private final JoystickButton autoY    = new JoystickButton(driver, XboxController.Button.kY.value);
+    private final JoystickButton XButton    = new JoystickButton(driver, XboxController.Button.kX.value);
+    private final JoystickButton BackButton    = new JoystickButton(driver, XboxController.Button.kBack.value);
 
     /* Subsystems */
     private final SwerveBase s_Swerve = new SwerveBase();
@@ -63,8 +64,9 @@ public class RobotContainer {
     
     private Translation2d spot1 = new Translation2d();
     private Translation2d spot2 = new Translation2d(5, 0);
-    private final Command m_driveSmartPosition = Commands.runOnce(()->s_Swerve.setSmartPositionPoint(spot2, spot1, 1, new Rotation2d()));
-    
+    private final Command m_driveSmartPositionPoint = Commands.runOnce(()->s_Swerve.setSmartPositionPoint(spot2, spot1, 1, new Rotation2d()));
+    private final Command m_driveSmartPosition = Commands.runOnce(()->s_Swerve.setSmartPosition());
+   
     
     //private final Command m_driveSmartPosition = Commands.runOnce(()->mytest());
     /* Commands */
@@ -121,7 +123,8 @@ public class RobotContainer {
         zeroGyro.onTrue(new InstantCommand(() -> s_Swerve.zeroGyro()));
  //       m_driverController.y().onTrue(m_driveSmartPosition);
          //autoMove.whileTrue(m_driveSmartPosition);
-         autoY.onTrue(m_driveSmartPosition);
+         XButton.onTrue(m_driveSmartPosition);
+         BackButton.onTrue(m_driveSmartPositionPoint);
         //example of auto move
  //       autoMove.whileTrue(autoMoveCommand);
   //      autoMove.toggleOnFalse(new InstantCommand(() -> autoMoveCommand.cancel()));

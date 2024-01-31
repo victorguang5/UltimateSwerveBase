@@ -90,13 +90,13 @@ public final class Constants {
         /** Meters per Second */
         public static final double maxSpeed = 3; // 3.6576;
         /** Radians per Second */
-        public static final double maxAngularVelocity = 0.1; // 5.0;
+        public static final double maxAngularVelocity = 1; // 5.0;
         public static double angleRampRate = 0;
 
         public static double maxVel_v = 3;          // for velocity setting
         public static double maxVel_p = 300;          // for position setting
         public static double minVel = 0;
-        public static double maxAcc_v = 0.1;
+        public static double maxAcc_v = 1;
         public static double maxAcc_p = 300;
         public static double allowedErr_v = 0.21;
         public static double allowedErr_p = 0.2;

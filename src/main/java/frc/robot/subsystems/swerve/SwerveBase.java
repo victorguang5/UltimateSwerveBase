@@ -177,19 +177,12 @@ public class SwerveBase extends SubsystemBase {
 
     public void setSmartPosition()
     {
-
-//        ChassisSpeeds desiredChassisSpeeds = new ChassisSpeeds(2,0,0);
-
-//        SwerveModuleState[] swerveModuleStates = Constants.Swerve.swerveKinematics.toSwerveModuleStates(desiredChassisSpeeds);
-
-//        SwerveDriveKinematics.desaturateWheelSpeeds(swerveModuleStates, Constants.Swerve.maxSpeed);
-
         double speedMetersPerSecond = 1;
         Rotation2d angle = Rotation2d.fromDegrees(45);
 
         SwerveModuleState state = new SwerveModuleState(speedMetersPerSecond, angle);
         for(RevSwerveModule mod : swerveMods){
-            mod.setPosition(10);
+            mod.setPosition(1);
             mod.setAngle(state);
         }
         SmartDashboard.putNumber("setSmartPosition",smartPositionCounter++);
@@ -297,6 +290,8 @@ public class SwerveBase extends SubsystemBase {
             SmartDashboard.putNumber("REV Mod " + mod.getModuleNumber() + " Cancoder", mod.getCanCoder().getDegrees());
             SmartDashboard.putNumber("REV Mod " + mod.getModuleNumber() + " Integrated", mod.getPosition().angle.getDegrees());
             SmartDashboard.putNumber("REV Mod " + mod.getModuleNumber() + " Velocity", mod.getState().speedMetersPerSecond);
+            SmartDashboard.putNumber("REV Mod " + mod.getModuleNumber() + " Position", mod.getPosition().distanceMeters);
+            
         }
 
         // If the robot isn't moving synchronize the encoders every 100ms (Inspired by democrat's SDS
