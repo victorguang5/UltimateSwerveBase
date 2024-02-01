@@ -8,6 +8,7 @@ import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
 import frc.lib.util.swerveUtil.COTSFalconSwerveConstants;
 import frc.lib.util.swerveUtil.RevSwerveModuleConstants;
+import edu.wpi.first.wpilibj.RobotBase;
 
 public final class Constants {
     public static final double stickDeadband = 0.05;
@@ -22,6 +23,7 @@ public final class Constants {
         public static final double drivePower = 1;
         public static final double anglePower = .9;
 
+        
         // Gyro
         public static final boolean invertGyro = false; // Always ensure Gyro is CCW+ CW-
 

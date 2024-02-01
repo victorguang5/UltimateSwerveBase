@@ -60,14 +60,18 @@ public class RobotContainer {
     private Rotation2d angularVelocity = new Rotation2d();
     private Rotation2d angleOfRobot = new Rotation2d(0); // Angle of the robot must be dependent on the gyro's angle to be field oriented at all times
     private boolean fieldOriented = true;
-    //private final Command m_driveSmartPosition = Commands.runOnce(()->s_Swerve.setDriveDirection(velocity, angularVelocity, angleOfRobot, fieldOriented));
+    
     
     private Translation2d spot1 = new Translation2d();
-    private Translation2d spot2 = new Translation2d(5, 0);
-    //private final Command m_driveSmartPositionPoint = Commands.runOnce(()->s_Swerve.setSmartPositionPoint(spot2, spot1, 1, new Rotation2d()));
-    private final Command m_driveSmartPositionPoint = Commands.runOnce(()->s_Swerve.setSmartDirection(90));
-    private final Command m_driveSmartPosition = Commands.runOnce(()->s_Swerve.setSmartPosition());
-   
+    private Translation2d spot2 = new Translation2d(5, 5);
+    /* Robin */
+    private final Command m_driveSmartPositionPoint = Commands.runOnce(()->s_Swerve.setSmartPositionPoint(spot2, spot1, 1, new Rotation2d()));
+    private final Command m_driveSmartPosition = Commands.runOnce(()->s_Swerve.setDriveDirection(velocity, angularVelocity, angleOfRobot, fieldOriented));
+    
+    /* Yan Hongtao */
+    //private final Command m_driveSmartPositionPoint = Commands.runOnce(()->s_Swerve.setSmartDirection(90));
+    //private final Command m_driveSmartPosition = Commands.runOnce(()->s_Swerve.setSmartPosition());
+
     
     //private final Command m_driveSmartPosition = Commands.runOnce(()->mytest());
     /* Commands */
@@ -143,5 +147,9 @@ public class RobotContainer {
      */
     public Command getAutonomousCommand() {
         return movementChooser.getSelected();
+    }
+
+    public SwerveBase getSwerveBase() {
+        return s_Swerve;
     }
 }

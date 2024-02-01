@@ -176,6 +176,9 @@ public class SwerveBase extends SubsystemBase {
         }
     }
 
+    /**
+     * Yan Hongtao. Drive a distance diagonally 45 degrees
+     */
     public void setSmartPosition()
     {
         double speedMetersPerSecond = 1;
@@ -189,6 +192,10 @@ public class SwerveBase extends SubsystemBase {
         SmartDashboard.putNumber("setSmartPosition",smartPositionCounter++);
     }
 
+    /**
+     * Yan Hongtao. Not working as intended
+     * @param angle
+     */
     public void setSmartDirection(double angle)
     {
         Rotation2d direction = Rotation2d.fromDegrees(45);
