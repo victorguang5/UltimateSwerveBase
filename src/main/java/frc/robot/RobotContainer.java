@@ -45,7 +45,10 @@ public class RobotContainer {
     private final JoystickButton cameraDriveMove = new JoystickButton(driver, XboxController.Button.kLeftBumper.value);
     private final JoystickButton angleDriveMove = new JoystickButton(driver, XboxController.Button.kLeftBumper.value);
     private final JoystickButton XButton    = new JoystickButton(driver, XboxController.Button.kX.value);
+    private final JoystickButton YButton    = new JoystickButton(driver, XboxController.Button.kY.value);
+    private final JoystickButton StartButton    = new JoystickButton(driver, XboxController.Button.kStart.value);
     private final JoystickButton BackButton    = new JoystickButton(driver, XboxController.Button.kBack.value);
+    
 
     /* Subsystems */
     private final SwerveBase s_Swerve = new SwerveBase();
@@ -61,12 +64,15 @@ public class RobotContainer {
     private Translation2d spot1 = new Translation2d();
     private Translation2d spot2 = new Translation2d(1, 1);
     /* Robin */
-    //private final Command m_driveSmartPositionPoint = Commands.runOnce(()->s_Swerve.setSmartPositionPoint(spot2, spot1, 1, new Rotation2d()));
-    //private final Command m_driveSmartPosition = Commands.runOnce(()->s_Swerve.setDriveDirection(velocity, angularVelocity, angleOfRobot, fieldOriented));
+    // Use Translation2D & Rotation 2D and Kinematics method to calculation the movement
+    private final Command m_driveSmartPositionPoint = Commands.runOnce(()->s_Swerve.setSmartPositionPoint(spot2, spot1, 1, new Rotation2d()));
+    private final Command m_driveDirection = Commands.runOnce(()->s_Swerve.setDriveDirection(velocity, angularVelocity, angleOfRobot, fieldOriented));
     
     /* Yan Hongtao */
-    private final Command m_driveSmartPositionPoint = Commands.runOnce(()->s_Swerve.setSmartDirection(90));
-    private final Command m_driveSmartPosition = Commands.runOnce(()->s_Swerve.setSmartPosition());
+    // Use manual calculate input for movement
+    private final Command m_driveSmartPosition = Commands.runOnce(()->s_Swerve.setSmartDirection(90));
+    private final Command m_driveSmartDirection = Commands.runOnce(()->s_Swerve.setSmartPosition());
+
 
 
 
@@ -119,16 +125,20 @@ public class RobotContainer {
         /* Driver Buttons */
         zeroGyro.onTrue(new InstantCommand(() -> s_Swerve.zeroGyro()));
 
-        cameraDriveMove.onTrue(new CameraDriveCommand(s_Swerve, s_Swerve::getPose));
-        angleDriveMove.onTrue(new AngleDriveCommand(s_Swerve, s_Swerve::getPose));
+        //cameraDriveMove.onTrue(new CameraDriveCommand(s_Swerve, s_Swerve::getPose));
+        //angleDriveMove.onTrue(new AngleDriveCommand(s_Swerve, s_Swerve::getPose));
 
-        
-        XButton.onTrue(m_driveSmartPosition);
-        BackButton.onTrue(m_driveSmartPositionPoint);
+        // Kinematics method
+        XButton.onTrue(m_driveDirection);
+        YButton.onTrue(m_driveSmartPositionPoint);
+
+        // Manual method
+        StartButton.onTrue(m_driveSmartDirection);
+        BackButton.onTrue(m_driveSmartPosition);
 
         //example of auto move
-        autoMove.whileTrue(autoMoveCommand);
-        autoMove.toggleOnFalse(new InstantCommand(() -> autoMoveCommand.cancel()));
+        //autoMove.whileTrue(autoMoveCommand);
+        //autoMove.toggleOnFalse(new InstantCommand(() -> autoMoveCommand.cancel()));
     }
 
     /**

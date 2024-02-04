@@ -72,18 +72,26 @@ public class RevSwerveModule implements SwerveModule
         relDriveEncoder = mDriveMotor.getEncoder();
         relDriveEncoder.setPosition(0);
 
-
+        // Comment out because we could not get smartMotion works 
+        // We need this feature when using path planner & Trajectory
+        // Need solution????
        // relDriveEncoder.setPositionConversionFactor(Constants.Swerve.driveRevToMeters);
         relDriveEncoder.setVelocityConversionFactor(Constants.Swerve.driveRpmToMetersPerSecond);
 
 
         relAngleEncoder = mAngleMotor.getEncoder();
+
+        // Comment out because we could not get smartMotion work with conversion value
         //relAngleEncoder.setPositionConversionFactor(Constants.Swerve.DegreesPerTurnRotation);
         // in degrees/sec
-        //relAngleEncoder.setVelocityConversionFactor(Constants.Swerve.DegreesPerTurnRotation / 60);
+        relAngleEncoder.setVelocityConversionFactor(Constants.Swerve.DegreesPerTurnRotation / 60);
 
 
         synchronizeEncoders();
+        
+        // We don't need to burn the flash during the debug period.
+        // It could damage the flash and short the life cycle of sparkMax
+
        // mDriveMotor.burnFlash();
       // mAngleMotor.burnFlash();
 
@@ -121,6 +129,7 @@ public class RevSwerveModule implements SwerveModule
         mDriveMotor.setInverted(Constants.Swerve.driveMotorInvert);
         mDriveMotor.setIdleMode(Constants.Swerve.driveIdleMode);
 
+        // Speed control parameter is on slot 0
         controller.setP(Constants.Swerve.driveKP_v,0);
         controller.setI(Constants.Swerve.driveKI,0);
         controller.setD(Constants.Swerve.driveKD,0);
@@ -130,7 +139,7 @@ public class RevSwerveModule implements SwerveModule
         controller.setSmartMotionMaxAccel(Constants.Swerve.maxAcc_v, 0);
         controller.setSmartMotionAllowedClosedLoopError(Constants.Swerve.allowedErr_v, 0);
     
-        // set pid profile in slot 1 for position control
+        // position control is on PID parameter slot 1
 
         controller.setP(Constants.Swerve.driveKP_p,1);
         controller.setI(Constants.Swerve.driveKI,1);
@@ -140,22 +149,15 @@ public class RevSwerveModule implements SwerveModule
         controller.setSmartMotionMaxVelocity(Constants.Swerve.maxVel_p, 1);
         controller.setSmartMotionMaxAccel(Constants.Swerve.maxAcc_p, 1);
         controller.setSmartMotionAllowedClosedLoopError(Constants.Swerve.allowedErr_p, 1);
-
-
-
-
     }
-
-
 
     public void setDesiredState(SwerveModuleState desiredState, boolean isOpenLoop)
     {
-
-
         /* This is a custom optimize function, since default WPILib optimize assumes continuous controller which CTRE and Rev onboard is not */
         // CTREModuleState actually works for any type of motor.
         this.desiredState = CTREModuleState.optimize(desiredState, getState().angle);
         setAngle(this.desiredState);
+        // Set the isOpenLoop to false so we can trigger the PID control for the velocity
         setSpeed(this.desiredState, false);
 
         if(mDriveMotor.getFault(FaultID.kSensorFault))
@@ -182,6 +184,8 @@ public class RevSwerveModule implements SwerveModule
         double velocity = desiredState.speedMetersPerSecond;
 
         SparkPIDController controller = mDriveMotor.getPIDController();
+        // Enable the smart Velocity control, which can give us manageable acceleration
+        // Otherwise, the motor start/stop abruptly, will damage the motor/gear
         controller.setReference(velocity, ControlType.kSmartVelocity, 0);
 
     }
@@ -189,20 +193,27 @@ public class RevSwerveModule implements SwerveModule
     public void setAngle(SwerveModuleState desiredState)
     {
 
-        if(Math.abs(desiredState.speedMetersPerSecond) <= (Constants.Swerve.maxSpeed * 0.01))
-        {
-            mAngleMotor.stopMotor();
-            return;
-
-        }
-        synchronizeEncoders();
-        Rotation2d angle = desiredState.angle;
+        // See angle require a speed which does not make sense
+        // Comment it out
+        //if(Math.abs(desiredState.speedMetersPerSecond) <= (Constants.Swerve.maxSpeed * 0.01))
+        //{
+        //    mAngleMotor.stopMotor();
+        //    return;
+        //}
         //Prevent rotating module if speed is less then 1%. Prevents Jittering.
 
-        SparkPIDController controller = mAngleMotor.getPIDController();
 
+        // Sync encoder when we need to align the wheel position 
+        // Need to test to confirm if it is working.
+        synchronizeEncoders();
+        Rotation2d angle = desiredState.angle;
+       
+        SparkPIDController controller = mAngleMotor.getPIDController();
         double degReference = angle.getDegrees();
-        //controller.setReference (degReference, ControlType.kSmartMotion, 1);
+
+        // input angle is degree (0~360), need to convert back to encoder raw position
+        // /15 is a experience value from the reading. Need to fine tuning this value
+
         controller.setReference (degReference/15, ControlType.kSmartMotion, 0);
         SmartDashboard.putNumber("Angle Counter",angleCounter++);
          SmartDashboard.putNumber("Turn angle",degReference);
@@ -240,6 +251,7 @@ public class RevSwerveModule implements SwerveModule
 
             SmartDashboard.putNumber("can value" + this.moduleNumber, absolutePosition);
             SmartDashboard.putNumber("sync number" + this.moduleNumber, absolutePosition/15);
+            // CanCoder return degree, need to convert back to Neo Raw position
             relAngleEncoder.setPosition(absolutePosition/15);
     }
 
@@ -265,18 +277,16 @@ public class RevSwerveModule implements SwerveModule
                 getAngle()
         );
     }
-
-
-    
-
+ 
     public void setPosition(double position)
     {
+        // Not sure if we need this sync
         synchronizeEncoders();
         SparkPIDController controller = mDriveMotor.getPIDController();
         double encoderDelta = position / Constants.Swerve.driveRevToMeters;
         double currentPosition = mDriveMotor.getEncoder().getPosition();
         controller.setReference (currentPosition + encoderDelta, ControlType.kSmartMotion,1);
         SmartDashboard.putNumber("SetPosition",encoderDelta);
-     //   Translation2d e;
+
     }
 }

@@ -220,7 +220,7 @@ public class SwerveBase extends SubsystemBase {
         Rotation2d direction = Rotation2d.fromDegrees(45);
         SwerveModuleState state = new SwerveModuleState(0.0, direction);
         swerveMods[0].setAngle(state);
-
+        // hard code value, need to change
         SmartDashboard.putNumber("wheel 1",state.angle.getDegrees());
         state.angle = Rotation2d.fromDegrees(-45);
         swerveMods[1].setAngle(state);

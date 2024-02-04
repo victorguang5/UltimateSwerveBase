@@ -78,6 +78,7 @@ public final class Constants {
                    / driveGearRatio;
    
         /* Angle Motor PID Values */
+        // Update this setting to accomodate smartMotion
         public static final double angleKP = 0.0005;
         public static final double angleKI = 0;
         public static final double angleKD = 0;
@@ -85,6 +86,9 @@ public final class Constants {
 
     
         /* Drive Motor PID Values */
+        // Create _v and _p for different pid control
+        // _v is for velocity control
+        // _p is for position control
         public static final double driveKP_v = 0.1;
         public static final double driveKP_p = 0.0005;
         public static final double driveKI = 0.0;
@@ -96,11 +100,11 @@ public final class Constants {
         public static final double maxAngularVelocity = 1; // 5.0;
         public static double angleRampRate = 0;
 
-        public static double maxVel_v = 1;          // for velocity setting
-        public static double maxVel_p = 300;          // for position setting
+        public static double maxVel_v = 1;          // for velocity setting, using converted value m/s
+        public static double maxVel_p = 300;          // for position setting, using raw encoder rpm/m
         public static double minVel = 0;
-        public static double maxAcc_v = 1;
-        public static double maxAcc_p = 300;
+        public static double maxAcc_v = 1;          // for velocity setting, using converted value m/ss
+        public static double maxAcc_p = 300;        // for position setting, using raw encoder rpm/mm
         public static double allowedErr_v = 0.21;
         public static double allowedErr_p = 0.2;
         /* CanCoder Constants */
