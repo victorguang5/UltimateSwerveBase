@@ -11,6 +11,7 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.networktables.GenericEntry;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.shuffleboard.BuiltInWidgets;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -22,6 +23,7 @@ import frc.robot.RobotContainer;
 import frc.robot.util.NavXGyro;
 
 import java.util.Map;
+import java.util.Optional;
 
 public class SwerveBase extends SubsystemBase {
 
@@ -34,12 +36,17 @@ public class SwerveBase extends SubsystemBase {
 
     private int moduleSynchronizationCounter = 0;
     private double avgOmega = 0;
+
     static int smartPositionCounter=0;
     static int driveCounter = 0;
     static int setDesireCounters = 0;
     static int stopCounter = 0;
     static int wheelinCounter =0;
     static int smartDirectionCounter = 0;
+    private boolean smartMotion = false;
+//    private Rotation2d fieldOffset = new Rotation2d(gyro.getYaw()).rotateBy(new Rotation2d(180));
+
+
 //    private Rotation2d fieldOffset = new Rotation2d(gyro.getYaw()).rotateBy(new Rotation2d(180));
     private final Field2d field = new Field2d();
     private boolean hasInitialized = false;
@@ -91,15 +98,23 @@ public class SwerveBase extends SubsystemBase {
         return updatedSpeeds;
     }
 
-    public void drive(Translation2d translation, double rotation, boolean fieldRelative, boolean isOpenLoop) 
-    {
-        SmartDashboard.putNumber("drive Counter", driveCounter++);
-        ChassisSpeeds desiredChassisSpeeds = fieldRelative ?
+    public void drive(Translation2d translation, double rotation, boolean fieldRelative, boolean isOpenLoop) {
+        double angle = 0;
+        Optional<Alliance> ally = DriverStation.getAlliance();
+        if (ally.isPresent()) {
+            if (ally.get() == Alliance.Red) {
+                angle = 180;
+            }
+        }
+        ChassisSpeeds desiredChassisSpeeds =
+        fieldRelative ?
         ChassisSpeeds.fromFieldRelativeSpeeds(
                 translation.getX(),
                 translation.getY(),
                 rotation,
-                swerveOdometer.getEstimatedPosition().getRotation().plus(Rotation2d.fromDegrees(DriverStation.getAlliance() == DriverStation.Alliance.Red ? 180 : 0))
+                swerveOdometer.getEstimatedPosition()
+                    .getRotation()
+                    .plus(Rotation2d.fromDegrees(angle))
         )
         : new ChassisSpeeds(
                 translation.getX(),
@@ -139,8 +154,11 @@ public class SwerveBase extends SubsystemBase {
             // Make sure that any calculated wheel speeds do not pass maximum limit
         SwerveDriveKinematics.desaturateWheelSpeeds(swerveModuleStates, Constants.Swerve.maxSpeed);
             // For every instance of swerve module part of this base, set each module it's desired state
-        for(SwerveModule mod : swerveMods){
+        smartMotion = true;
+        for(RevSwerveModule mod : swerveMods){
             mod.setDesiredState(swerveModuleStates[mod.getModuleNumber()], false);
+            //mod.setAngle(swerveModuleStates[mod.getModuleNumber()]);
+            //mod.setPosition(10);
         }
     }
 
@@ -169,7 +187,7 @@ public class SwerveBase extends SubsystemBase {
         desiredChassisSpeeds = correctForDynamics(desiredChassisSpeeds); 
         SwerveModuleState[] swerveModuleStates = Constants.Swerve.swerveKinematics.toSwerveModuleStates(desiredChassisSpeeds);
         SwerveDriveKinematics.desaturateWheelSpeeds(swerveModuleStates, Constants.Swerve.maxSpeed);
-        
+        smartMotion = true;
         for(RevSwerveModule mod : swerveMods){
             mod.setAngle(swerveModuleStates[mod.getModuleNumber()]);
             mod.setPosition(distance);
@@ -185,6 +203,7 @@ public class SwerveBase extends SubsystemBase {
         Rotation2d angle = Rotation2d.fromDegrees(45);
 
         SwerveModuleState state = new SwerveModuleState(speedMetersPerSecond, angle);
+        smartMotion = true;
         for(RevSwerveModule mod : swerveMods){
             mod.setPosition(1);
             mod.setAngle(state);
@@ -201,6 +220,7 @@ public class SwerveBase extends SubsystemBase {
         Rotation2d direction = Rotation2d.fromDegrees(45);
         SwerveModuleState state = new SwerveModuleState(0.0, direction);
         swerveMods[0].setAngle(state);
+
         SmartDashboard.putNumber("wheel 1",state.angle.getDegrees());
         state.angle = Rotation2d.fromDegrees(-45);
         swerveMods[1].setAngle(state);
@@ -211,6 +231,7 @@ public class SwerveBase extends SubsystemBase {
         state.angle = Rotation2d.fromDegrees(-135);
         swerveMods[3].setAngle(state);
         SmartDashboard.putNumber("wheel 4",state.angle.getDegrees());
+        smartMotion = true;
         for(RevSwerveModule mod : swerveMods){
             mod.setPosition(angle * Constants.Swerve.turnRatio);
         } 
@@ -222,12 +243,11 @@ public class SwerveBase extends SubsystemBase {
         SmartDashboard.putNumber("setDesireStatess",setDesireCounters++);
        // System.out.println("setting module states: "+desiredStates[0]);
         SwerveDriveKinematics.desaturateWheelSpeeds(desiredStates, Constants.Swerve.maxSpeed);
-        
+
         for(SwerveModule mod : swerveMods){
             mod.setDesiredState(desiredStates[mod.getModuleNumber()], false);
         }
     }
-
     public Pose2d getPose() {
         return swerveOdometer.getEstimatedPosition();
     }
@@ -268,7 +288,7 @@ public class SwerveBase extends SubsystemBase {
         return gyro.getRoll();
     }
 
-    public void synchronizeModuleEncoders() {
+    public void synchronizeModuleEncoders(boolean smartMotion) {
         for(RevSwerveModule mod : swerveMods) {
             mod.synchronizeEncoders();
         }
@@ -278,7 +298,7 @@ public class SwerveBase extends SubsystemBase {
         for(RevSwerveModule mod : swerveMods) {
             sum += Math.abs(mod.getOmega());
         }
-       return sum / 4;
+        return sum / 4;
     }
 
     @Override
@@ -328,7 +348,8 @@ public class SwerveBase extends SubsystemBase {
         if (avgOmega <= .03 && ++moduleSynchronizationCounter > 20)
         {
             SmartDashboard.putBoolean("Synchronizing Encoders", !SmartDashboard.getBoolean("Synchronizing Encoders", false));
-            synchronizeModuleEncoders();
+           // synchronizeModuleEncoders(smartMotion);
+            SmartDashboard.putBoolean("smartMotion",smartMotion);
             moduleSynchronizationCounter = 0;
         }
         if(avgOmega <= .005){
@@ -338,13 +359,10 @@ public class SwerveBase extends SubsystemBase {
         }
         SmartDashboard.putNumber("avgOmega", avgOmega);
 
-        SmartDashboard.putBoolean("isRed", DriverStation.getAlliance() == DriverStation.Alliance.Red);
+        SmartDashboard.putBoolean("isRed", DriverStation.getAlliance().equals(DriverStation.Alliance.Red));
     }
 
-    public void stop() 
-    {
-        SmartDashboard.putNumber("stopCounter",stopCounter++);
-        SmartDashboard.putNumber("avgOmega", avgOmega);
+    public void stop() {
         for(SwerveModule mod : swerveMods) {
             mod.setDesiredState(mod.getState(), false);
         }

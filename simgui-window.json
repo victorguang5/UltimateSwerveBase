@@ -1,7 +1,7 @@
 {
   "Docking": {
     "Data": [
-      "DockNode      ID=0x00000001 Pos=1247,39 Size=700,400 Split=X",
+      "DockNode      ID=0x00000001 Pos=780,71 Size=700,400 Split=X",
       "DockNode    ID=0x00000004 Parent=0x00000001 SizeRef=282,400 Selected=0xC8493FD8",
       "DockNode    ID=0x00000005 Parent=0x00000001 SizeRef=416,400 Split=Y",
       "DockNode  ID=0x00000002 Parent=0x00000005 SizeRef=700,149 Selected=0xD58031C5",
@@ -23,18 +23,23 @@
   "Window": {
     "###/SmartDashboard/Field": {
       "Collapsed": "0",
-      "Pos": "41,429",
+      "Pos": "160,528",
       "Size": "1006,522"
+    },
+    "###/SmartDashboard/field": {
+      "Collapsed": "0",
+      "Pos": "62,532",
+      "Size": "918,465"
     },
     "###FMS": {
       "Collapsed": "0",
       "DockId": "0x00000004,0",
-      "Pos": "1247,39",
+      "Pos": "780,71",
       "Size": "282,400"
     },
     "###Joysticks": {
       "Collapsed": "0",
-      "Pos": "982,739",
+      "Pos": "1080,735",
       "Size": "796,240"
     },
     "###NetworkTables": {
@@ -44,7 +49,7 @@
     },
     "###Other Devices": {
       "Collapsed": "0",
-      "Pos": "985,25",
+      "Pos": "1645,28",
       "Size": "250,695"
     },
     "###Plot <0>": {
@@ -61,7 +66,7 @@
     "###Timing": {
       "Collapsed": "0",
       "DockId": "0x00000002,0",
-      "Pos": "1531,39",
+      "Pos": "1064,71",
       "Size": "416,400"
     },
     "Debug##Default": {
@@ -71,7 +76,7 @@
     },
     "Robot State": {
       "Collapsed": "0",
-      "Pos": "858,56",
+      "Pos": "1539,305",
       "Size": "92,99"
     }
   }

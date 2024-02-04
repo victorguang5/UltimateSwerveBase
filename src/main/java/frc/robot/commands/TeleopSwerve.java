@@ -3,14 +3,15 @@ package frc.robot.commands;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj2.command.CommandBase;
+import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants;
 import frc.robot.subsystems.swerve.SwerveBase;
 
 import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
 
-public class TeleopSwerve extends CommandBase {
+
+public class TeleopSwerve extends Command {
     private SwerveBase s_Swerve;
     private DoubleSupplier translationSup;
     private DoubleSupplier strafeSup;
@@ -18,8 +19,9 @@ public class TeleopSwerve extends CommandBase {
     private BooleanSupplier robotCentricSup;
     private BooleanSupplier speedCutoffSup;
     private Boolean speedCutoffVal = false;
-    static int teleSwerveCounter = 0;
     boolean manualDriveState = false;
+    static int teleSwerveCounter = 0;
+
     public TeleopSwerve(
             SwerveBase s_Swerve,
             DoubleSupplier translationSup,
@@ -39,7 +41,7 @@ public class TeleopSwerve extends CommandBase {
 
     @Override
     public void execute() {
-        /* Get Values, Deadband */
+        /* Get Values, Deadband*/
         double translationVal = MathUtil.applyDeadband(translationSup.getAsDouble(), Constants.stickDeadband);
         double strafeVal = MathUtil.applyDeadband(strafeSup.getAsDouble(), Constants.stickDeadband);
         double rotationVal = MathUtil.applyDeadband(rotationSup.getAsDouble(), Constants.stickDeadband);
@@ -64,13 +66,14 @@ public class TeleopSwerve extends CommandBase {
                 true);
         }
         else if(manualDriveState)
-            {
+        {
                 manualDriveState = false;
                 s_Swerve.drive(
                     new Translation2d(0, 0),
                     0,
                     !robotCentricSup.getAsBoolean(),
                     true);
-            }
+        }
     }
 }
+

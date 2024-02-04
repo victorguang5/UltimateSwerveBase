@@ -1,28 +1,32 @@
 package frc.robot.commands;
 
+import java.util.Optional;
+import java.util.function.BooleanSupplier;
+import java.util.function.DoubleSupplier;
+import java.util.function.Supplier;
+
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
+import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import frc.robot.Constants;
+import frc.robot.subsystems.swerve.RevSwerveModule;
 import frc.robot.subsystems.swerve.SwerveBase;
-
-import java.util.Optional;
-import java.util.function.Supplier;
 
 import static frc.robot.Constants.AutoConstants.*;
 import static frc.robot.Constants.Swerve.*;
 
-/**
- * Command to drive to a pose.
- */
-public class DriveToPoseCommand extends Command {
+public class CameraDriveCommand extends Command {
 
     private static final double TRANSLATION_TOLERANCE = 0.005;
     private static final double THETA_TOLERANCE = Units.degreesToRadians(2.0);
@@ -42,44 +46,61 @@ public class DriveToPoseCommand extends Command {
 
     private final SwerveBase drivetrainSubsystem;
     private final Supplier<Pose2d> poseProvider;
-    private final Pose2d goalPose;
-    private final boolean useAllianceColor;
+    private final boolean useAllianceColor = false;
 
-    public DriveToPoseCommand(
-            SwerveBase drivetrainSubsystem,
-            Supplier<Pose2d> poseProvider,
-            Pose2d goalPose,
-            boolean useAllianceColor) {
-        this(drivetrainSubsystem, poseProvider, goalPose, DEFAULT_XY_CONSTRAINTS, DEFAULT_OMEGA_CONSTRAINTS, useAllianceColor);
-    }
+    // get values from Chris
+    private double alpha;
+    private double beta;
+    private double distance;
+    private Pose2d goalPose;
 
-    public DriveToPoseCommand(
-            SwerveBase drivetrainSubsystem,
-            Supplier<Pose2d> poseProvider,
-            Pose2d goalPose,
-            TrapezoidProfile.Constraints xyConstraints,
-            TrapezoidProfile.Constraints omegaConstraints,
-            boolean useAllianceColor) {
+    public CameraDriveCommand(
+        SwerveBase drivetrainSubsystem,
+        Supplier<Pose2d> poseProvider
+    ) 
+    {
         this.drivetrainSubsystem = drivetrainSubsystem;
         this.poseProvider = poseProvider;
-        this.goalPose = goalPose;
-        this.useAllianceColor = useAllianceColor;
-//
-//        xController = new ProfiledPIDController(X_kP, X_kI, X_kD, xyConstraints);
-//        yController = new ProfiledPIDController(Y_kP, Y_kI, Y_kD, xyConstraints);
 
-        xController = new ProfiledPIDController(X_kP, X_kI, X_kD, xyConstraints);
-        yController = new ProfiledPIDController(Y_kP, Y_kI, Y_kD, xyConstraints);
+        xController = new ProfiledPIDController(X_kP, X_kI, X_kD, DEFAULT_XY_CONSTRAINTS);
+        yController = new ProfiledPIDController(Y_kP, Y_kI, Y_kD, DEFAULT_OMEGA_CONSTRAINTS);
 
         xController.setTolerance(TRANSLATION_TOLERANCE);
         yController.setTolerance(TRANSLATION_TOLERANCE);
-        thetaController = new ProfiledPIDController(THETA_kP, THETA_kI, THETA_kD, omegaConstraints);
+        thetaController = new ProfiledPIDController(THETA_kP, THETA_kI, THETA_kD, DEFAULT_OMEGA_CONSTRAINTS);
         thetaController.enableContinuousInput(-Math.PI, Math.PI);
         thetaController.setTolerance(THETA_TOLERANCE);
+
+        // get angle value from Chris
+        this.alpha = Math.PI / 6; // sample: 30 degree
+        this.beta = Math.PI / 4; // sample: 45 degree
+        this.distance = 1; // sample: 45 degree
+        this.goalPose = CalculateGoalPose(drivetrainSubsystem.getPose(), this.alpha, this.beta, this.distance);
 
         addRequirements(drivetrainSubsystem);
     }
 
+    
+    public static Pose2d CalculateGoalPose(
+        Pose2d initialPose,
+        double alpha,
+        double beta,
+        double distiance
+    ) 
+    {        
+        System.out.print(alpha);
+        System.out.print(beta);
+        System.out.print(distiance);
+        System.out.print(new Translation2d(Math.sin(beta), Math.cos(beta)));
+        Translation2d trans = (new Translation2d(Math.sin(beta), Math.cos(beta)))
+            .rotateBy(Rotation2d.fromRadians(-alpha))
+            .plus(initialPose.getTranslation())
+        ;
+        Rotation2d rot = initialPose.getRotation().
+            plus(Rotation2d.fromRadians(alpha));
+        
+        return new Pose2d(trans, rot);        
+    }
 
     @Override
     public void initialize() {
@@ -100,10 +121,7 @@ public class DriveToPoseCommand extends Command {
         }
         thetaController.setGoal(pose.getRotation().getRadians());
         xController.setGoal(pose.getX());
-        yController.setGoal(pose.getY());  }
-
-    public boolean atGoal() {
-        return xController.atGoal() && yController.atGoal() && thetaController.atGoal();
+        yController.setGoal(pose.getY());  
     }
 
     private void resetPIDControllers() {
@@ -113,8 +131,14 @@ public class DriveToPoseCommand extends Command {
         yController.reset(robotPose.getY());
     }
 
+    public boolean atGoal() {
+        return xController.atGoal() && yController.atGoal() && thetaController.atGoal();
+    }
+
+
     @Override
     public void execute() {
+
         SmartDashboard.putBoolean("auto driving", true);
         var robotPose = poseProvider.get();
         // Drive to the goal
@@ -132,7 +156,7 @@ public class DriveToPoseCommand extends Command {
         if (thetaController.atGoal()) {
             omegaSpeed = 0;
         }
-
+        
         drivetrainSubsystem.setModuleStates(swerveKinematics.toSwerveModuleStates(ChassisSpeeds.fromFieldRelativeSpeeds(xSpeed, ySpeed, omegaSpeed, robotPose.getRotation())));
 
     }
@@ -148,4 +172,12 @@ public class DriveToPoseCommand extends Command {
         drivetrainSubsystem.stop();
     }
 
+
+
+    private void changeWheelDirection(double angle)
+    {
+        this.drivetrainSubsystem.drive(
+            new Translation2d(0, 0), 
+            angle, false, true);
+    }
 }

@@ -1,6 +1,6 @@
 package frc.robot;
 
-import com.pathplanner.lib.server.PathPlannerServer;
+//import com.pathplanner.lib.server.PathPlannerServer;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -15,16 +15,8 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
-import edu.wpi.first.wpilibj2.command.RamseteCommand;
-import edu.wpi.first.wpilibj.XboxController;
-import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
-import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.InstantCommand;
-import edu.wpi.first.wpilibj2.command.RamseteCommand;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 
-import frc.robot.auto.Taxi;
 import frc.robot.commands.*;
 import frc.robot.subsystems.swerve.SwerveBase;
 
@@ -39,7 +31,7 @@ public class RobotContainer {
     public static ShuffleboardTab autoTab = Shuffleboard.getTab("Auto");
     /* Controllers */
     private final Joystick driver = new Joystick(0);
- 
+
     /* Drive Controls */
     private final int translationAxis = XboxController.Axis.kLeftY.value;
     private final int strafeAxis = XboxController.Axis.kLeftX.value;
@@ -48,33 +40,35 @@ public class RobotContainer {
     /* Driver Buttons */
     private final JoystickButton zeroGyro = new JoystickButton(driver, XboxController.Button.kA.value);
     private final JoystickButton autoMove = new JoystickButton(driver, XboxController.Button.kB.value);
+
+    
+    private final JoystickButton cameraDriveMove = new JoystickButton(driver, XboxController.Button.kLeftBumper.value);
+    private final JoystickButton angleDriveMove = new JoystickButton(driver, XboxController.Button.kLeftBumper.value);
     private final JoystickButton XButton    = new JoystickButton(driver, XboxController.Button.kX.value);
     private final JoystickButton BackButton    = new JoystickButton(driver, XboxController.Button.kBack.value);
 
     /* Subsystems */
     private final SwerveBase s_Swerve = new SwerveBase();
-   // private final Command m_driveSmartPosition = Commands.runOnce(()->s_Swerve.setSmartPosition());
 
-    // Testing Use of Translation2d and Rotation2d with FieldOrientation
-    private Translation2d velocity = new Translation2d(0.5, new Rotation2d(Math.PI*(0)));
-    private Rotation2d angularVelocity = new Rotation2d();
-    private Rotation2d angleOfRobot = new Rotation2d(0); // Angle of the robot must be dependent on the gyro's angle to be field oriented at all times
-    private boolean fieldOriented = true;
-    
-    
+    /* Commands */
+
+        // Testing Use of Translation2d and Rotation2d with FieldOrientation
+        private Translation2d velocity = new Translation2d(0.5, new Rotation2d(Math.PI*(0)));
+        private Rotation2d angularVelocity = new Rotation2d();
+        private Rotation2d angleOfRobot = new Rotation2d(0); // Angle of the robot must be dependent on the gyro's angle to be field oriented at all times
+        private boolean fieldOriented = true;
+
     private Translation2d spot1 = new Translation2d();
-    private Translation2d spot2 = new Translation2d(5, 5);
+    private Translation2d spot2 = new Translation2d(1, 1);
     /* Robin */
-    private final Command m_driveSmartPositionPoint = Commands.runOnce(()->s_Swerve.setSmartPositionPoint(spot2, spot1, 1, new Rotation2d()));
-    private final Command m_driveSmartPosition = Commands.runOnce(()->s_Swerve.setDriveDirection(velocity, angularVelocity, angleOfRobot, fieldOriented));
+    //private final Command m_driveSmartPositionPoint = Commands.runOnce(()->s_Swerve.setSmartPositionPoint(spot2, spot1, 1, new Rotation2d()));
+    //private final Command m_driveSmartPosition = Commands.runOnce(()->s_Swerve.setDriveDirection(velocity, angularVelocity, angleOfRobot, fieldOriented));
     
     /* Yan Hongtao */
-    //private final Command m_driveSmartPositionPoint = Commands.runOnce(()->s_Swerve.setSmartDirection(90));
-    //private final Command m_driveSmartPosition = Commands.runOnce(()->s_Swerve.setSmartPosition());
+    private final Command m_driveSmartPositionPoint = Commands.runOnce(()->s_Swerve.setSmartDirection(90));
+    private final Command m_driveSmartPosition = Commands.runOnce(()->s_Swerve.setSmartPosition());
 
-    
-    //private final Command m_driveSmartPosition = Commands.runOnce(()->mytest());
-    /* Commands */
+
 
     //example of auto move
     DriveToPoseCommand autoMoveCommand = new DriveToPoseCommand(
@@ -102,16 +96,14 @@ public class RobotContainer {
             )
         );
         /* Auto */
-        PathPlannerServer.startServer(5811);
-        movementChooser.setDefaultOption("taxi", new Taxi(s_Swerve));
+        //PathPlannerServer.startServer(5811);
+        //movementChooser.setDefaultOption("taxi", new Taxi(s_Swerve));
         movementChooser.addOption("No Movement", new InstantCommand());
         SmartDashboard.putData("Movement", movementChooser);
 
         /* Networking */
         PortForwarder.add(5800, "10.75.20.40", 5800);
         PortForwarder.add(1181, "10.75.20.40", 1181);
-
-        
 
         // Configure the button bindings
         configureButtonBindings();
@@ -126,20 +118,19 @@ public class RobotContainer {
     private void configureButtonBindings() {
         /* Driver Buttons */
         zeroGyro.onTrue(new InstantCommand(() -> s_Swerve.zeroGyro()));
- //       m_driverController.y().onTrue(m_driveSmartPosition);
-         //autoMove.whileTrue(m_driveSmartPosition);
-         XButton.onTrue(m_driveSmartPosition);
-         BackButton.onTrue(m_driveSmartPositionPoint);
+
+        cameraDriveMove.onTrue(new CameraDriveCommand(s_Swerve, s_Swerve::getPose));
+        angleDriveMove.onTrue(new AngleDriveCommand(s_Swerve, s_Swerve::getPose));
+
+        
+        XButton.onTrue(m_driveSmartPosition);
+        BackButton.onTrue(m_driveSmartPositionPoint);
+
         //example of auto move
- //       autoMove.whileTrue(autoMoveCommand);
-  //      autoMove.toggleOnFalse(new InstantCommand(() -> autoMoveCommand.cancel()));
-        SmartDashboard.putNumber("setSmartPosition",0);
+        autoMove.whileTrue(autoMoveCommand);
+        autoMove.toggleOnFalse(new InstantCommand(() -> autoMoveCommand.cancel()));
     }
 
-    private void mytest()
-    {
-        SmartDashboard.putNumber("setSmartPosition",33);
-    }
     /**
      * Use this to pass the autonomous command to the main {@link Robot} class.
      *
