@@ -46,10 +46,10 @@ public class TeleopSwerve extends Command {
         double strafeVal = MathUtil.applyDeadband(strafeSup.getAsDouble(), Constants.stickDeadband);
         double rotationVal = MathUtil.applyDeadband(rotationSup.getAsDouble(), Constants.stickDeadband);
         speedCutoffVal = speedCutoffSup.getAsBoolean() ? !speedCutoffVal : speedCutoffVal;
-        SmartDashboard.putNumber("translationVal", translationVal);
-        SmartDashboard.putNumber("strafeVal", strafeVal);
-        SmartDashboard.putNumber("rotationVal", rotationVal);
-        SmartDashboard.putBoolean("Speed Cut Off", speedCutoffVal);
+       // SmartDashboard.putNumber("translationVal", translationVal);
+       // SmartDashboard.putNumber("strafeVal", strafeVal);
+       // SmartDashboard.putNumber("rotationVal", rotationVal);
+       // SmartDashboard.putBoolean("Speed Cut Off", speedCutoffVal);
 
         /* Drive */
         if(Math.abs(translationVal) > 0.05  ||

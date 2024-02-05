@@ -70,7 +70,7 @@ public class RobotContainer {
     
     /* Yan Hongtao */
     // Use manual calculate input for movement
-    private final Command m_driveSmartPosition = Commands.runOnce(()->s_Swerve.setSmartDirection(90));
+    private final Command m_driveSmartPosition = Commands.runOnce(()->s_Swerve.setSmartAngle(90));
     private final Command m_driveSmartDirection = Commands.runOnce(()->s_Swerve.setSmartPosition());
 
 
@@ -90,7 +90,7 @@ public class RobotContainer {
 
     /** The container for the robot. Contains subsystems, OI devices, and commands. */
     public RobotContainer() {
-        SmartDashboard.putBoolean("auto driving", false);
+       // SmartDashboard.putBoolean("auto driving", false);
         s_Swerve.setDefaultCommand(
             new TeleopSwerve(
                 s_Swerve,
@@ -105,7 +105,7 @@ public class RobotContainer {
         //PathPlannerServer.startServer(5811);
         //movementChooser.setDefaultOption("taxi", new Taxi(s_Swerve));
         movementChooser.addOption("No Movement", new InstantCommand());
-        SmartDashboard.putData("Movement", movementChooser);
+        //SmartDashboard.putData("Movement", movementChooser);
 
         /* Networking */
         PortForwarder.add(5800, "10.75.20.40", 5800);

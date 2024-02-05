@@ -220,8 +220,6 @@ public class RevSwerveModule implements SwerveModule
 
     }
 
-
-
     public Rotation2d getAngle()
     {
         return Rotation2d.fromDegrees(relAngleEncoder.getPosition());
@@ -244,18 +242,33 @@ public class RevSwerveModule implements SwerveModule
         this.moduleNumber = moduleNumber;
     }
 
+    // CANCODER setting is default -180 to 180. It could be set from 0 ~ 360
+    // The following change is assume the CANCODER is -180to180
+    // The code is to round the value between -180 to 180 for NeoEncoder
     public void synchronizeEncoders()
     {
-
+        double NeoEncoderPosition;
         double absolutePosition =getCanCoder().getDegrees() - angleOffset.getDegrees();
-
-            SmartDashboard.putNumber("can value" + this.moduleNumber, absolutePosition);
-            SmartDashboard.putNumber("sync number" + this.moduleNumber, absolutePosition/15);
+        if(absolutePosition >=0)
+        {
+            NeoEncoderPosition = absolutePosition;
+        }
+        else
+        {
+            NeoEncoderPosition = 360 + absolutePosition;
+        }
+        if(NeoEncoderPosition >=180)
+            {
+                NeoEncoderPosition = NeoEncoderPosition - 360;
+            }
+        
+       // SmartDashboard.putNumber("CAN" + this.moduleNumber, getCanCoder().getDegrees());
+       // SmartDashboard.putNumber("ABS" + this.moduleNumber, absolutePosition);
+       // SmartDashboard.putNumber("CA1" + this.moduleNumber, NeoEncoderPosition1);
+       // SmartDashboard.putNumber("CA2" + this.moduleNumber, NeoEncoderPosition2);
             // CanCoder return degree, need to convert back to Neo Raw position
-            relAngleEncoder.setPosition(absolutePosition/15);
+        relAngleEncoder.setPosition(NeoEncoderPosition/15);
     }
-
-
 
     public SwerveModuleState getState()
     {

@@ -17,8 +17,8 @@ public final class Constants {
     public static final class Swerve {
 
         // Spark Max Idle Modes
-        public static final CANSparkMax.IdleMode driveIdleMode = CANSparkMax.IdleMode.kBrake;
-        public static final CANSparkMax.IdleMode angleIdleMode = CANSparkMax.IdleMode.kBrake;
+        public static final CANSparkMax.IdleMode driveIdleMode = CANSparkMax.IdleMode.kCoast;
+        public static final CANSparkMax.IdleMode angleIdleMode = CANSparkMax.IdleMode.kCoast;
 
         // Max Output Powers
         public static final double drivePower = 1;

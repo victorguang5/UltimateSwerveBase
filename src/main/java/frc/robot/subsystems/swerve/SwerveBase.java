@@ -43,7 +43,6 @@ public class SwerveBase extends SubsystemBase {
     static int stopCounter = 0;
     static int wheelinCounter =0;
     static int smartDirectionCounter = 0;
-    private boolean smartMotion = false;
 //    private Rotation2d fieldOffset = new Rotation2d(gyro.getYaw()).rotateBy(new Rotation2d(180));
 
 
@@ -70,11 +69,14 @@ public class SwerveBase extends SubsystemBase {
 
         swerveOdometer = new SwerveDrivePoseEstimator(Constants.Swerve.swerveKinematics, getYaw(), getModulePositions(), new Pose2d());
         zeroGyro();
+        SmartDashboard.putNumber("setDistance", 1);
+        SmartDashboard.putNumber("setAngle",90);
+        SmartDashboard.putNumber("setDirection",45);
 
     }
 
     public void wheelsIn() {
-        SmartDashboard.putNumber("wheelin Counter",wheelinCounter++);
+  //      SmartDashboard.putNumber("wheelin Counter",wheelinCounter++);
         swerveMods[0].setDesiredState(new SwerveModuleState(2, Rotation2d.fromDegrees(45)), false);
         swerveMods[1].setDesiredState(new SwerveModuleState(2, Rotation2d.fromDegrees(135)), false);
         swerveMods[2].setDesiredState(new SwerveModuleState(2, Rotation2d.fromDegrees(-45)), false);
@@ -154,7 +156,6 @@ public class SwerveBase extends SubsystemBase {
             // Make sure that any calculated wheel speeds do not pass maximum limit
         SwerveDriveKinematics.desaturateWheelSpeeds(swerveModuleStates, Constants.Swerve.maxSpeed);
             // For every instance of swerve module part of this base, set each module it's desired state
-        smartMotion = true;
         for(RevSwerveModule mod : swerveMods){
             mod.setDesiredState(swerveModuleStates[mod.getModuleNumber()], false);
             //mod.setAngle(swerveModuleStates[mod.getModuleNumber()]);
@@ -187,7 +188,6 @@ public class SwerveBase extends SubsystemBase {
         desiredChassisSpeeds = correctForDynamics(desiredChassisSpeeds); 
         SwerveModuleState[] swerveModuleStates = Constants.Swerve.swerveKinematics.toSwerveModuleStates(desiredChassisSpeeds);
         SwerveDriveKinematics.desaturateWheelSpeeds(swerveModuleStates, Constants.Swerve.maxSpeed);
-        smartMotion = true;
         for(RevSwerveModule mod : swerveMods){
             mod.setAngle(swerveModuleStates[mod.getModuleNumber()]);
             mod.setPosition(distance);
@@ -199,48 +199,50 @@ public class SwerveBase extends SubsystemBase {
      */
     public void setSmartPosition()
     {
+        double distance, direction;
+        distance = SmartDashboard.getNumber("setDistance", 1);
+        direction = SmartDashboard.getNumber("setDirection",45);
         double speedMetersPerSecond = 1;
-        Rotation2d angle = Rotation2d.fromDegrees(45);
+        Rotation2d setDirection = Rotation2d.fromDegrees(direction);
 
-        SwerveModuleState state = new SwerveModuleState(speedMetersPerSecond, angle);
-        smartMotion = true;
+        SwerveModuleState state = new SwerveModuleState(speedMetersPerSecond, setDirection);
         for(RevSwerveModule mod : swerveMods){
-            mod.setPosition(1);
+            mod.setPosition(distance);
             mod.setAngle(state);
         }
-        SmartDashboard.putNumber("setSmartPosition",smartPositionCounter++);
+     //   SmartDashboard.putNumber("setSmartPosition",smartPositionCounter++);
     }
 
     /**
      * Yan Hongtao. Not working as intended
      * @param angle
      */
-    public void setSmartDirection(double angle)
+    public void setSmartAngle(double angle)
     {
-        Rotation2d direction = Rotation2d.fromDegrees(45);
+        double angle1 = SmartDashboard.getNumber("setAngle", 90);
+        Rotation2d direction = Rotation2d.fromDegrees(-45);
         SwerveModuleState state = new SwerveModuleState(0.0, direction);
         swerveMods[0].setAngle(state);
         // hard code value, need to change
-        SmartDashboard.putNumber("wheel 1",state.angle.getDegrees());
-        state.angle = Rotation2d.fromDegrees(-45);
-        swerveMods[1].setAngle(state);
-        SmartDashboard.putNumber("wheel 2",state.angle.getDegrees());
-        state.angle = Rotation2d.fromDegrees(135);
-        swerveMods[2].setAngle(state);
-        SmartDashboard.putNumber("wheel 3",state.angle.getDegrees());
+//        SmartDashboard.putNumber("wheel 1",state.angle.getDegrees());
         state.angle = Rotation2d.fromDegrees(-135);
+        swerveMods[1].setAngle(state);
+//        SmartDashboard.putNumber("wheel 2",state.angle.getDegrees());
+        state.angle = Rotation2d.fromDegrees(45);
+        swerveMods[2].setAngle(state);
+//        SmartDashboard.putNumber("wheel 3",state.angle.getDegrees());
+        state.angle = Rotation2d.fromDegrees(135);
         swerveMods[3].setAngle(state);
-        SmartDashboard.putNumber("wheel 4",state.angle.getDegrees());
-        smartMotion = true;
+//        SmartDashboard.putNumber("wheel 4",state.angle.getDegrees());
         for(RevSwerveModule mod : swerveMods){
-            mod.setPosition(angle * Constants.Swerve.turnRatio);
+            mod.setPosition(angle1 * Constants.Swerve.turnRatio);
         } 
         SmartDashboard.putNumber("setSmartDirection",smartDirectionCounter++);
     }
     /* Used by SwerveControllerCommand in Auto */
     public void setModuleStates(SwerveModuleState[] desiredStates) 
     {
-        SmartDashboard.putNumber("setDesireStatess",setDesireCounters++);
+     //   SmartDashboard.putNumber("setDesireStatess",setDesireCounters++);
        // System.out.println("setting module states: "+desiredStates[0]);
         SwerveDriveKinematics.desaturateWheelSpeeds(desiredStates, Constants.Swerve.maxSpeed);
 
@@ -349,7 +351,6 @@ public class SwerveBase extends SubsystemBase {
         {
             SmartDashboard.putBoolean("Synchronizing Encoders", !SmartDashboard.getBoolean("Synchronizing Encoders", false));
            // synchronizeModuleEncoders(smartMotion);
-            SmartDashboard.putBoolean("smartMotion",smartMotion);
             moduleSynchronizationCounter = 0;
         }
         if(avgOmega <= .005){
