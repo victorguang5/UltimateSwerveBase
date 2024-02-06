@@ -12,10 +12,12 @@ import org.photonvision.PhotonCamera;
 import org.photonvision.targeting.PhotonTrackedTarget;
 //import org.photonvision.targeting.TargetCorner;
 
+import edu.wpi.first.math.geometry.Rotation2d;
 //import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 //import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
@@ -346,6 +348,7 @@ public class TargetDetection {
                 System.out.println("Already face to ArpilTag, no need to turn");
                 para.TurnRadian_swerve = 0;
                 para.TurnRadian_tank = 1.5707963; // 90 degree
+                para.turn = Rotation2d.fromRadians(0);
                 para.IsValid = true;
             } else {
                 System.out.println("Nee to check turn ......");
@@ -358,6 +361,7 @@ public class TargetDetection {
                 para.TurnRadian_swerve = (data.z_rotate > 0) ? need_turn_radian : -need_turn_radian;
                 // here 1.5707963: pi/2
                 para.TurnRadian_tank = (data.z_rotate > 0) ? (need_turn_radian - 1.5707963) : (1.5707963 - need_turn_radian);
+                para.turn = (data.z_rotate > 0) ? (Rotation2d.fromRadians(-need_turn_radian)) : (Rotation2d.fromRadians(-need_turn_radian));
                 System.out.printf("Need to turn (negative left), swerve: %f, tank:%f\n", para.TurnRadian_swerve, para.TurnRadian_tank);
                 para.IsValid = true;
             }
@@ -440,6 +444,7 @@ public class TargetDetection {
                     para.MoveDistance = Math.sqrt(Math.pow(x1, 2) +  Math.pow(y_dist, 2));
                     para.MoveForward = x1;
                     para.MoveUpward = y_dist;
+                    para.move = new Translation2d(x1, y_dist);
                     para.IsValid = true;
                     already_turned_to_face_target = false;
                 } else {
