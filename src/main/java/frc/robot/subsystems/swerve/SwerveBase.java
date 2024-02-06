@@ -22,6 +22,8 @@ import frc.robot.Constants;
 import frc.robot.RobotContainer;
 import frc.robot.util.NavXGyro;
 
+import static frc.robot.Constants.Swerve.DegreesPerTurnRotation;
+
 import java.util.Map;
 import java.util.Optional;
 
@@ -207,8 +209,10 @@ public class SwerveBase extends SubsystemBase {
 
         SwerveModuleState state = new SwerveModuleState(speedMetersPerSecond, setDirection);
         for(RevSwerveModule mod : swerveMods){
-            mod.setPosition(distance);
+            // Set Angle first as setPosition will affect the encoder sync
             mod.setAngle(state);
+            mod.setPosition(distance);
+
         }
      //   SmartDashboard.putNumber("setSmartPosition",smartPositionCounter++);
     }
@@ -220,22 +224,25 @@ public class SwerveBase extends SubsystemBase {
     public void setSmartAngle(double angle)
     {
         double angle1 = SmartDashboard.getNumber("setAngle", 90);
+        double setAngle;
         Rotation2d direction = Rotation2d.fromDegrees(-45);
         SwerveModuleState state = new SwerveModuleState(0.0, direction);
         swerveMods[0].setAngle(state);
         // hard code value, need to change
 //        SmartDashboard.putNumber("wheel 1",state.angle.getDegrees());
-        state.angle = Rotation2d.fromDegrees(-135);
+        state.angle = Rotation2d.fromDegrees(45);
         swerveMods[1].setAngle(state);
 //        SmartDashboard.putNumber("wheel 2",state.angle.getDegrees());
         state.angle = Rotation2d.fromDegrees(45);
         swerveMods[2].setAngle(state);
 //        SmartDashboard.putNumber("wheel 3",state.angle.getDegrees());
-        state.angle = Rotation2d.fromDegrees(135);
+        state.angle = Rotation2d.fromDegrees(-45);
         swerveMods[3].setAngle(state);
 //        SmartDashboard.putNumber("wheel 4",state.angle.getDegrees());
         for(RevSwerveModule mod : swerveMods){
-            mod.setPosition(angle1 * Constants.Swerve.turnRatio);
+            if(mod.moduleNumber == 0 || mod.moduleNumber == 2) setAngle = -angle1;
+            else setAngle = angle1;
+            mod.setPosition(setAngle * Constants.Swerve.turnRatio);
         } 
         SmartDashboard.putNumber("setSmartDirection",smartDirectionCounter++);
     }
@@ -338,7 +345,7 @@ public class SwerveBase extends SubsystemBase {
 
         for(SwerveModule mod : swerveMods) {
             SmartDashboard.putNumber("REV Mod " + mod.getModuleNumber() + " Cancoder", mod.getCanCoder().getDegrees());
-            SmartDashboard.putNumber("REV Mod " + mod.getModuleNumber() + " Integrated", mod.getPosition().angle.getDegrees());
+            SmartDashboard.putNumber("REV Mod " + mod.getModuleNumber() + " Integrated", mod.getPosition().angle.getDegrees() / DegreesPerTurnRotation);
             SmartDashboard.putNumber("REV Mod " + mod.getModuleNumber() + " Velocity", mod.getState().speedMetersPerSecond);
             SmartDashboard.putNumber("REV Mod " + mod.getModuleNumber() + " Position", mod.getPosition().distanceMeters);
             

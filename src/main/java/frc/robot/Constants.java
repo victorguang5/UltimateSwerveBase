@@ -86,6 +86,13 @@ public final class Constants {
         public static final double angleKD = 0;
         public static final double angleKFF = 0.000156;
 
+        public static double maxAngleVel = 2;          // for velocity setting, using converted value m/s
+        public static double maxAnglePos = 500;          // for position setting, using raw encoder rpm/m
+        public static double minAngleVel = 0;
+        public static double maxAngleAccVel= 1;          // for velocity setting, using converted value m/ss
+        public static double maxAngleAccPos = 500;        // for position setting, using raw encoder rpm/mm
+        public static double allowedAngleErrVel = 0.21;
+        public static double allowedAngleErrPos = 0.1;
     
         /* Drive Motor PID Values */
         // Create _v and _p for different pid control
@@ -102,13 +109,13 @@ public final class Constants {
         public static final double maxAngularVelocity = 1; // 5.0;
         public static double angleRampRate = 0;
 
-        public static double maxVel_v = 2;          // for velocity setting, using converted value m/s
-        public static double maxVel_p = 300;          // for position setting, using raw encoder rpm/m
+        public static double maxDriveVel = 2;          // for velocity setting, using converted value m/s
+        public static double maxDrivePos = 300;          // for position setting, using raw encoder rpm/m
         public static double minVel = 0;
-        public static double maxAcc_v = 1;          // for velocity setting, using converted value m/ss
-        public static double maxAcc_p = 300;        // for position setting, using raw encoder rpm/mm
-        public static double allowedErr_v = 0.21;
-        public static double allowedErr_p = 0.2;
+        public static double maxDriveAccVel= 1;          // for velocity setting, using converted value m/ss
+        public static double maxDriveAccPos = 300;        // for position setting, using raw encoder rpm/mm
+        public static double allowedDriveErrVel = 0.21;
+        public static double allowedDriveErrPos = 0.1;
         /* CanCoder Constants */
         public static final CANcoderConfiguration swerveCANcoderConfig = new CANcoderConfiguration();
 
@@ -122,7 +129,7 @@ public final class Constants {
                 public static final int driveMotorID = 2;
                 public static final int angleMotorID = 3;
                 public static final int canCoderID = 10;
-                public static final Rotation2d angleOffset = Rotation2d.fromDegrees(155.56); // Rotation2d.fromDegrees(37.7);
+                public static final Rotation2d angleOffset = Rotation2d.fromDegrees(162.24);// 155.56); // Rotation2d.fromDegrees(37.7);
                 public static final RevSwerveModuleConstants constants = new RevSwerveModuleConstants(driveMotorID,
                         angleMotorID, canCoderID, angleOffset);
             }
@@ -132,7 +139,7 @@ public final class Constants {
                 public static final int driveMotorID = 4;
                 public static final int angleMotorID = 5;
                 public static final int canCoderID = 11;
-                public static final Rotation2d angleOffset = Rotation2d.fromDegrees(-164.09);
+                public static final Rotation2d angleOffset = Rotation2d.fromDegrees(-165.74); //-164.09);
                 public static final RevSwerveModuleConstants constants = new RevSwerveModuleConstants(driveMotorID,
                         angleMotorID, canCoderID, angleOffset);
             }
@@ -142,7 +149,7 @@ public final class Constants {
                 public static final int driveMotorID = 6;
                 public static final int angleMotorID = 7;
                 public static final int canCoderID = 12;
-                public static final Rotation2d angleOffset = Rotation2d.fromDegrees(86.39);
+                public static final Rotation2d angleOffset = Rotation2d.fromDegrees(94.02); //86.39);
                 public static final RevSwerveModuleConstants constants = new RevSwerveModuleConstants(driveMotorID,
                         angleMotorID, canCoderID, angleOffset);
             }
@@ -152,7 +159,7 @@ public final class Constants {
                 public static final int driveMotorID = 8;
                 public static final int angleMotorID = 9;
                 public static final int canCoderID = 13;
-                public static final Rotation2d angleOffset = Rotation2d.fromDegrees(134.38);
+                public static final Rotation2d angleOffset = Rotation2d.fromDegrees(139.38);
                 public static final RevSwerveModuleConstants constants = new RevSwerveModuleConstants(driveMotorID,
                         angleMotorID, canCoderID, angleOffset);
             }

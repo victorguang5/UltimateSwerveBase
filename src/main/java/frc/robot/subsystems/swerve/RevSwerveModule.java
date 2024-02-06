@@ -19,6 +19,8 @@ import frc.lib.util.swerveUtil.CTREModuleState;
 import frc.lib.util.swerveUtil.RevSwerveModuleConstants;
 import frc.robot.Constants;
 
+import static frc.robot.Constants.Swerve.DegreesPerTurnRotation;
+import static frc.robot.Constants.Swerve.angleGearRatio;
 import static frc.robot.Constants.Swerve.swerveCANcoderConfig;
 
 /**
@@ -38,8 +40,8 @@ public class RevSwerveModule implements SwerveModule
     private RelativeEncoder relDriveEncoder;
 
     public SwerveModuleState desiredState;
-    private int angleCounter =0;
-
+    private int angleCounter = 0;
+    private double prevAngle = 0;
     //SimpleMotorFeedforward feedforward = new SimpleMotorFeedforward(Constants.Swerve.driveKS, Constants.Swerve.driveKV, Constants.Swerve.driveKA);
 
     public RevSwerveModule(int moduleNumber, RevSwerveModuleConstants moduleConstants)
@@ -113,11 +115,18 @@ public class RevSwerveModule implements SwerveModule
         mAngleMotor.setClosedLoopRampRate(Constants.Swerve.angleRampRate);
 
         controller.setSmartMotionMinOutputVelocity(Constants.Swerve.minVel, 0);
-        controller.setSmartMotionMaxVelocity(Constants.Swerve.maxVel_p, 0);
-        controller.setSmartMotionMaxAccel(Constants.Swerve.maxAcc_p, 0);
-        controller.setSmartMotionAllowedClosedLoopError(Constants.Swerve.allowedErr_p, 0);
-    
+        controller.setSmartMotionMaxVelocity(Constants.Swerve.maxAngleVel, 0);
+        controller.setSmartMotionMaxAccel(Constants.Swerve.maxAngleAccVel, 0);
+        controller.setSmartMotionAllowedClosedLoopError(Constants.Swerve.allowedAngleErrVel, 0);
 
+        controller.setP(Constants.Swerve.angleKP, 1);
+        controller.setI(Constants.Swerve.angleKI,1);
+        controller.setD(Constants.Swerve.angleKD,1);
+        controller.setFF(Constants.Swerve.angleKFF,1);
+        controller.setSmartMotionMinOutputVelocity(Constants.Swerve.minVel, 1);
+        controller.setSmartMotionMaxVelocity(Constants.Swerve.maxAnglePos, 1);
+        controller.setSmartMotionMaxAccel(Constants.Swerve.maxAngleAccPos, 1);
+        controller.setSmartMotionAllowedClosedLoopError(Constants.Swerve.allowedAngleErrPos, 1);
     }
 
     private void configDriveMotor()
@@ -135,9 +144,9 @@ public class RevSwerveModule implements SwerveModule
         controller.setD(Constants.Swerve.driveKD,0);
         controller.setFF(Constants.Swerve.driveKFF,0);
         controller.setSmartMotionMinOutputVelocity(Constants.Swerve.minVel, 0);
-        controller.setSmartMotionMaxVelocity(Constants.Swerve.maxVel_v, 0);
-        controller.setSmartMotionMaxAccel(Constants.Swerve.maxAcc_v, 0);
-        controller.setSmartMotionAllowedClosedLoopError(Constants.Swerve.allowedErr_v, 0);
+        controller.setSmartMotionMaxVelocity(Constants.Swerve.maxDriveVel, 0);
+        controller.setSmartMotionMaxAccel(Constants.Swerve.maxDriveAccVel, 0);
+        controller.setSmartMotionAllowedClosedLoopError(Constants.Swerve.allowedDriveErrVel, 0);
     
         // position control is on PID parameter slot 1
 
@@ -146,9 +155,9 @@ public class RevSwerveModule implements SwerveModule
         controller.setD(Constants.Swerve.driveKD,1);
         controller.setFF(Constants.Swerve.driveKFF,1);
         controller.setSmartMotionMinOutputVelocity(Constants.Swerve.minVel, 1);
-        controller.setSmartMotionMaxVelocity(Constants.Swerve.maxVel_p, 1);
-        controller.setSmartMotionMaxAccel(Constants.Swerve.maxAcc_p, 1);
-        controller.setSmartMotionAllowedClosedLoopError(Constants.Swerve.allowedErr_p, 1);
+        controller.setSmartMotionMaxVelocity(Constants.Swerve.maxDrivePos, 1);
+        controller.setSmartMotionMaxAccel(Constants.Swerve.maxDriveAccPos, 1);
+        controller.setSmartMotionAllowedClosedLoopError(Constants.Swerve.allowedDriveErrPos, 1);
     }
 
     public void setDesiredState(SwerveModuleState desiredState, boolean isOpenLoop)
@@ -192,7 +201,7 @@ public class RevSwerveModule implements SwerveModule
 
     public void setAngle(SwerveModuleState desiredState)
     {
-
+        double setAngle,currentAngle,finalAngle;
         // See angle require a speed which does not make sense
         // Comment it out
         //if(Math.abs(desiredState.speedMetersPerSecond) <= (Constants.Swerve.maxSpeed * 0.01))
@@ -209,14 +218,33 @@ public class RevSwerveModule implements SwerveModule
         Rotation2d angle = desiredState.angle;
        
         SparkPIDController controller = mAngleMotor.getPIDController();
-        double degReference = angle.getDegrees();
-
+        setAngle = angle.getDegrees() / Constants.Swerve.DegreesPerTurnRotation;
+        currentAngle = mAngleMotor.getEncoder().getPosition();
+        double deltaAngle = Math.abs(setAngle - currentAngle);
+        if(deltaAngle > (180 / Constants.Swerve.DegreesPerTurnRotation))     // Need to turn move than half round
+        {   
+            if(currentAngle >= 0 )
+            {
+                    finalAngle = currentAngle + (Constants.Swerve.angleGearRatio - deltaAngle);
+            }
+            else
+            {
+                    finalAngle = currentAngle - (Constants.Swerve.angleGearRatio - deltaAngle);
+            }
+        }
+        else
+        {
+            finalAngle = setAngle;
+        }
         // input angle is degree (0~360), need to convert back to encoder raw position
         // /15 is a experience value from the reading. Need to fine tuning this value
 
-        controller.setReference (degReference/15, ControlType.kSmartMotion, 0);
+        controller.setReference (finalAngle, ControlType.kSmartMotion, 1);
         SmartDashboard.putNumber("Angle Counter",angleCounter++);
-         SmartDashboard.putNumber("Turn angle",degReference);
+         SmartDashboard.putNumber("set angle" + this.moduleNumber,setAngle *Constants.Swerve.DegreesPerTurnRotation);
+         SmartDashboard.putNumber("currentangle"+ this.moduleNumber,currentAngle * Constants.Swerve.DegreesPerTurnRotation);
+         SmartDashboard.putNumber("delta angle"+ this.moduleNumber,deltaAngle * Constants.Swerve.DegreesPerTurnRotation);
+         SmartDashboard.putNumber("Final angle"+ this.moduleNumber,finalAngle * Constants.Swerve.DegreesPerTurnRotation);
 
     }
 
@@ -262,12 +290,12 @@ public class RevSwerveModule implements SwerveModule
                 NeoEncoderPosition = NeoEncoderPosition - 360;
             }
         
-       // SmartDashboard.putNumber("CAN" + this.moduleNumber, getCanCoder().getDegrees());
-       // SmartDashboard.putNumber("ABS" + this.moduleNumber, absolutePosition);
-       // SmartDashboard.putNumber("CA1" + this.moduleNumber, NeoEncoderPosition1);
-       // SmartDashboard.putNumber("CA2" + this.moduleNumber, NeoEncoderPosition2);
+        SmartDashboard.putNumber("CAN" + this.moduleNumber, getCanCoder().getDegrees());
+        SmartDashboard.putNumber("ABS" + this.moduleNumber, absolutePosition);
+        SmartDashboard.putNumber("CA1" + this.moduleNumber, NeoEncoderPosition);
+        SmartDashboard.putNumber("CA2" + this.moduleNumber, NeoEncoderPosition/DegreesPerTurnRotation);
             // CanCoder return degree, need to convert back to Neo Raw position
-        relAngleEncoder.setPosition(NeoEncoderPosition/15);
+        relAngleEncoder.setPosition(NeoEncoderPosition/DegreesPerTurnRotation);
     }
 
     public SwerveModuleState getState()
@@ -294,12 +322,13 @@ public class RevSwerveModule implements SwerveModule
     public void setPosition(double position)
     {
         // Not sure if we need this sync
-        synchronizeEncoders();
+        //synchronizeEncoders();
         SparkPIDController controller = mDriveMotor.getPIDController();
         double encoderDelta = position / Constants.Swerve.driveRevToMeters;
         // Use raw encode position
         double currentPosition = mDriveMotor.getEncoder().getPosition();
-        controller.setReference (currentPosition + encoderDelta, ControlType.kSmartMotion,1);
+        // Try to match the joystick direction
+        controller.setReference (currentPosition - encoderDelta, ControlType.kSmartMotion,1);
         SmartDashboard.putNumber("SetPosition",encoderDelta);
 
     }
