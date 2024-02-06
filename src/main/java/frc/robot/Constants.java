@@ -51,6 +51,8 @@ public final class Constants {
         /* Drivetrain Constants */
         public static final double trackWidth = Units.inchesToMeters(23.75);
         public static final double wheelBase = Units.inchesToMeters(23.75);
+        public static final double WheelTurnDistance = 0.7800;       //Measure distance is 0.74m. But could only turn 80 degree
+                                                                    // Increase to 0.75m, could achieve 90 degree
         /*
          * Swerve Kinematics
          * No need to ever change this unless you are not doing a traditional
@@ -79,7 +81,7 @@ public final class Constants {
    
         /* Angle Motor PID Values */
         // Update this setting to accomodate smartMotion
-        public static final double angleKP = 0.0005;
+        public static final double angleKP = 0.0006;
         public static final double angleKI = 0;
         public static final double angleKD = 0;
         public static final double angleKFF = 0.000156;
@@ -100,7 +102,7 @@ public final class Constants {
         public static final double maxAngularVelocity = 1; // 5.0;
         public static double angleRampRate = 0;
 
-        public static double maxVel_v = 1;          // for velocity setting, using converted value m/s
+        public static double maxVel_v = 2;          // for velocity setting, using converted value m/s
         public static double maxVel_p = 300;          // for position setting, using raw encoder rpm/m
         public static double minVel = 0;
         public static double maxAcc_v = 1;          // for velocity setting, using converted value m/ss
@@ -111,7 +113,7 @@ public final class Constants {
         public static final CANcoderConfiguration swerveCANcoderConfig = new CANcoderConfiguration();
 
         // wheel travel distance / degree, used for base rotation
-        public static double turnRatio = wheelBase * Math.PI / 360;
+        public static double turnRatio = WheelTurnDistance * Math.PI / 360;
         public static class Modules {
             /* Module Specific Constants */
             /* Front Left Module - Module 0 */
