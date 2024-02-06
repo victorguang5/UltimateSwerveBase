@@ -222,7 +222,7 @@ public class RevSwerveModule implements SwerveModule
 
     public Rotation2d getAngle()
     {
-        return Rotation2d.fromDegrees(relAngleEncoder.getPosition());
+        return Rotation2d.fromDegrees(relAngleEncoder.getPosition() * Constants.Swerve.DegreesPerTurnRotation);
     }
 
     public Rotation2d getCanCoder()
@@ -286,7 +286,7 @@ public class RevSwerveModule implements SwerveModule
     public SwerveModulePosition getPosition()
     {
         return new SwerveModulePosition(
-                relDriveEncoder.getPosition(),
+                relDriveEncoder.getPosition() * Constants.Swerve.driveRevToMeters,
                 getAngle()
         );
     }
@@ -297,6 +297,7 @@ public class RevSwerveModule implements SwerveModule
         synchronizeEncoders();
         SparkPIDController controller = mDriveMotor.getPIDController();
         double encoderDelta = position / Constants.Swerve.driveRevToMeters;
+        // Use raw encode position
         double currentPosition = mDriveMotor.getEncoder().getPosition();
         controller.setReference (currentPosition + encoderDelta, ControlType.kSmartMotion,1);
         SmartDashboard.putNumber("SetPosition",encoderDelta);
