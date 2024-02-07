@@ -46,12 +46,12 @@ public final class Constants {
         // encoder setup
         // meters per rotation
         public static final double wheelCircumference = chosenModule.wheelCircumference;
-        public static final double driveRevToMeters = wheelCircumference / (driveGearRatio);
+        public static final double driveRevToMeters = wheelCircumference / (driveGearRatio) * 0.94;
         public static final double driveRpmToMetersPerSecond = driveRevToMeters / 60;
         /* Drivetrain Constants */
         public static final double trackWidth = Units.inchesToMeters(23.75);
         public static final double wheelBase = Units.inchesToMeters(23.75);
-        public static final double WheelTurnDistance = 0.7800;       //Measure distance is 0.74m. But could only turn 80 degree
+        public static final double WheelTurnDistance = 0.7400;       //Measure distance is 0.74m. But could only turn 80 degree
                                                                     // Increase to 0.75m, could achieve 90 degree
         /*
          * Swerve Kinematics
@@ -109,10 +109,10 @@ public final class Constants {
         public static final double maxAngularVelocity = 1; // 5.0;
         public static double angleRampRate = 0;
 
-        public static double maxDriveVel = 2;          // for velocity setting, using converted value m/s
+        public static double maxDriveVel = 3;          // for velocity setting, using converted value m/s
         public static double maxDrivePos = 300;          // for position setting, using raw encoder rpm/m
         public static double minVel = 0;
-        public static double maxDriveAccVel= 1;          // for velocity setting, using converted value m/ss
+        public static double maxDriveAccVel= 2;          // for velocity setting, using converted value m/ss
         public static double maxDriveAccPos = 300;        // for position setting, using raw encoder rpm/mm
         public static double allowedDriveErrVel = 0.21;
         public static double allowedDriveErrPos = 0.1;

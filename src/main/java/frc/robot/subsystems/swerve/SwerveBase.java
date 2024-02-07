@@ -73,7 +73,7 @@ public class SwerveBase extends SubsystemBase {
         zeroGyro();
         SmartDashboard.putNumber("setDistance", 1);
         SmartDashboard.putNumber("setAngle",90);
-        SmartDashboard.putNumber("setDirection",45);
+        SmartDashboard.putNumber("setDirection",0);
 
     }
 
@@ -176,11 +176,20 @@ public class SwerveBase extends SubsystemBase {
      * 
      */
     public void setSmartPositionPoint(Translation2d locationTo, Translation2d locationFrom, double timeToTravel, Rotation2d angleOfRobot) {
+        double inputDistance = SmartDashboard.getNumber("setDistance", 1);
+        double inputAngle = SmartDashboard.getNumber("setDirection", 0);
+        double inputX = inputDistance * Math.sin(Math.toRadians(inputAngle));
+        double inputY = inputDistance * Math.cos(Math.toDegrees(inputAngle));
+
+        Translation2d myInputPosition  = new Translation2d(inputX, inputY);
         //SmartDashboard.putNumber("drive Counter", driveCounter++);
         ChassisSpeeds desiredChassisSpeeds;
         // Determine a vector velocity using the change in position
-        double deltaX = locationTo.getX() - locationFrom.getX(); // In meters
-        double deltaY = locationTo.getY() - locationFrom.getY();
+        //double deltaX = locationTo.getX() - locationFrom.getX(); // In meters
+        //double deltaY = locationTo.getY() - locationFrom.getY();
+
+        double deltaX = myInputPosition.getX() - locationFrom.getX(); // In meters
+        double deltaY = myInputPosition.getY() - locationFrom.getY();
         Translation2d velocity = new Translation2d(deltaX/timeToTravel, deltaY/timeToTravel);
         double distance = velocity.getNorm();
 
@@ -202,13 +211,21 @@ public class SwerveBase extends SubsystemBase {
     public void setSmartPosition()
     {
         double distance, direction;
+        double currentAngle, deltaAngle;
         distance = SmartDashboard.getNumber("setDistance", 1);
         direction = SmartDashboard.getNumber("setDirection",45);
         double speedMetersPerSecond = 1;
         Rotation2d setDirection = Rotation2d.fromDegrees(direction);
-
+        currentAngle = getPose().getRotation().getDegrees();
         SwerveModuleState state = new SwerveModuleState(speedMetersPerSecond, setDirection);
-        for(RevSwerveModule mod : swerveMods){
+        deltaAngle = Math.abs(direction - currentAngle);
+        // Compensate the distance as turning wheel need time
+        if(deltaAngle <= 60)
+        {
+                distance = (1+ 0.07 / 45 * deltaAngle) * distance;
+        }
+        for(RevSwerveModule mod : swerveMods)
+        {
             // Set Angle first as setPosition will affect the encoder sync
             mod.setAngle(state);
             mod.setPosition(distance);
