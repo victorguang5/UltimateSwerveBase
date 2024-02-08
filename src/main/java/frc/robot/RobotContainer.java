@@ -80,7 +80,7 @@ public class RobotContainer {
     DriveToPoseCommand autoMoveCommand = new DriveToPoseCommand(
             s_Swerve,
             s_Swerve::getPose,
-            new Pose2d(15.01, 1.52, new Rotation2d(0)),
+            new Pose2d(1, 1, Rotation2d.fromDegrees(0)),
             false
     );
 
@@ -137,7 +137,7 @@ public class RobotContainer {
         BackButton.onTrue(m_driveSmartPosition);
 
         //example of auto move
-        //autoMove.whileTrue(autoMoveCommand);
+        autoMove.whileTrue(autoMoveCommand);
         //autoMove.toggleOnFalse(new InstantCommand(() -> autoMoveCommand.cancel()));
     }
 

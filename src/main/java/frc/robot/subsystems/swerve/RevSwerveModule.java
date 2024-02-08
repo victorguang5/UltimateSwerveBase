@@ -42,6 +42,7 @@ public class RevSwerveModule implements SwerveModule
     public SwerveModuleState desiredState;
     private int angleCounter = 0;
     private double prevAngle = 0;
+    private int CANCONFIG = 0;
     //SimpleMotorFeedforward feedforward = new SimpleMotorFeedforward(Constants.Swerve.driveKS, Constants.Swerve.driveKV, Constants.Swerve.driveKA);
 
     public RevSwerveModule(int moduleNumber, RevSwerveModuleConstants moduleConstants)
@@ -221,16 +222,34 @@ public class RevSwerveModule implements SwerveModule
         setAngle = angle.getDegrees() / Constants.Swerve.DegreesPerTurnRotation;
         currentAngle = mAngleMotor.getEncoder().getPosition();
         double deltaAngle = Math.abs(setAngle - currentAngle);
+
         if(deltaAngle > (180 / Constants.Swerve.DegreesPerTurnRotation))     // Need to turn move than half round
         {   
-            if(currentAngle >= 0 )
-            {
-                    finalAngle = currentAngle + (Constants.Swerve.angleGearRatio - deltaAngle);
+           
+            if(CANCONFIG == 180)
+            { 
+                if(currentAngle >= 0 )
+                {
+                        finalAngle = currentAngle + (Constants.Swerve.angleGearRatio - deltaAngle);
+                }
+                else
+                {
+                        finalAngle = currentAngle - (Constants.Swerve.angleGearRatio - deltaAngle);
+                }
             }
             else
             {
-                    finalAngle = currentAngle - (Constants.Swerve.angleGearRatio - deltaAngle);
+                if(currentAngle >= setAngle )
+                {
+                        finalAngle = 360 + currentAngle - deltaAngle;
+                }
+                else
+                {
+                        finalAngle = currentAngle + deltaAngle;
+                }
+
             }
+
         }
         else
         {
@@ -275,8 +294,10 @@ public class RevSwerveModule implements SwerveModule
     // The code is to round the value between -180 to 180 for NeoEncoder
     public void synchronizeEncoders()
     {
-        double NeoEncoderPosition;
-        double absolutePosition =getCanCoder().getDegrees() - angleOffset.getDegrees();
+        double NeoEncoderPosition = 0;
+        double absolutePosition = 0; 
+        // if can is configure to output -180 to 180
+        absolutePosition = getCanCoder().getDegrees() - angleOffset.getDegrees();
         if(absolutePosition >=0)
         {
             NeoEncoderPosition = absolutePosition;
@@ -285,11 +306,11 @@ public class RevSwerveModule implements SwerveModule
         {
             NeoEncoderPosition = 360 + absolutePosition;
         }
-        if(NeoEncoderPosition >=180)
-            {
-                NeoEncoderPosition = NeoEncoderPosition - 360;
-            }
-        
+        if(CANCONFIG == 180 && NeoEncoderPosition >=180)
+        {
+                    NeoEncoderPosition = NeoEncoderPosition - 360;
+        }
+
         SmartDashboard.putNumber("CAN" + this.moduleNumber, getCanCoder().getDegrees());
         SmartDashboard.putNumber("ABS" + this.moduleNumber, absolutePosition);
         SmartDashboard.putNumber("CA1" + this.moduleNumber, NeoEncoderPosition);
