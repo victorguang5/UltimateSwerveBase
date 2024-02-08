@@ -178,18 +178,21 @@ public class SwerveBase extends SubsystemBase {
     public void setSmartPositionPoint(Translation2d locationTo, Translation2d locationFrom, double timeToTravel, Rotation2d angleOfRobot) {
         double inputDistance = SmartDashboard.getNumber("setDistance", 1);
         double inputAngle = SmartDashboard.getNumber("setDirection", 0);
-        double inputX = inputDistance * Math.sin(Math.toRadians(inputAngle));
-        double inputY = inputDistance * Math.cos(Math.toDegrees(inputAngle));
+        
+        Translation2d myInputPosition = new Translation2d(inputDistance, Rotation2d.fromDegrees(inputAngle));
+        //double inputX = inputDistance * Math.cos(Math.toRadians(inputAngle));
+        //double inputY = inputDistance * Math.sin(Math.toDegrees(inputAngle));
 
-        Translation2d myInputPosition  = new Translation2d(inputX, inputY);
+        //Translation2d myInputPosition  = new Translation2d(inputX, inputY);
         //SmartDashboard.putNumber("drive Counter", driveCounter++);
         ChassisSpeeds desiredChassisSpeeds;
         // Determine a vector velocity using the change in position
         //double deltaX = locationTo.getX() - locationFrom.getX(); // In meters
         //double deltaY = locationTo.getY() - locationFrom.getY();
 
-        double deltaX = myInputPosition.getX() - locationFrom.getX(); // In meters
-        double deltaY = myInputPosition.getY() - locationFrom.getY();
+            // Counter from current location, (0,0)
+        double deltaX = myInputPosition.getX(); // In meters
+        double deltaY = myInputPosition.getY();
         Translation2d velocity = new Translation2d(deltaX/timeToTravel, deltaY/timeToTravel);
         double distance = velocity.getNorm();
 
@@ -242,7 +245,7 @@ public class SwerveBase extends SubsystemBase {
     {
         double angle1 = SmartDashboard.getNumber("setAngle", 90);
         double setAngle;
-        Rotation2d direction = Rotation2d.fromDegrees(-45);
+        Rotation2d direction = Rotation2d.fromDegrees(315);
         SwerveModuleState state = new SwerveModuleState(0.0, direction);
         swerveMods[0].setAngle(state);
         // hard code value, need to change
@@ -253,7 +256,7 @@ public class SwerveBase extends SubsystemBase {
         state.angle = Rotation2d.fromDegrees(45);
         swerveMods[2].setAngle(state);
 //        SmartDashboard.putNumber("wheel 3",state.angle.getDegrees());
-        state.angle = Rotation2d.fromDegrees(-45);
+        state.angle = Rotation2d.fromDegrees(315);
         swerveMods[3].setAngle(state);
 //        SmartDashboard.putNumber("wheel 4",state.angle.getDegrees());
         for(RevSwerveModule mod : swerveMods){

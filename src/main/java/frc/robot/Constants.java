@@ -82,16 +82,16 @@ public final class Constants {
    
         /* Angle Motor PID Values */
         // Update this setting to accomodate smartMotion
-        public static final double angleKP = 0.0006;
+        public static final double angleKP = 0.0005;
         public static final double angleKI = 0;
         public static final double angleKD = 0;
         public static final double angleKFF = 0.000156;
 
-        public static double maxAngleVel = 2;          // for velocity setting, using converted value m/s
-        public static double maxAnglePos = 500;          // for position setting, using raw encoder rpm/m
+        public static double maxAngleVel = 1;          // for velocity setting, using converted value m/s
+        public static double maxAnglePos = 200;          // for position setting, using raw encoder rpm/m
         public static double minAngleVel = 0;
         public static double maxAngleAccVel= 1;          // for velocity setting, using converted value m/ss
-        public static double maxAngleAccPos = 500;        // for position setting, using raw encoder rpm/mm
+        public static double maxAngleAccPos = 200;        // for position setting, using raw encoder rpm/mm
         public static double allowedAngleErrVel = 0.21;
         public static double allowedAngleErrPos = 0.1;
     
@@ -110,11 +110,11 @@ public final class Constants {
         public static final double maxAngularVelocity = 1; // 5.0;
         public static double angleRampRate = 0;
 
-        public static double maxDriveVel = 3;          // for velocity setting, using converted value m/s
-        public static double maxDrivePos = 300;          // for position setting, using raw encoder rpm/m
+        public static double maxDriveVel = 0.5;          // for velocity setting, using converted value m/s
+        public static double maxDrivePos = 200;          // for position setting, using raw encoder rpm/m
         public static double minVel = 0;
-        public static double maxDriveAccVel= 2;          // for velocity setting, using converted value m/ss
-        public static double maxDriveAccPos = 300;        // for position setting, using raw encoder rpm/mm
+        public static double maxDriveAccVel= 0.5;          // for velocity setting, using converted value m/ss
+        public static double maxDriveAccPos = 200;        // for position setting, using raw encoder rpm/mm
         public static double allowedDriveErrVel = 0.21;
         public static double allowedDriveErrPos = 0.1;
         /* CanCoder Constants */

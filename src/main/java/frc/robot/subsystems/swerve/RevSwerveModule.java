@@ -241,7 +241,7 @@ public class RevSwerveModule implements SwerveModule
             {
                 if(currentAngle >= setAngle )
                 {
-                        finalAngle = 360 + currentAngle - deltaAngle;
+                        finalAngle = 360 / Constants.Swerve.DegreesPerTurnRotation + currentAngle - deltaAngle;
                 }
                 else
                 {
@@ -296,6 +296,7 @@ public class RevSwerveModule implements SwerveModule
     {
         double NeoEncoderPosition = 0;
         double absolutePosition = 0; 
+        double NeoEncoderRawPosition = 0;
         // if can is configure to output -180 to 180
         absolutePosition = getCanCoder().getDegrees() - angleOffset.getDegrees();
         if(absolutePosition >=0)
@@ -310,13 +311,15 @@ public class RevSwerveModule implements SwerveModule
         {
                     NeoEncoderPosition = NeoEncoderPosition - 360;
         }
-
+        NeoEncoderRawPosition = NeoEncoderPosition/DegreesPerTurnRotation;
         SmartDashboard.putNumber("CAN" + this.moduleNumber, getCanCoder().getDegrees());
         SmartDashboard.putNumber("ABS" + this.moduleNumber, absolutePosition);
         SmartDashboard.putNumber("CA1" + this.moduleNumber, NeoEncoderPosition);
-        SmartDashboard.putNumber("CA2" + this.moduleNumber, NeoEncoderPosition/DegreesPerTurnRotation);
+        SmartDashboard.putNumber("CA2" + this.moduleNumber, NeoEncoderRawPosition);
             // CanCoder return degree, need to convert back to Neo Raw position
-        relAngleEncoder.setPosition(NeoEncoderPosition/DegreesPerTurnRotation);
+        relAngleEncoder.setPosition(NeoEncoderRawPosition);
+        SmartDashboard.putNumber("CA3" + this.moduleNumber, relAngleEncoder.getPosition()); 
+
     }
 
     public SwerveModuleState getState()
