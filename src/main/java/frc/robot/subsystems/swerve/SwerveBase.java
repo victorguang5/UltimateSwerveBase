@@ -105,11 +105,11 @@ public class SwerveBase extends SubsystemBase {
     public void drive(Translation2d translation, double rotation, boolean fieldRelative, boolean isOpenLoop) {
         double angle = 0;
         Optional<Alliance> ally = DriverStation.getAlliance();
-//        if (ally.isPresent()) {
- //           if (ally.get() == Alliance.Red) {
- //               angle = 180;
- //           }
- //       }
+        if (ally.isPresent()) {
+           if (ally.get() == Alliance.Red) {
+               angle = 180;
+           }
+       }
         ChassisSpeeds desiredChassisSpeeds =
        // fieldRelative ?
        false ?

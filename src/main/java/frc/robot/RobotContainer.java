@@ -94,9 +94,9 @@ public class RobotContainer {
         s_Swerve.setDefaultCommand(
             new TeleopSwerve(
                 s_Swerve,
-                () -> -driver.getRawAxis(translationAxis),
-                () -> -driver.getRawAxis(strafeAxis),
-                () -> -driver.getRawAxis(rotationAxis),
+                () -> driver.getRawAxis(translationAxis),
+                () -> driver.getRawAxis(strafeAxis),
+                () -> driver.getRawAxis(rotationAxis),
                 () -> driver.getRawButtonPressed(XboxController.Button.kY.value),
                 () -> false
             )
