@@ -293,6 +293,8 @@ public class RevSwerveModule implements SwerveModule
         double NeoEncoderPosition = 0;
         double absolutePosition = 0; 
         double NeoEncoderRawPosition = 0;
+        double syncDelayCounter = 0;
+        double currentPosition = 0;
         // if can is configure to output -180 to 180
         absolutePosition = getCanCoder().getDegrees() - angleOffset.getDegrees();
         if(absolutePosition >=0)
@@ -314,7 +316,14 @@ public class RevSwerveModule implements SwerveModule
         SmartDashboard.putNumber("CA2" + this.moduleNumber, NeoEncoderRawPosition);
             // CanCoder return degree, need to convert back to Neo Raw position
         relAngleEncoder.setPosition(NeoEncoderRawPosition);
+        while(Math.abs(relAngleEncoder.getPosition() - NeoEncoderRawPosition)> 0.5)
+        {
+            syncDelayCounter ++;
+            if(syncDelayCounter>3000) break;
+
+        }
         SmartDashboard.putNumber("CA3" + this.moduleNumber, relAngleEncoder.getPosition()); 
+        SmartDashboard.putNumber("SyncDelayCounter" + this.moduleNumber, syncDelayCounter); 
 
     }
 
