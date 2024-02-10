@@ -105,13 +105,14 @@ public class SwerveBase extends SubsystemBase {
     public void drive(Translation2d translation, double rotation, boolean fieldRelative, boolean isOpenLoop) {
         double angle = 0;
         Optional<Alliance> ally = DriverStation.getAlliance();
-        if (ally.isPresent()) {
-            if (ally.get() == Alliance.Red) {
-                angle = 180;
-            }
-        }
+//        if (ally.isPresent()) {
+ //           if (ally.get() == Alliance.Red) {
+ //               angle = 180;
+ //           }
+ //       }
         ChassisSpeeds desiredChassisSpeeds =
-        fieldRelative ?
+       // fieldRelative ?
+       false ?
         ChassisSpeeds.fromFieldRelativeSpeeds(
                 translation.getX(),
                 translation.getY(),
@@ -144,13 +145,15 @@ public class SwerveBase extends SubsystemBase {
      */
     public void setDriveDirection(Translation2d velocity, Rotation2d angularVelocity, Rotation2d angleOfRobot, boolean fieldOriented) {
         //SmartDashboard.putNumber("drive Counter", driveCounter++);
+        double setAngle, angle1;
         ChassisSpeeds desiredChassisSpeeds;
-        if (fieldOriented) {
-            ChassisSpeeds fieldRSpeed = new ChassisSpeeds(velocity.getX(), velocity.getY(), angularVelocity.getRadians());
-            desiredChassisSpeeds = ChassisSpeeds.fromFieldRelativeSpeeds(fieldRSpeed, angleOfRobot);
-        } else {
-            desiredChassisSpeeds = new ChassisSpeeds(velocity.getX(), velocity.getY(), angularVelocity.getRadians());
-        }
+        //if (fieldOriented) {
+        //    ChassisSpeeds fieldRSpeed = new ChassisSpeeds(velocity.getX(), velocity.getY(), angularVelocity.getRadians());
+        //    desiredChassisSpeeds = ChassisSpeeds.fromFieldRelativeSpeeds(fieldRSpeed, angleOfRobot);
+        //} else {
+        //    desiredChassisSpeeds = new ChassisSpeeds(velocity.getX(), velocity.getY(), angularVelocity.getRadians());
+        //}
+        desiredChassisSpeeds = new ChassisSpeeds(0, 0, Math.PI/2);
             // I'm guessing that this line is required to prevent errors or exceptions in cases where the set values exceed certain boundaries?
         desiredChassisSpeeds = correctForDynamics(desiredChassisSpeeds); 
             // Give me the states of all modules if the chassis was theoretical at the given velocity
@@ -159,10 +162,17 @@ public class SwerveBase extends SubsystemBase {
         SwerveDriveKinematics.desaturateWheelSpeeds(swerveModuleStates, Constants.Swerve.maxSpeed);
             // For every instance of swerve module part of this base, set each module it's desired state
         for(RevSwerveModule mod : swerveMods){
-            mod.setDesiredState(swerveModuleStates[mod.getModuleNumber()], false);
-            //mod.setAngle(swerveModuleStates[mod.getModuleNumber()]);
+            //mod.setDesiredState(swerveModuleStates[mod.getModuleNumber()], false);
+            mod.setAngle(swerveModuleStates[mod.getModuleNumber()]);
+            SmartDashboard.putNumber("setDD"+ mod.getModuleNumber(), swerveModuleStates[mod.getModuleNumber()].angle.getDegrees());
+            //angle1 = angleOfRobot.getDegrees();
+            angle1 = SmartDashboard.getNumber("setAngle", 0);
+            if(mod.moduleNumber == 0 || mod.moduleNumber == 2) setAngle = -angle1;
+            else setAngle = angle1;
+            mod.setPosition(setAngle * Constants.Swerve.turnRatio);
             //mod.setPosition(10);
         }
+        SmartDashboard.putNumber("setSmartDirection",smartDirectionCounter++);
     }
 
     /**
@@ -180,17 +190,11 @@ public class SwerveBase extends SubsystemBase {
         double inputAngle = SmartDashboard.getNumber("setDirection", 0);
         
         Translation2d myInputPosition = new Translation2d(inputDistance, Rotation2d.fromDegrees(inputAngle));
-        //double inputX = inputDistance * Math.cos(Math.toRadians(inputAngle));
-        //double inputY = inputDistance * Math.sin(Math.toDegrees(inputAngle));
 
-        //Translation2d myInputPosition  = new Translation2d(inputX, inputY);
-        //SmartDashboard.putNumber("drive Counter", driveCounter++);
         ChassisSpeeds desiredChassisSpeeds;
         // Determine a vector velocity using the change in position
-        //double deltaX = locationTo.getX() - locationFrom.getX(); // In meters
-        //double deltaY = locationTo.getY() - locationFrom.getY();
 
-            // Counter from current location, (0,0)
+        // Counter from current location, (0,0)
         double deltaX = myInputPosition.getX(); // In meters
         double deltaY = myInputPosition.getY();
         Translation2d velocity = new Translation2d(deltaX/timeToTravel, deltaY/timeToTravel);
@@ -264,7 +268,6 @@ public class SwerveBase extends SubsystemBase {
             else setAngle = angle1;
             mod.setPosition(setAngle * Constants.Swerve.turnRatio);
         } 
-        SmartDashboard.putNumber("setSmartDirection",smartDirectionCounter++);
     }
     /* Used by SwerveControllerCommand in Auto */
     public void setModuleStates(SwerveModuleState[] desiredStates) 
@@ -333,9 +336,18 @@ public class SwerveBase extends SubsystemBase {
     @Override
     public void periodic() {
         SmartDashboard.putNumber("gyro", gyro.getHeading());
-
-        swerveOdometer.update(getYaw(), getModulePositions());
-        SmartDashboard.putBoolean("photonGood", cam.latency() < 0.6);
+        Rotation2d yaw;
+        SwerveModulePosition[] latestPosition;
+        yaw = getYaw();
+        latestPosition = getModulePositions();
+        //swerveOdometer.update(getYaw(), getModulePositions());
+        swerveOdometer.update(yaw, latestPosition);
+        SmartDashboard.putNumber("Odometer.X", swerveOdometer.getEstimatedPosition().getX());
+        SmartDashboard.putNumber("Odometer.Y", swerveOdometer.getEstimatedPosition().getY());
+        SmartDashboard.putNumber("Odometer.Angle", swerveOdometer.getEstimatedPosition().getRotation().getDegrees());
+                
+        
+        //SmartDashboard.putBoolean("photonGood", cam.latency() < 0.6);
         if (!hasInitialized /* || DriverStation.isDisabled() */) {
             var robotPose = cam.getInitialPose();
             if (robotPose.isPresent()) {

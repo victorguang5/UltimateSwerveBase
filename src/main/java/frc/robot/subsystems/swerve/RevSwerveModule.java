@@ -202,6 +202,9 @@ public class RevSwerveModule implements SwerveModule
 
     public void setAngle(SwerveModuleState desiredState)
     {
+        // Angle recieve shall be Chassis angle
+        // absolution value counter from chassis 0
+
         double setAngle,currentAngle,finalAngle;
         // See angle require a speed which does not make sense
         // Comment it out
@@ -219,36 +222,25 @@ public class RevSwerveModule implements SwerveModule
         Rotation2d angle = desiredState.angle;
        
         SparkPIDController controller = mAngleMotor.getPIDController();
-        setAngle = angle.getDegrees() / Constants.Swerve.DegreesPerTurnRotation;
-        currentAngle = mAngleMotor.getEncoder().getPosition();
+        // Calculate in degree
+        setAngle = angle.getDegrees();
+        if(setAngle >=360) setAngle = setAngle - 360;
+        currentAngle = mAngleMotor.getEncoder().getPosition() * Constants.Swerve.DegreesPerTurnRotation;
+        if(currentAngle > 360) currentAngle = 360 - currentAngle;
+        else if (currentAngle < 0) currentAngle = 360 + currentAngle;
         double deltaAngle = Math.abs(setAngle - currentAngle);
 
-        if(deltaAngle > (180 / Constants.Swerve.DegreesPerTurnRotation))     // Need to turn move than half round
+        if(deltaAngle > 180)     // Need to turn move than half round
         {   
-           
-            if(CANCONFIG == 180)
-            { 
-                if(currentAngle >= 0 )
+            
+                if(currentAngle >= setAngle )           //Clockwise
                 {
-                        finalAngle = currentAngle + (Constants.Swerve.angleGearRatio - deltaAngle);
+                        finalAngle = currentAngle + 360 - deltaAngle;
                 }
-                else
+                else                                    //Counter Clockwise
                 {
-                        finalAngle = currentAngle - (Constants.Swerve.angleGearRatio - deltaAngle);
+                        finalAngle = currentAngle - (360 - deltaAngle);
                 }
-            }
-            else
-            {
-                if(currentAngle >= setAngle )
-                {
-                        finalAngle = 360 / Constants.Swerve.DegreesPerTurnRotation + currentAngle - deltaAngle;
-                }
-                else
-                {
-                        finalAngle = currentAngle + deltaAngle;
-                }
-
-            }
 
         }
         else
@@ -258,18 +250,22 @@ public class RevSwerveModule implements SwerveModule
         // input angle is degree (0~360), need to convert back to encoder raw position
         // /15 is a experience value from the reading. Need to fine tuning this value
 
-        controller.setReference (finalAngle, ControlType.kSmartMotion, 1);
+        controller.setReference (finalAngle / Constants.Swerve.DegreesPerTurnRotation, ControlType.kSmartMotion, 1);
         SmartDashboard.putNumber("Angle Counter",angleCounter++);
-         SmartDashboard.putNumber("set angle" + this.moduleNumber,setAngle *Constants.Swerve.DegreesPerTurnRotation);
-         SmartDashboard.putNumber("currentangle"+ this.moduleNumber,currentAngle * Constants.Swerve.DegreesPerTurnRotation);
-         SmartDashboard.putNumber("delta angle"+ this.moduleNumber,deltaAngle * Constants.Swerve.DegreesPerTurnRotation);
-         SmartDashboard.putNumber("Final angle"+ this.moduleNumber,finalAngle * Constants.Swerve.DegreesPerTurnRotation);
+         SmartDashboard.putNumber("set angle" + this.moduleNumber,setAngle);
+         SmartDashboard.putNumber("currentangle"+ this.moduleNumber,currentAngle);
+         SmartDashboard.putNumber("delta angle"+ this.moduleNumber,deltaAngle);
+         SmartDashboard.putNumber("Final angle"+ this.moduleNumber,finalAngle);
 
     }
 
     public Rotation2d getAngle()
     {
-        return Rotation2d.fromDegrees(relAngleEncoder.getPosition() * Constants.Swerve.DegreesPerTurnRotation);
+        double returnAngle = relAngleEncoder.getPosition() * Constants.Swerve.DegreesPerTurnRotation;
+
+        if(returnAngle > 360) returnAngle = returnAngle -360;
+        else if(returnAngle < 0) returnAngle = returnAngle + 360;
+        return Rotation2d.fromDegrees(returnAngle);
     }
 
     public Rotation2d getCanCoder()
