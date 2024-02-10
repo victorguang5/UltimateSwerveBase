@@ -181,6 +181,28 @@ public class RevSwerveModule implements SwerveModule
         }
     }
 
+    /**
+     * A modified version of {@link #setDesiredState(SwerveModuleState, boolean)} <code>By Robin</code>
+     * @param desiredState
+     */
+    public void setOptimizedAngle(SwerveModuleState desiredState, double angleDegree) {
+        this.desiredState = CTREModuleState.optimize(desiredState, getState().angle);
+        setAngle(this.desiredState);
+        // Set the isOpenLoop to false so we can trigger the PID control for the velocity
+
+        //setPositionOtpimized(angleDegree);
+
+        if(mDriveMotor.getFault(FaultID.kSensorFault))
+        {
+            DriverStation.reportWarning("Sensor Fault on Drive Motor ID:"+mDriveMotor.getDeviceId(), false);
+        }
+
+        if(mAngleMotor.getFault(FaultID.kSensorFault))
+        {
+            DriverStation.reportWarning("Sensor Fault on Angle Motor ID:"+mAngleMotor.getDeviceId(), false);
+        }
+    }
+
     private void setSpeed(SwerveModuleState desiredState, boolean isOpenLoop)
     {
 
@@ -199,6 +221,7 @@ public class RevSwerveModule implements SwerveModule
         controller.setReference(velocity, ControlType.kSmartVelocity, 0);
 
     }
+
 
     public void setAngle(SwerveModuleState desiredState)
     {
@@ -361,4 +384,29 @@ public class RevSwerveModule implements SwerveModule
         SmartDashboard.putNumber("SetPosition",encoderDelta);
 
     }
+
+    /**
+     * Based on the optimized angle, turn - or +
+     * @param position
+     */
+    public void setPositionOtpimized(double position)
+    {
+        // Not sure if we need this sync
+        //synchronizeEncoders();
+        SparkPIDController controller = mDriveMotor.getPIDController();
+        if (desiredState.speedMetersPerSecond < 0) { 
+            position = -position;
+        }
+        double encoderDelta = position / Constants.Swerve.driveRevToMeters;
+        // Use raw encode position
+        double currentPosition = mDriveMotor.getEncoder().getPosition();
+        // Try to match the joystick direction
+        
+            controller.setReference (currentPosition - encoderDelta, ControlType.kSmartMotion,1);
+        
+        
+        SmartDashboard.putNumber("SetPosition",encoderDelta);
+
+    }
+
 }

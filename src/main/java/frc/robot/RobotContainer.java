@@ -57,7 +57,7 @@ public class RobotContainer {
 
         // Testing Use of Translation2d and Rotation2d with FieldOrientation
         private Translation2d velocity = new Translation2d(0.5, new Rotation2d(Math.PI*(0)));
-        private Rotation2d angularVelocity = new Rotation2d();
+        private Rotation2d angularVelocity = new Rotation2d(Math.PI/2);
         private Rotation2d angleOfRobot = new Rotation2d(0); // Angle of the robot must be dependent on the gyro's angle to be field oriented at all times
         private boolean fieldOriented = true;
 
@@ -66,8 +66,8 @@ public class RobotContainer {
     /* Robin */
     // Use Translation2D & Rotation 2D and Kinematics method to calculation the movement
     private final Command m_driveSmartPositionPoint = Commands.runOnce(()->s_Swerve.setSmartPositionPoint(spot2, spot1, 1, new Rotation2d()));
-    private final Command m_driveDirection = Commands.runOnce(()->s_Swerve.setDriveDirection(velocity, angularVelocity, angleOfRobot, fieldOriented));
-    
+    private final Command m_driveSpeed = Commands.runOnce(()->s_Swerve.setDriveSpeed(velocity, angularVelocity, angleOfRobot, fieldOriented));
+    private final Command m_driveHeading = Commands.runOnce(()->s_Swerve.setDriveHeading(new Rotation2d(Math.PI/4)));
     /* Yan Hongtao */
     // Use manual calculate input for movement
     private final Command m_driveSmartPosition = Commands.runOnce(()->s_Swerve.setSmartAngle(90));
@@ -129,7 +129,7 @@ public class RobotContainer {
         //angleDriveMove.onTrue(new AngleDriveCommand(s_Swerve, s_Swerve::getPose));
 
         // Kinematics method
-        XButton.onTrue(m_driveDirection);
+        XButton.onTrue(m_driveHeading);
         YButton.onTrue(m_driveSmartPositionPoint);
 
         // Manual method

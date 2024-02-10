@@ -143,7 +143,7 @@ public class SwerveBase extends SubsystemBase {
      * @param angleOfRobot the Rotation2d angle that the robot is facing according to the field orientation
      * @param fieldOriented a boolean indicating if the given velocities are meant to be field oriented
      */
-    public void setDriveDirection(Translation2d velocity, Rotation2d angularVelocity, Rotation2d angleOfRobot, boolean fieldOriented) {
+    public void setDriveSpeed(Translation2d velocity, Rotation2d angularVelocity, Rotation2d angleOfRobot, boolean fieldOriented) {
         //SmartDashboard.putNumber("drive Counter", driveCounter++);
         double setAngle, angle1;
         ChassisSpeeds desiredChassisSpeeds;
@@ -151,9 +151,10 @@ public class SwerveBase extends SubsystemBase {
         //    ChassisSpeeds fieldRSpeed = new ChassisSpeeds(velocity.getX(), velocity.getY(), angularVelocity.getRadians());
         //    desiredChassisSpeeds = ChassisSpeeds.fromFieldRelativeSpeeds(fieldRSpeed, angleOfRobot);
         //} else {
-        //    desiredChassisSpeeds = new ChassisSpeeds(velocity.getX(), velocity.getY(), angularVelocity.getRadians());
+            desiredChassisSpeeds = new ChassisSpeeds(velocity.getX(), velocity.getY(), angularVelocity.getRadians());
         //}
-        desiredChassisSpeeds = new ChassisSpeeds(0, 0, Math.PI/2);
+
+        //desiredChassisSpeeds = new ChassisSpeeds(0, 0, Math.PI/4);
             // I'm guessing that this line is required to prevent errors or exceptions in cases where the set values exceed certain boundaries?
         desiredChassisSpeeds = correctForDynamics(desiredChassisSpeeds); 
             // Give me the states of all modules if the chassis was theoretical at the given velocity
@@ -162,15 +163,52 @@ public class SwerveBase extends SubsystemBase {
         SwerveDriveKinematics.desaturateWheelSpeeds(swerveModuleStates, Constants.Swerve.maxSpeed);
             // For every instance of swerve module part of this base, set each module it's desired state
         for(RevSwerveModule mod : swerveMods){
-            //mod.setDesiredState(swerveModuleStates[mod.getModuleNumber()], false);
-            mod.setAngle(swerveModuleStates[mod.getModuleNumber()]);
-            SmartDashboard.putNumber("setDD"+ mod.getModuleNumber(), swerveModuleStates[mod.getModuleNumber()].angle.getDegrees());
-            //angle1 = angleOfRobot.getDegrees();
-            angle1 = SmartDashboard.getNumber("setAngle", 0);
-            if(mod.moduleNumber == 0 || mod.moduleNumber == 2) setAngle = -angle1;
-            else setAngle = angle1;
-            mod.setPosition(setAngle * Constants.Swerve.turnRatio);
-            //mod.setPosition(10);
+            mod.setDesiredState(swerveModuleStates[mod.getModuleNumber()], false);
+            // mod.setAngle(swerveModuleStates[mod.getModuleNumber()]);
+            // SmartDashboard.putNumber("setDD"+ mod.getModuleNumber(), swerveModuleStates[mod.getModuleNumber()].angle.getDegrees());
+            // //angle1 = angleOfRobot.getDegrees();
+            // angle1 = SmartDashboard.getNumber("setAngle", 0);
+            // if(mod.moduleNumber == 0 || mod.moduleNumber == 2) setAngle = -angle1;
+            // else setAngle = angle1;
+            // mod.setPosition(setAngle * Constants.Swerve.turnRatio);
+            // //mod.setPosition(10);
+        }
+        SmartDashboard.putNumber("setSmartDirection",smartDirectionCounter++);
+    }
+
+    /**
+     * Turn the robot on the spot to an angle
+     * @param angle in radians
+     * @param time
+     */
+    public void setDriveHeading(Rotation2d angle) {
+        //SmartDashboard.putNumber("drive Counter", driveCounter++);
+        
+        ChassisSpeeds desiredChassisSpeeds;
+        desiredChassisSpeeds = new ChassisSpeeds(0,0, angle.getRadians());
+            // I'm guessing that this line is required to prevent errors or exceptions in cases where the set values exceed certain boundaries?
+        desiredChassisSpeeds = correctForDynamics(desiredChassisSpeeds); 
+            // Give me the states of all modules if the chassis was theoretical at the given velocity
+        SwerveModuleState[] swerveModuleStates = Constants.Swerve.swerveKinematics.toSwerveModuleStates(desiredChassisSpeeds);
+            // Make sure that any calculated wheel speeds do not pass maximum limit
+        SwerveDriveKinematics.desaturateWheelSpeeds(swerveModuleStates, Constants.Swerve.maxSpeed);
+            // For every instance of swerve module part of this base, set each module it's desired state
+        for(RevSwerveModule mod : swerveMods){
+            mod.setOptimizedAngle(swerveModuleStates[mod.getModuleNumber()], 0.6); //Insert any nomber for now
+            // mod.setAngle(swerveModuleStates[mod.getModuleNumber()]);
+            // SmartDashboard.putNumber("setDD"+ mod.getModuleNumber(), swerveModuleStates[mod.getModuleNumber()].angle.getDegrees());
+            // //angle1 = angleOfRobot.getDegrees();
+            // angle1 = SmartDashboard.getNumber("setAngle", 0);
+            // if(mod.moduleNumber == 0 || mod.moduleNumber == 2) setAngle = -angle1;
+            // else setAngle = angle1;
+            // mod.setPosition(setAngle * Constants.Swerve.turnRatio);
+            
+            // You cannot be using set Position because it is not "OPTIMIZED"
+            
+        }
+        final double TURNING_CONSTANT = 0.58/90.0;
+        for(RevSwerveModule mod: swerveMods) {
+            mod.setPositionOtpimized(SmartDashboard.getNumber("setAngle", 0)*TURNING_CONSTANT);
         }
         SmartDashboard.putNumber("setSmartDirection",smartDirectionCounter++);
     }
