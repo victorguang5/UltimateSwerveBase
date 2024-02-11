@@ -379,12 +379,12 @@ public class TargetDetection {
         if(already_turned_to_face_target) {
             PhotonVisonData data = GetPVTargetData();
             if(data.is_vaild) {
-                Optional<DriverStation.Alliance> team = DriverStation.getAlliance();
-                if(team.isPresent()) {
+                //var alliance = DriverStation.getAlliance();
+                if(/*alliance.isPresent()*/true) {
                     // different moving strategy based on AprilTag ID 
                     double boundary_distance = 0;
                     double y_dist = data.y_distance;
-                    if(team.get() == DriverStation.Alliance.Red) {
+                    if(/*alliance.get() == DriverStation.Alliance.Red*/true) {
                         switch (data.april_tag_id) {
                             case 9: //src right
                                 boundary_distance = 0;
@@ -409,7 +409,7 @@ public class TargetDetection {
                                 System.out.printf("Not support this AprilTag ID:%d\n", data.april_tag_id);
                                 return para;
                         }
-                    } else if (team.get() == DriverStation.Alliance.Blue){
+                    } else if (/*alliance.get() == DriverStation.Alliance.Blue*/false){
                         switch (data.april_tag_id) {
                             case 6: // AMP center
                                 boundary_distance = 0;    break;
