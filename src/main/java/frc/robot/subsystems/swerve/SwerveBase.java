@@ -18,12 +18,13 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.lib.math.GeometryUtils;
 import frc.lib.util.PhotonCameraWrapper;
-import frc.robot.Constants;
 import frc.robot.RobotContainer;
+import frc.robot.Constants;
 import frc.robot.util.NavXGyro;
 
 import static frc.robot.Constants.Swerve.DegreesPerTurnRotation;
 
+import java.util.Arrays;
 import java.util.Map;
 import java.util.Optional;
 
@@ -443,6 +444,41 @@ public class SwerveBase extends SubsystemBase {
     public void stop() {
         for(SwerveModule mod : swerveMods) {
             mod.setDesiredState(mod.getState(), false);
+        }
+    }
+
+
+
+
+
+
+    public ChassisSpeeds getChassisSpeeds() {
+        return Constants.Swerve.swerveKinematics.toChassisSpeeds(
+                Arrays.stream(swerveMods).map(RevSwerveModule::getState).toArray(SwerveModuleState[]::new)
+        );
+    }
+
+    /**
+     * Sets the chassis speeds of the robot.
+     *
+     * @param chassisSpeeds the target chassis speeds
+     * @param isOpenLoop    if open loop control should be used for the drive velocity
+     */
+    public void setChassisSpeeds(ChassisSpeeds chassisSpeeds, boolean isOpenLoop) {
+        SwerveModuleState[] swerveModuleStates = Constants.Swerve.swerveKinematics.toSwerveModuleStates(chassisSpeeds);
+        setModuleStates(swerveModuleStates, isOpenLoop);
+    }
+
+    /**
+     * Sets the desired states for all swerve modules.
+     *
+     * @param swerveModuleStates an array of module states to set swerve modules to. Order of the array matters here!
+     */
+    public void setModuleStates(SwerveModuleState[] swerveModuleStates, boolean isOpenLoop) {
+        // makes sure speeds of modules don't exceed maximum allowed
+        SwerveDriveKinematics.desaturateWheelSpeeds(swerveModuleStates, Constants.Swerve.maxSpeed);                
+        for(SwerveModule mod : swerveMods){
+            mod.setDesiredState(swerveModuleStates[mod.getModuleNumber()], isOpenLoop);
         }
     }
 }

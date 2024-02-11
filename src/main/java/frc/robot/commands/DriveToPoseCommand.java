@@ -13,11 +13,11 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.swerve.SwerveBase;
 
-import java.util.Optional;
-import java.util.function.Supplier;
-
 import static frc.robot.Constants.AutoConstants.*;
 import static frc.robot.Constants.Swerve.*;
+
+import java.util.Optional;
+import java.util.function.Supplier;
 
 /**
  * Command to drive to a pose.

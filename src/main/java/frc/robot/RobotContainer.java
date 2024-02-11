@@ -1,10 +1,19 @@
 package frc.robot;
 
+import java.util.List;
+import java.util.function.BooleanSupplier;
+
+import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.path.GoalEndState;
+import com.pathplanner.lib.path.PathConstraints;
+import com.pathplanner.lib.path.PathPlannerPath;
+
 //import com.pathplanner.lib.server.PathPlannerServer;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.net.PortForwarder;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.XboxController;
@@ -16,7 +25,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
-
+import frc.robot.constants.AutoConstants;
 import frc.robot.commands.*;
 import frc.robot.subsystems.swerve.SwerveBase;
 
@@ -111,6 +120,8 @@ public class RobotContainer {
         PortForwarder.add(5800, "10.75.20.40", 5800);
         PortForwarder.add(1181, "10.75.20.40", 1181);
 
+        initializeAutoBuilder();
+
         // Configure the button bindings
         configureButtonBindings();
     }
@@ -130,7 +141,9 @@ public class RobotContainer {
 
         // Kinematics method
         XButton.onTrue(m_driveHeading);
-        YButton.onTrue(m_driveSmartPositionPoint);
+        //YButton.onTrue(m_driveSmartPositionPoint);
+
+        YButton.onTrue(goToPoseCommand_preplanned());
 
         // Manual method
         StartButton.onTrue(m_driveSmartDirection);
@@ -152,5 +165,80 @@ public class RobotContainer {
 
     public SwerveBase getSwerveBase() {
         return s_Swerve;
+    }
+
+
+
+    public void initializeAutoBuilder(){
+        AutoBuilder.configureHolonomic(
+            ()->s_Swerve.getPose(),
+            (pose) -> {s_Swerve.resetOdometry(pose);},
+            ()->s_Swerve.getChassisSpeeds(),
+            (chassisSpeeds) -> {s_Swerve.setChassisSpeeds(chassisSpeeds,false);},
+            AutoConstants.config,
+            getAllianceColorBooleanSupplier(),
+            s_Swerve
+        );
+    }
+
+   public static BooleanSupplier getAllianceColorBooleanSupplier(){
+    return () -> {
+      // Boolean supplier that controls when the path will be mirrored for the red alliance
+      // This will flip the path being followed to the red side of the field.
+      // THE ORIGIN WILL REMAIN ON THE BLUE SIDE
+
+      var alliance = DriverStation.getAlliance();
+      if (alliance.isPresent()) {
+          return alliance.get() == DriverStation.Alliance.Red;
+      }
+      return false;
+    };
+  }
+
+    public Command goToPoseCommand_preplanned()
+    {
+        //s_Swerve.resetOdometry(s_Swerve.getPose());
+        PathPlannerPath path = PathPlannerPath.fromPathFile("Example Path");
+
+        // Create a path following command using AutoBuilder. This will also trigger event markers.
+        return AutoBuilder.followPath(path);
+    }
+
+    public Command goToPoseCommand()
+    {
+        //Pose2d startPose = s_Swerve.getPose();
+        Pose2d startPose = new Pose2d();
+        Pose2d endPose = new Pose2d(
+            new Translation2d(
+                0, 1
+            ),
+            //startPose.getRotation().plus(Rotation2d.fromDegrees(90))
+            //startPose.getRotation()
+            Rotation2d.fromDegrees(0)
+        );
+        /*
+        List<Translation2d> bezierPoints = PathPlannerPath.bezierFromPoses(
+                new Pose2d(1.0, 1.0, Rotation2d.fromDegrees(0)),
+                new Pose2d(3.0, 1.0, Rotation2d.fromDegrees(0)),
+                new Pose2d(5.0, 3.0, Rotation2d.fromDegrees(90))
+        );
+         */
+        List<Translation2d> bezierPoints = PathPlannerPath.bezierFromPoses(
+                startPose,
+                endPose
+        );
+
+        // Create the path using the bezier points created above
+        PathPlannerPath path = new PathPlannerPath(
+                bezierPoints,
+                new PathConstraints(3.0, 3.0, 2 * Math.PI, 4 * Math.PI), // The constraints for this path. If using a differential drivetrain, the angular constraints have no effect.
+                new GoalEndState(0.0, Rotation2d.fromDegrees(-90)) // Goal end state. You can set a holonomic rotation here. If using a differential drivetrain, the rotation will have no effect.
+        );
+
+        // Prevent the path from being flipped if the coordinates are already correct
+        path.preventFlipping =true;
+
+        // Create a path following command using AutoBuilder. This will also trigger event markers.
+        return AutoBuilder.followPath(path);
     }
 }

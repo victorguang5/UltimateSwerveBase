@@ -1,6 +1,10 @@
 
 package frc.robot.subsystems.swerve;
 
+import static frc.robot.Constants.Swerve.DegreesPerTurnRotation;
+import static frc.robot.Constants.Swerve.angleGearRatio;
+import static frc.robot.Constants.Swerve.swerveCANcoderConfig;
+
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkBase;
@@ -18,10 +22,6 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.lib.util.swerveUtil.CTREModuleState;
 import frc.lib.util.swerveUtil.RevSwerveModuleConstants;
 import frc.robot.Constants;
-
-import static frc.robot.Constants.Swerve.DegreesPerTurnRotation;
-import static frc.robot.Constants.Swerve.angleGearRatio;
-import static frc.robot.Constants.Swerve.swerveCANcoderConfig;
 
 /**
  * a Swerve Modules using REV Robotics motor controllers and CTRE CANCoder absolute encoders.
@@ -288,6 +288,7 @@ public class RevSwerveModule implements SwerveModule
 
         if(returnAngle > 360) returnAngle = returnAngle -360;
         else if(returnAngle < 0) returnAngle = returnAngle + 360;
+        SmartDashboard.putNumber("Odometer ang"+ this.moduleNumber, returnAngle);
         return Rotation2d.fromDegrees(returnAngle);
     }
 
