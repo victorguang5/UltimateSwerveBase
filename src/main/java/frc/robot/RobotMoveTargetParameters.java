@@ -14,8 +14,8 @@ public class RobotMoveTargetParameters {
     public double MoveRadian; // same as above, for moving
     public double MoveDistance;
 
-    Translation2d move;
-    Rotation2d turn;
+    public Translation2d move;
+    public Rotation2d turn;
 
     // for tank, turn is parallel to AprilTag
     public double TurnRadian_tank; // negative value: left, postive: right, unit: radian

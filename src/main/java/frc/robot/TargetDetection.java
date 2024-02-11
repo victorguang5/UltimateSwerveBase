@@ -361,7 +361,7 @@ public class TargetDetection {
                 para.TurnRadian_swerve = (data.z_rotate > 0) ? need_turn_radian : -need_turn_radian;
                 // here 1.5707963: pi/2
                 para.TurnRadian_tank = (data.z_rotate > 0) ? (need_turn_radian - 1.5707963) : (1.5707963 - need_turn_radian);
-                para.turn = (data.z_rotate > 0) ? (Rotation2d.fromRadians(-need_turn_radian)) : (Rotation2d.fromRadians(-need_turn_radian));
+                para.turn = (data.z_rotate > 0) ? (Rotation2d.fromRadians(-need_turn_radian)) : (Rotation2d.fromRadians(need_turn_radian));
                 System.out.printf("Need to turn (negative left), swerve: %f, tank:%f\n", para.TurnRadian_swerve, para.TurnRadian_tank);
                 para.IsValid = true;
             }
@@ -384,7 +384,7 @@ public class TargetDetection {
                     // different moving strategy based on AprilTag ID 
                     double boundary_distance = 0;
                     double y_dist = data.y_distance;
-                    if(/*alliance.get() == DriverStation.Alliance.Red*/true) {
+                    if(/*alliance.get() == DriverStation.Alliance.Red*/false) {
                         switch (data.april_tag_id) {
                             case 9: //src right
                                 boundary_distance = 0;
@@ -409,11 +409,11 @@ public class TargetDetection {
                                 System.out.printf("Not support this AprilTag ID:%d\n", data.april_tag_id);
                                 return para;
                         }
-                    } else if (/*alliance.get() == DriverStation.Alliance.Blue*/false){
+                    } else if (/*alliance.get() == DriverStation.Alliance.Blue*/true){
                         switch (data.april_tag_id) {
                             case 6: // AMP center
                                 boundary_distance = 0;    break;
-                            case 7: // speaker
+                            case 14: // speaker
                                 boundary_distance = Constants.SPEAKER_SUBWOOFER_WIDTH;    break;
                             case 8: //speaker
                                 boundary_distance = Constants.SPEAKER_SUBWOOFER_WIDTH;
@@ -423,8 +423,8 @@ public class TargetDetection {
                                 y_dist += (Constants.SRC_WIDTH + Constants.APRILTAG_WIDTH);    break;
                             case 2: //src left
                                 boundary_distance = 0;
-                                y_dist -= (Constants.SRC_WIDTH + Constants.APRILTAG_WIDTH);    break;
-                            case 14: //stage
+                                y_dist -= (Constants.SRC_WIDTH + Constants.APRILTAG_WIDTH);    break; //switch back case 7 and 14 LATER, just for testing purposes
+                            case 7: //stage
                                 boundary_distance = 0;    break;
                             case 15: //stage
                                 boundary_distance = 0;    break;
