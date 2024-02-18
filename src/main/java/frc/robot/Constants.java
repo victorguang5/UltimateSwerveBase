@@ -20,6 +20,15 @@ public final class Constants {
   public static final double APRILTAG_WIDTH = 0.135; //  0.27 / 2
   public static final double SRC_WIDTH = 0.5;
 
+
+  public static final double cameraHeight = 0.64; //0.77 original
+  public static final double targetHeight = 0;
+  //public static final double cameraPitch = -0.33144444;
+    public static final double cameraPitch = -0.355;
+
+  public static final double goalDistance = 0.0;
+
+  
   // AprilTag ID to be detected for center
   public static final int APRILTAG_ID_BE_DETECTED = 15;
     public static final class Swerve {

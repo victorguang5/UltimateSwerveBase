@@ -184,7 +184,9 @@ public class SwerveBase extends SubsystemBase {
      * @param time
      */
 
-     private TargetDetection   m_TargetTest = new TargetDetection("HD_Pro_Webcam_C920", TargetDetection.PipeLineType.APRIL_TAG);
+    private TargetDetection   m_TargetTest = new TargetDetection("HD_Pro_Webcam_C920", TargetDetection.PipeLineType.APRIL_TAG);
+    private TargetDetection   m_TargetGamePiece = new TargetDetection("photoncamera", TargetDetection.PipeLineType.COLORED_SHAPE);
+
     public void setDriveHeading(Rotation2d angle1) {
         //SmartDashboard.putNumber("drive Counter", driveCounter++);
         Rotation2d angle;
@@ -233,18 +235,27 @@ public class SwerveBase extends SubsystemBase {
      * @param angleOfRobot the facing of the robot relative to field
      * 
      */
-    public void setSmartPositionPoint(Translation2d locationTo, Translation2d locationFrom, double timeToTravel, Rotation2d angleOfRobot) {
+    // SeanLIU modify this code for game piece
+    public void setSmartPositionPoint(Translation2d locationTo, Translation2d locationFrom, double timeToTravel, Rotation2d angleOfRobot) { 
         
-       // m_TargetTest = new TargetDetection("HD_Pro_Webcam_C920", TargetDetection.PipeLineType.APRIL_TAG);
+        /* comment out below 2 lines for game piece 
         RobotMoveTargetParameters data = m_TargetTest.GetRobotMoveToTargetParamters();
-        angleOfRobot = Rotation2d.fromDegrees(0);
-       // locationTo = data.move;
-        
-        
+        angleOfRobot = Rotation2d.fromDegrees(0); */
+
+        // this is new for game piece
+        RobotMoveTargetParameters data = m_TargetGamePiece.GetRobotMoveforGamePiece();
+        if(!data.IsValid) {
+            //SmartDashboard.putString("Game piece Data", "ERROR!!!");
+            System.out.println("Game piece error");
+            return;
+        }
+        angleOfRobot = data.turn;
+        System.out.println("Game piece OK");
+
         double inputDistance = SmartDashboard.getNumber("setDistance", 1);
         double inputAngle = SmartDashboard.getNumber("setDirection", 0);
         
-        Translation2d myInputPosition =  data.move; //new Translation2d(inputDistance, Rotation2d.fromDegrees(inputAngle));
+        Translation2d myInputPosition =  data.move;
 
         ChassisSpeeds desiredChassisSpeeds;
         // Determine a vector velocity using the change in position
@@ -252,6 +263,10 @@ public class SwerveBase extends SubsystemBase {
         // Counter from current location, (0,0)
         double deltaX = myInputPosition.getX(); // In meters
         double deltaY = myInputPosition.getY();
+        System.out.printf("deltaX %f, deltaY %f, angle %f\n",deltaX, deltaY, angleOfRobot.getDegrees());
+        /*if(true) {
+            return;
+        }*/
         SmartDashboard.putNumber("DeltaX", deltaX);
         SmartDashboard.putNumber("DeltaY", deltaY);
         Translation2d velocity = new Translation2d(deltaX/timeToTravel, deltaY/timeToTravel);

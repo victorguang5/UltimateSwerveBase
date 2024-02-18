@@ -9,6 +9,7 @@ import java.util.Optional;
 //import java.util.List;
 
 import org.photonvision.PhotonCamera;
+import org.photonvision.PhotonUtils;
 import org.photonvision.targeting.PhotonTrackedTarget;
 //import org.photonvision.targeting.TargetCorner;
 
@@ -18,6 +19,7 @@ import edu.wpi.first.math.geometry.Rotation3d;
 //import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
@@ -336,6 +338,42 @@ public class TargetDetection {
         return target_data;
     }
 
+    public RobotMoveTargetParameters GetRobotMoveforGamePiece() {
+        RobotMoveTargetParameters para = new RobotMoveTargetParameters();
+        para.IsValid = false;
+        PhotonVisonData data = GetPVTargetData();
+        if(data.is_vaild) {
+
+            // this code is from Deo to calculate target distance
+            double targetDistance =
+                  PhotonUtils.calculateDistanceToTargetMeters(
+                          Constants.cameraHeight,
+                          Constants.targetHeight, 
+                          Constants.cameraPitch,
+                          Units.degreesToRadians(data.pitch));
+            targetDistance -= Constants.goalDistance;
+          //Calculate Angle.
+          double targetAngle = data.yaw;
+
+          //Calculate translation2d.
+          Translation2d targetTranslation = PhotonUtils.estimateCameraToTargetTranslation(targetDistance, Rotation2d.fromDegrees(-data.yaw));
+          para.move = targetTranslation;
+
+         // below not sure if it is degree or radian
+         // para.turn = Rotation2d.fromRadians(targetAngle)
+          para.turn = Rotation2d.fromDegrees(data.yaw);
+          
+          //SmartDashboard.putNumber("targetDistance", targetDistance);
+          //SmartDashboard.putNumber("targetAngle", targetAngle);
+          //SmartDashboard.putNumber("targetTranslationX", targetTranslation.getX());
+          //SmartDashboard.putNumber("targetTranslationY", targetTranslation.getY());
+          System.out.printf("Distance %f\n", targetDistance);
+          para.IsValid = true;
+        }
+
+        return para;       
+    }
+
     // Get Robot trun to face target paramters
     public RobotMoveTargetParameters GetRobotTurnParamters() {
         RobotMoveTargetParameters para = new RobotMoveTargetParameters();
@@ -358,11 +396,11 @@ public class TargetDetection {
                     System.out.println("Y too small, need to move and recheck");
                     return para;
                 } */
-                para.TurnRadian_swerve = (data.z_rotate > 0) ? need_turn_radian : -need_turn_radian;
+                para.TurnRadian_swerve = (data.z_rotate > 0) ? -need_turn_radian : need_turn_radian;
                 // here 1.5707963: pi/2
                 para.TurnRadian_tank = (data.z_rotate > 0) ? (need_turn_radian - 1.5707963) : (1.5707963 - need_turn_radian);
                 para.turn = (data.z_rotate > 0) ? (Rotation2d.fromRadians(-need_turn_radian)) : (Rotation2d.fromRadians(need_turn_radian));
-                System.out.printf("Need to turn (negative left), swerve: %f, tank:%f\n", para.TurnRadian_swerve, para.TurnRadian_tank);
+                System.out.printf("Need to turn (postive left), swerve: %f, tank:%f\n", para.TurnRadian_swerve, para.TurnRadian_tank);
                 para.IsValid = true;
             }
             already_turned_to_face_target = true;        
@@ -379,12 +417,12 @@ public class TargetDetection {
         if(already_turned_to_face_target) {
             PhotonVisonData data = GetPVTargetData();
             if(data.is_vaild) {
-                //var alliance = DriverStation.getAlliance();
-                if(/*alliance.isPresent()*/true) {
+                Optional<DriverStation.Alliance> team = DriverStation.getAlliance();
+                if(team.isPresent()) {
                     // different moving strategy based on AprilTag ID 
                     double boundary_distance = 0;
                     double y_dist = data.y_distance;
-                    if(/*alliance.get() == DriverStation.Alliance.Red*/false) {
+                    if(team.get() == DriverStation.Alliance.Red) {
                         switch (data.april_tag_id) {
                             case 9: //src right
                                 boundary_distance = 0;
@@ -409,7 +447,7 @@ public class TargetDetection {
                                 System.out.printf("Not support this AprilTag ID:%d\n", data.april_tag_id);
                                 return para;
                         }
-                    } else if (/*alliance.get() == DriverStation.Alliance.Blue*/true){
+                    } else if (team.get() == DriverStation.Alliance.Blue){
                         switch (data.april_tag_id) {
                             case 6: // AMP center
                                 boundary_distance = 0;    break;
