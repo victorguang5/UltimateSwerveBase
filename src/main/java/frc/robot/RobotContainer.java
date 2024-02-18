@@ -102,13 +102,13 @@ public class RobotContainer {
 
     /** The container for the robot. Contains subsystems, OI devices, and commands. */
     public RobotContainer() {
-       // SmartDashboard.putBoolean("auto driving", false);
+       // SmartDashboard.putBoolean("auto driving", false);gy
         s_Swerve.setDefaultCommand(
             new TeleopSwerve(
                 s_Swerve,
-                () -> driver.getRawAxis(translationAxis),
-                () -> driver.getRawAxis(strafeAxis),
-                () -> driver.getRawAxis(rotationAxis),
+                () -> -driver.getRawAxis(translationAxis),
+                () -> -driver.getRawAxis(strafeAxis),
+                () -> -driver.getRawAxis(rotationAxis),
                 () -> driver.getRawButtonPressed(XboxController.Button.kY.value),
                 () -> false
             )
@@ -143,10 +143,12 @@ public class RobotContainer {
         //angleDriveMove.onTrue(new AngleDriveCommand(s_Swerve, s_Swerve::getPose));
 
         // Kinematics method
-        XButton.onTrue(m_driveHeading);
+        //XButton.onTrue(m_driveHeading);
         //YButton.onTrue(m_driveSmartPositionPoint);
 
         YButton.onTrue(goToPoseCommand_preplanned());
+        //YButton.onTrue(goToPoseCommand());
+        
         LeftBumperButton.onTrue(m_reset);
 
         // Manual method
@@ -215,11 +217,11 @@ public class RobotContainer {
         Pose2d startPose = new Pose2d();
         Pose2d endPose = new Pose2d(
             new Translation2d(
-                0, 1
+                4.444, 4.444
             ),
             //startPose.getRotation().plus(Rotation2d.fromDegrees(90))
             //startPose.getRotation()
-            Rotation2d.fromDegrees(0)
+            Rotation2d.fromDegrees(45)
         );
         /*
         List<Translation2d> bezierPoints = PathPlannerPath.bezierFromPoses(
@@ -236,8 +238,8 @@ public class RobotContainer {
         // Create the path using the bezier points created above
         PathPlannerPath path = new PathPlannerPath(
                 bezierPoints,
-                new PathConstraints(3.0, 3.0, 2 * Math.PI, 4 * Math.PI), // The constraints for this path. If using a differential drivetrain, the angular constraints have no effect.
-                new GoalEndState(0.0, Rotation2d.fromDegrees(-90)) // Goal end state. You can set a holonomic rotation here. If using a differential drivetrain, the rotation will have no effect.
+                new PathConstraints(1, 1, 1 * Math.PI / 6, 1 * Math.PI / 6), // The constraints for this path. If using a differential drivetrain, the angular constraints have no effect.
+                new GoalEndState(0.0, Rotation2d.fromDegrees(45)) // Goal end state. You can set a holonomic rotation here. If using a differential drivetrain, the rotation will have no effect.
         );
 
         // Prevent the path from being flipped if the coordinates are already correct

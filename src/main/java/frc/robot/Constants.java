@@ -99,18 +99,18 @@ public final class Constants {
         // Create _v and _p for different pid control
         // _v is for velocity control
         // _p is for position control
-        public static final double driveKP_v = 0.1;
+        public static final double driveKP_v = 0.04;
         public static final double driveKP_p = 0.0005;
         public static final double driveKI = 0.0;
         public static final double driveKD = 0.0;
-        public static final double driveKFF = 0.000156; // 1 / kDriveWheelFreeSpeedRps;
+        public static final double driveKFF = 0.315; // 1 / kDriveWheelFreeSpeedRps;
         /** Meters per Second */
-        public static final double maxSpeed = 3; // 3.6576;
+        public static final double maxSpeed = 2; // 3.6576;
         /** Radians per Second */
         public static final double maxAngularVelocity = 5; // 5.0;
         public static double angleRampRate = 0;
 
-        public static double maxDriveVel = 1;          // for velocity setting, using converted value m/s
+        public static double maxDriveVel = 0.5 ;          // for velocity setting, using converted value m/s
         public static double maxDrivePos = 200;          // for position setting, using raw encoder rpm/m
         public static double minVel = 0;
         public static double maxDriveAccVel= 1;          // for velocity setting, using converted value m/ss

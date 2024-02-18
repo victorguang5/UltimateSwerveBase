@@ -218,7 +218,8 @@ public class RevSwerveModule implements SwerveModule
         SparkPIDController controller = mDriveMotor.getPIDController();
         // Enable the smart Velocity control, which can give us manageable acceleration
         // Otherwise, the motor start/stop abruptly, will damage the motor/gear
-        controller.setReference(velocity, ControlType.kSmartVelocity, 0);
+        //controller.setReference(velocity, ControlType.kSmartVelocity, 0);
+        controller.setReference(velocity, ControlType.kVelocity, 0);
 
     }
 
