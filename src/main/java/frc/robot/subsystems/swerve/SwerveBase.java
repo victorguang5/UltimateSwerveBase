@@ -23,12 +23,17 @@ import frc.robot.Constants;
 import frc.robot.util.NavXGyro;
 
 import static frc.robot.Constants.Swerve.DegreesPerTurnRotation;
+import static frc.robot.Constants.Swerve.chosenModule;
 
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Optional;
 
+import com.pathplanner.lib.util.PathPlannerLogging;
+
 public class SwerveBase extends SubsystemBase {
+
+    public Field2d field1 = new Field2d();
 
     public PhotonCameraWrapper cam = new PhotonCameraWrapper(Constants.CameraConstants.CAMERA_NAME,
             Constants.CameraConstants.KCAMERA_TO_ROBOT.inverse());
@@ -71,11 +76,15 @@ public class SwerveBase extends SubsystemBase {
         };
 
         swerveOdometer = new SwerveDrivePoseEstimator(Constants.Swerve.swerveKinematics, getYaw(), getModulePositions(), new Pose2d());
+
+
         zeroGyro();
         SmartDashboard.putNumber("setDistance", 1);
         SmartDashboard.putNumber("setAngle",90);
         SmartDashboard.putNumber("setDirection",0);
 
+        PathPlannerLogging.setLogActivePathCallback((poses) -> field1.getObject("path").setPoses(poses));
+        SmartDashboard.putData("field", field1);
     }
 
     public void wheelsIn() {
@@ -375,15 +384,21 @@ public class SwerveBase extends SubsystemBase {
     @Override
     public void periodic() {
         SmartDashboard.putNumber("gyro", gyro.getHeading());
+        SmartDashboard.putNumber("gyro.getRotation2d", gyro.getRotation2d().getDegrees());
+        SmartDashboard.putNumber("gyro.getYaw", gyro.getYaw());
         Rotation2d yaw;
         SwerveModulePosition[] latestPosition;
         yaw = getYaw();
+        SmartDashboard.putNumber("Yaw", yaw.getDegrees());
         latestPosition = getModulePositions();
         //swerveOdometer.update(getYaw(), getModulePositions());
         swerveOdometer.update(yaw, latestPosition);
         SmartDashboard.putNumber("Odometer.X", swerveOdometer.getEstimatedPosition().getX());
         SmartDashboard.putNumber("Odometer.Y", swerveOdometer.getEstimatedPosition().getY());
         SmartDashboard.putNumber("Odometer.Angle", swerveOdometer.getEstimatedPosition().getRotation().getDegrees());
+
+        SmartDashboard.putNumber("driveGearRatio", chosenModule.driveGearRatio);
+        SmartDashboard.putNumber("wheelCircumference", chosenModule.wheelCircumference);
                 
         
         //SmartDashboard.putBoolean("photonGood", cam.latency() < 0.6);
@@ -439,6 +454,8 @@ public class SwerveBase extends SubsystemBase {
         SmartDashboard.putNumber("avgOmega", avgOmega);
 
         SmartDashboard.putBoolean("isRed", DriverStation.getAlliance().equals(DriverStation.Alliance.Red));
+
+        field1.setRobotPose(getPose());
     }
 
     public void stop() {

@@ -28,6 +28,7 @@ import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import frc.robot.constants.AutoConstants;
 import frc.robot.commands.*;
 import frc.robot.subsystems.swerve.SwerveBase;
+import pabeles.concurrency.ConcurrencyOps.Reset;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -51,12 +52,13 @@ public class RobotContainer {
     private final JoystickButton autoMove = new JoystickButton(driver, XboxController.Button.kB.value);
 
     
-    private final JoystickButton cameraDriveMove = new JoystickButton(driver, XboxController.Button.kLeftBumper.value);
-    private final JoystickButton angleDriveMove = new JoystickButton(driver, XboxController.Button.kLeftBumper.value);
+    //private final JoystickButton cameraDriveMove = new JoystickButton(driver, XboxController.Button.kLeftBumper.value);
+    //private final JoystickButton angleDriveMove = new JoystickButton(driver, XboxController.Button.kLeftBumper.value);
     private final JoystickButton XButton    = new JoystickButton(driver, XboxController.Button.kX.value);
     private final JoystickButton YButton    = new JoystickButton(driver, XboxController.Button.kY.value);
     private final JoystickButton StartButton    = new JoystickButton(driver, XboxController.Button.kStart.value);
     private final JoystickButton BackButton    = new JoystickButton(driver, XboxController.Button.kBack.value);
+    private final JoystickButton LeftBumperButton    = new JoystickButton(driver, XboxController.Button.kLeftBumper.value);
     
 
     /* Subsystems */
@@ -81,6 +83,7 @@ public class RobotContainer {
     // Use manual calculate input for movement
     private final Command m_driveSmartPosition = Commands.runOnce(()->s_Swerve.setSmartAngle(90));
     private final Command m_driveSmartDirection = Commands.runOnce(()->s_Swerve.setSmartPosition());
+    private final Command m_reset = Commands.runOnce(()->s_Swerve.resetOdometry(new Pose2d()));
 
 
 
@@ -144,6 +147,7 @@ public class RobotContainer {
         //YButton.onTrue(m_driveSmartPositionPoint);
 
         YButton.onTrue(goToPoseCommand_preplanned());
+        LeftBumperButton.onTrue(m_reset);
 
         // Manual method
         StartButton.onTrue(m_driveSmartDirection);
@@ -199,6 +203,7 @@ public class RobotContainer {
     {
         //s_Swerve.resetOdometry(s_Swerve.getPose());
         PathPlannerPath path = PathPlannerPath.fromPathFile("Example Path");
+        //path.preventFlipping =true;
 
         // Create a path following command using AutoBuilder. This will also trigger event markers.
         return AutoBuilder.followPath(path);
