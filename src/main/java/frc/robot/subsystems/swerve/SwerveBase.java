@@ -248,12 +248,7 @@ public class SwerveBase extends SubsystemBase {
         SwerveModuleState[] swerveModuleStates = Constants.Swerve.swerveKinematics.toSwerveModuleStates(desiredChassisSpeeds);
         SwerveDriveKinematics.desaturateWheelSpeeds(swerveModuleStates, Constants.Swerve.maxSpeed);
         for(RevSwerveModule mod : swerveMods){
-            SmartDashboard.putNumber("angle_b"+ mod.getModuleNumber(),  swerveModuleStates[mod.getModuleNumber()].angle.getDegrees());
-            
-            //mod.setOptimizedAngle(swerveModuleStates[mod.getModuleNumber()], 0.6); 
             mod.desiredState = CTREModuleState.optimize(swerveModuleStates[mod.getModuleNumber()], mod.getState().angle);
-            SmartDashboard.putNumber("angle_a"+ mod.getModuleNumber(), swerveModuleStates[mod.getModuleNumber()].angle.getDegrees());
-            //SmartDashboard.putNumber("angle_a"+mod.getModuleNumber(), swerveModuleStates[mod.getModuleNumber()].angle.getDegrees());
             mod.setAngle(mod.desiredState);
             if(mod.desiredState.speedMetersPerSecond > 0)
             {
