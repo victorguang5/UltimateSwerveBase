@@ -137,7 +137,7 @@ public class RevSwerveModule implements SwerveModule
         SparkPIDController controller = mDriveMotor.getPIDController();
         controller.setOutputRange(-Constants.Swerve.drivePower, Constants.Swerve.drivePower);
         mDriveMotor.setSmartCurrentLimit(Constants.Swerve.driveContinuousCurrentLimit);
-        mDriveMotor.setInverted(Constants.Swerve.driveMotorInvert);
+        mDriveMotor.setInverted(moduleConstants.driveMotorInvert);
         mDriveMotor.setIdleMode(Constants.Swerve.driveIdleMode);
         SmartDashboard.putBoolean("DriveMotor Inv" + mDriveMotor.getDeviceId(), Constants.Swerve.driveMotorInvert);
         // Speed control parameter is on slot 0
@@ -166,7 +166,9 @@ public class RevSwerveModule implements SwerveModule
     {
         /* This is a custom optimize function, since default WPILib optimize assumes continuous controller which CTRE and Rev onboard is not */
         // CTREModuleState actually works for any type of motor.
+        SmartDashboard.putNumber("angle_b"+this.getModuleNumber(), desiredState.angle.getDegrees());
         this.desiredState = CTREModuleState.optimize(desiredState, getState().angle);
+         SmartDashboard.putNumber("angle_a"+this.getModuleNumber(), desiredState.angle.getDegrees());
         setAngle(this.desiredState);
         // Set the isOpenLoop to false so we can trigger the PID control for the velocity
         setSpeed(this.desiredState, false);
