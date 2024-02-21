@@ -99,13 +99,14 @@ public final class Constants {
         // Create _v and _p for different pid control
         // _v is for velocity control
         // _p is for position control
-        public static final double driveKP_v = 0.04;
+        public static final double driveKP_v = 0.1;
         public static final double driveKP_p = 0.0005;
         public static final double driveKI = 0.0;
         public static final double driveKD = 0.0;
-        public static final double driveKFF = 0.315; // 1 / kDriveWheelFreeSpeedRps;
+        public static final double driveKFF_v = 0.285; // 1 / kDriveWheelFreeSpeedRps;
+        public static final double driveKFF_p = 0.000156; // 1 / kDriveWheelFreeSpeedRps;
         /** Meters per Second */
-        public static final double maxSpeed = 2; // 3.6576;
+        public static final double maxSpeed = 1; // 3.6576;
         /** Radians per Second */
         public static final double maxAngularVelocity = 5; // 5.0;
         public static double angleRampRate = 0;
@@ -115,7 +116,7 @@ public final class Constants {
         public static double minVel = 0;
         public static double maxDriveAccVel= 1;          // for velocity setting, using converted value m/ss
         public static double maxDriveAccPos = 200;        // for position setting, using raw encoder rpm/mm
-        public static double allowedDriveErrVel = 0.21;
+        public static double allowedDriveErrVel = 0.1;  // Accuracy of the speed control
         public static double allowedDriveErrPos = 0.1;
         /* CanCoder Constants */
         public static final CANcoderConfiguration swerveCANcoderConfig = new CANcoderConfiguration();
