@@ -81,8 +81,8 @@ public class RobotContainer {
     private final Command m_driveHeading = Commands.runOnce(()->s_Swerve.setDriveHeading(new Rotation2d(Math.PI/4)));
     /* Yan Hongtao */
     // Use manual calculate input for movement
-    private final Command m_driveSmartPosition = Commands.runOnce(()->s_Swerve.setSmartAngle(90));
-    private final Command m_driveSmartDirection = Commands.runOnce(()->s_Swerve.setSmartPosition());
+    private final Command m_driveSmartPosition = Commands.runOnce(()->s_Swerve.setSmartPosition());
+    private final Command m_driveSmartDirection = Commands.runOnce(()->s_Swerve.setSmartAngle(90));
     private final Command m_reset = Commands.runOnce(()->s_Swerve.resetOdometry(new Pose2d()));
 
 
@@ -152,8 +152,10 @@ public class RobotContainer {
         LeftBumperButton.onTrue(m_reset);
 
         // Manual method
-        StartButton.onTrue(m_driveSmartDirection);
-        BackButton.onTrue(m_driveSmartPosition);
+        //StartButton.onTrue(m_driveSmartDirection);
+        //BackButton.onTrue(m_driveSmartPosition);
+        StartButton.onTrue(m_driveSmartPositionPoint);
+        BackButton.onTrue(m_driveHeading);
 
         //example of auto move
         autoMove.whileTrue(autoMoveCommand);
