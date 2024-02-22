@@ -111,6 +111,7 @@ public class RevSwerveModule implements SwerveModule
         controller.setOutputRange(-Constants.Swerve.anglePower, Constants.Swerve.anglePower);
         mAngleMotor.setSmartCurrentLimit(Constants.Swerve.angleContinuousCurrentLimit);
 
+        SmartDashboard.putBoolean("AngleMotor Inv" + mAngleMotor.getDeviceId(), Constants.Swerve.angleMotorInvert);
         mAngleMotor.setInverted(Constants.Swerve.angleMotorInvert);
         mAngleMotor.setIdleMode(Constants.Swerve.angleIdleMode);
         mAngleMotor.setClosedLoopRampRate(Constants.Swerve.angleRampRate);
@@ -138,12 +139,12 @@ public class RevSwerveModule implements SwerveModule
         mDriveMotor.setSmartCurrentLimit(Constants.Swerve.driveContinuousCurrentLimit);
         mDriveMotor.setInverted(Constants.Swerve.driveMotorInvert);
         mDriveMotor.setIdleMode(Constants.Swerve.driveIdleMode);
-
+        SmartDashboard.putBoolean("DriveMotor Inv" + mDriveMotor.getDeviceId(), Constants.Swerve.driveMotorInvert);
         // Speed control parameter is on slot 0
         controller.setP(Constants.Swerve.driveKP_v,0);
         controller.setI(Constants.Swerve.driveKI,0);
         controller.setD(Constants.Swerve.driveKD,0);
-        controller.setFF(Constants.Swerve.driveKFF,0);
+        controller.setFF(Constants.Swerve.driveKFF_v,0);
         controller.setSmartMotionMinOutputVelocity(Constants.Swerve.minVel, 0);
         controller.setSmartMotionMaxVelocity(Constants.Swerve.maxDriveVel, 0);
         controller.setSmartMotionMaxAccel(Constants.Swerve.maxDriveAccVel, 0);
@@ -154,7 +155,7 @@ public class RevSwerveModule implements SwerveModule
         controller.setP(Constants.Swerve.driveKP_p,1);
         controller.setI(Constants.Swerve.driveKI,1);
         controller.setD(Constants.Swerve.driveKD,1);
-        controller.setFF(Constants.Swerve.driveKFF,1);
+        controller.setFF(Constants.Swerve.driveKFF_p,1);
         controller.setSmartMotionMinOutputVelocity(Constants.Swerve.minVel, 1);
         controller.setSmartMotionMaxVelocity(Constants.Swerve.maxDrivePos, 1);
         controller.setSmartMotionMaxAccel(Constants.Swerve.maxDriveAccPos, 1);
@@ -165,7 +166,9 @@ public class RevSwerveModule implements SwerveModule
     {
         /* This is a custom optimize function, since default WPILib optimize assumes continuous controller which CTRE and Rev onboard is not */
         // CTREModuleState actually works for any type of motor.
+        SmartDashboard.putNumber("angle_b"+this.getModuleNumber(), desiredState.angle.getDegrees());
         this.desiredState = CTREModuleState.optimize(desiredState, getState().angle);
+         SmartDashboard.putNumber("angle_a"+this.getModuleNumber(), desiredState.angle.getDegrees());
         setAngle(this.desiredState);
         // Set the isOpenLoop to false so we can trigger the PID control for the velocity
         setSpeed(this.desiredState, false);
@@ -218,8 +221,8 @@ public class RevSwerveModule implements SwerveModule
         SparkPIDController controller = mDriveMotor.getPIDController();
         // Enable the smart Velocity control, which can give us manageable acceleration
         // Otherwise, the motor start/stop abruptly, will damage the motor/gear
-        //controller.setReference(velocity, ControlType.kSmartVelocity, 0);
-        controller.setReference(velocity, ControlType.kVelocity, 0);
+        controller.setReference(velocity, ControlType.kSmartVelocity, 0);
+        //controller.setReference(velocity, ControlType.kVelocity, 0);
 
     }
 
@@ -335,11 +338,7 @@ public class RevSwerveModule implements SwerveModule
                     NeoEncoderPosition = NeoEncoderPosition - 360;
         }
         NeoEncoderRawPosition = NeoEncoderPosition/DegreesPerTurnRotation;
-        SmartDashboard.putNumber("CAN" + this.moduleNumber, getCanCoder().getDegrees());
-        SmartDashboard.putNumber("ABS" + this.moduleNumber, absolutePosition);
-        SmartDashboard.putNumber("CA1" + this.moduleNumber, NeoEncoderPosition);
-        SmartDashboard.putNumber("CA2" + this.moduleNumber, NeoEncoderRawPosition);
-            // CanCoder return degree, need to convert back to Neo Raw position
+        // CanCoder return degree, need to convert back to Neo Raw position
         relAngleEncoder.setPosition(NeoEncoderRawPosition);
         while(Math.abs(relAngleEncoder.getPosition() - NeoEncoderRawPosition)> 0.5)
         {
@@ -347,9 +346,6 @@ public class RevSwerveModule implements SwerveModule
             if(syncDelayCounter>3000) break;
 
         }
-        SmartDashboard.putNumber("CA3" + this.moduleNumber, relAngleEncoder.getPosition()); 
-        SmartDashboard.putNumber("SyncDelayCounter" + this.moduleNumber, syncDelayCounter); 
-
     }
 
     public SwerveModuleState getState()
@@ -382,9 +378,7 @@ public class RevSwerveModule implements SwerveModule
         // Use raw encode position
         double currentPosition = mDriveMotor.getEncoder().getPosition();
         // Try to match the joystick direction
-        controller.setReference (currentPosition - encoderDelta, ControlType.kSmartMotion,1);
-        SmartDashboard.putNumber("SetPosition",encoderDelta);
-
+        controller.setReference (currentPosition + encoderDelta, ControlType.kSmartMotion,1);
     }
 
     /**

@@ -18,6 +18,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.lib.math.GeometryUtils;
 import frc.lib.util.PhotonCameraWrapper;
+import frc.lib.util.swerveUtil.CTREModuleState;
 import frc.robot.RobotContainer;
 import frc.robot.Constants;
 import frc.robot.util.NavXGyro;
@@ -179,14 +180,6 @@ public class SwerveBase extends SubsystemBase {
             // For every instance of swerve module part of this base, set each module it's desired state
         for(RevSwerveModule mod : swerveMods){
             mod.setDesiredState(swerveModuleStates[mod.getModuleNumber()], false);
-            // mod.setAngle(swerveModuleStates[mod.getModuleNumber()]);
-            // SmartDashboard.putNumber("setDD"+ mod.getModuleNumber(), swerveModuleStates[mod.getModuleNumber()].angle.getDegrees());
-            // //angle1 = angleOfRobot.getDegrees();
-            // angle1 = SmartDashboard.getNumber("setAngle", 0);
-            // if(mod.moduleNumber == 0 || mod.moduleNumber == 2) setAngle = -angle1;
-            // else setAngle = angle1;
-            // mod.setPosition(setAngle * Constants.Swerve.turnRatio);
-            // //mod.setPosition(10);
         }
         SmartDashboard.putNumber("setSmartDirection",smartDirectionCounter++);
     }
@@ -260,8 +253,16 @@ public class SwerveBase extends SubsystemBase {
         SwerveModuleState[] swerveModuleStates = Constants.Swerve.swerveKinematics.toSwerveModuleStates(desiredChassisSpeeds);
         SwerveDriveKinematics.desaturateWheelSpeeds(swerveModuleStates, Constants.Swerve.maxSpeed);
         for(RevSwerveModule mod : swerveMods){
-            mod.setAngle(swerveModuleStates[mod.getModuleNumber()]);
-            mod.setPosition(distance);
+            mod.desiredState = CTREModuleState.optimize(swerveModuleStates[mod.getModuleNumber()], mod.getState().angle);
+            mod.setAngle(mod.desiredState);
+            if(mod.desiredState.speedMetersPerSecond > 0)
+            {
+                 mod.setPosition(distance);
+            }
+            else
+            {
+                mod.setPosition(-distance);
+            }
         }
     }
 
