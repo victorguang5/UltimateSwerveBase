@@ -136,10 +136,15 @@ public class SwerveBase extends SubsystemBase {
                 translation.getY(),
                 rotation
         );
+        SmartDashboard.putNumber("harry rotate 1", rotation);
+        SmartDashboard.putNumber("harry omegaRadiansPerSecond 1", desiredChassisSpeeds.omegaRadiansPerSecond);
         desiredChassisSpeeds = correctForDynamics(desiredChassisSpeeds);
+        SmartDashboard.putNumber("harry omegaRadiansPerSecond 2", desiredChassisSpeeds.omegaRadiansPerSecond);
+        SmartDashboard.putNumber("harry omegaRadiansPerSecond 2", desiredChassisSpeeds.omegaRadiansPerSecond);
         SwerveModuleState[] swerveModuleStates = Constants.Swerve.swerveKinematics.toSwerveModuleStates(desiredChassisSpeeds);
         SwerveDriveKinematics.desaturateWheelSpeeds(swerveModuleStates, Constants.Swerve.maxSpeed);
         for(SwerveModule mod : swerveMods){
+            SmartDashboard.putNumber("harry swerveModuleStates [" + mod.getModuleNumber() + "]", swerveModuleStates[mod.getModuleNumber()].angle.getDegrees());
             mod.setDesiredState(swerveModuleStates[mod.getModuleNumber()], isOpenLoop);
         }
 
@@ -362,7 +367,16 @@ public class SwerveBase extends SubsystemBase {
     }
 
     public Rotation2d getYaw() {
-        return (Constants.Swerve.invertGyro) ? Rotation2d.fromDegrees(360).minus(gyro.getRotation2d()) : gyro.getRotation2d();
+        Rotation2d yaw =  (Constants.Swerve.invertGyro) ? 
+        Rotation2d.fromDegrees(360).minus(gyro.getRotation2d()) : 
+        gyro.getRotation2d();
+        
+        SmartDashboard.putNumber("gyro.getRotation2d harry", gyro.getRotation2d().getDegrees());
+        SmartDashboard.putNumber("yaw harry before", yaw.getDegrees());
+        
+        //yaw = Rotation2d.fromDegrees(yaw.getDegrees() * -1);
+        SmartDashboard.putNumber("yaw harry", yaw.getDegrees());
+        return yaw;
     }
     public double getPitch() {
         return gyro.getRoll();
@@ -386,10 +400,9 @@ public class SwerveBase extends SubsystemBase {
         SmartDashboard.putNumber("gyro", gyro.getHeading());
         SmartDashboard.putNumber("gyro.getRotation2d", gyro.getRotation2d().getDegrees());
         SmartDashboard.putNumber("gyro.getYaw", gyro.getYaw());
-        Rotation2d yaw;
+        Rotation2d yaw = Rotation2d.fromDegrees(gyro.getYaw()); //getYaw();
         SwerveModulePosition[] latestPosition;
-        yaw = getYaw();
-        SmartDashboard.putNumber("Yaw", yaw.getDegrees());
+        SmartDashboard.putNumber("yaw", yaw.getDegrees());
         latestPosition = getModulePositions();
         //swerveOdometer.update(getYaw(), getModulePositions());
         swerveOdometer.update(yaw, latestPosition);
@@ -491,7 +504,7 @@ public class SwerveBase extends SubsystemBase {
      *
      * @param swerveModuleStates an array of module states to set swerve modules to. Order of the array matters here!
      */
-    public void setModuleStates(SwerveModuleState[] swerveModuleStates, boolean isOpenLoop) {
+    public void  setModuleStates(SwerveModuleState[] swerveModuleStates, boolean isOpenLoop) {
         // makes sure speeds of modules don't exceed maximum allowed
         SwerveDriveKinematics.desaturateWheelSpeeds(swerveModuleStates, Constants.Swerve.maxSpeed);                
         for(SwerveModule mod : swerveMods){

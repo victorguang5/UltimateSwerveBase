@@ -204,7 +204,13 @@ public class RobotContainer {
     public Command goToPoseCommand_preplanned()
     {
         //s_Swerve.resetOdometry(s_Swerve.getPose());
-        PathPlannerPath path = PathPlannerPath.fromPathFile("Example Path");
+        PathPlannerPath path = PathPlannerPath.fromPathFile(
+            //"Example Path"
+            //"straight line x"
+             //"straight line y"
+            "turn 90"
+            //"turn big 90"
+            );
         //path.preventFlipping =true;
 
         // Create a path following command using AutoBuilder. This will also trigger event markers.
@@ -217,11 +223,11 @@ public class RobotContainer {
         Pose2d startPose = new Pose2d();
         Pose2d endPose = new Pose2d(
             new Translation2d(
-                4.444, 4.444
+                0, 0
             ),
             //startPose.getRotation().plus(Rotation2d.fromDegrees(90))
             //startPose.getRotation()
-            Rotation2d.fromDegrees(45)
+            Rotation2d.fromDegrees(0)
         );
         /*
         List<Translation2d> bezierPoints = PathPlannerPath.bezierFromPoses(
@@ -238,8 +244,8 @@ public class RobotContainer {
         // Create the path using the bezier points created above
         PathPlannerPath path = new PathPlannerPath(
                 bezierPoints,
-                new PathConstraints(1, 1, 1 * Math.PI / 6, 1 * Math.PI / 6), // The constraints for this path. If using a differential drivetrain, the angular constraints have no effect.
-                new GoalEndState(0.0, Rotation2d.fromDegrees(45)) // Goal end state. You can set a holonomic rotation here. If using a differential drivetrain, the rotation will have no effect.
+                new PathConstraints(0.4, 1, 1 * Math.PI / 3, 1 * Math.PI / 2), // The constraints for this path. If using a differential drivetrain, the angular constraints have no effect.
+                new GoalEndState(0.0, Rotation2d.fromDegrees(90)) // Goal end state. You can set a holonomic rotation here. If using a differential drivetrain, the rotation will have no effect.
         );
 
         // Prevent the path from being flipped if the coordinates are already correct
