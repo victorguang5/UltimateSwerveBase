@@ -160,15 +160,13 @@ public class SwerveBase extends SubsystemBase {
      * @param fieldOriented a boolean indicating if the given velocities are meant to be field oriented
      */
     public void setDriveSpeed(Translation2d velocity, Rotation2d angularVelocity, Rotation2d angleOfRobot, boolean fieldOriented) {
-        //SmartDashboard.putNumber("drive Counter", driveCounter++);
-        double setAngle, angle1;
         ChassisSpeeds desiredChassisSpeeds;
-        //if (fieldOriented) {
-        //    ChassisSpeeds fieldRSpeed = new ChassisSpeeds(velocity.getX(), velocity.getY(), angularVelocity.getRadians());
-        //    desiredChassisSpeeds = ChassisSpeeds.fromFieldRelativeSpeeds(fieldRSpeed, angleOfRobot);
-        //} else {
+        if (fieldOriented) {
+            ChassisSpeeds fieldRSpeed = new ChassisSpeeds(velocity.getX(), velocity.getY(), angularVelocity.getRadians());
+            desiredChassisSpeeds = ChassisSpeeds.fromFieldRelativeSpeeds(fieldRSpeed, angleOfRobot);
+        } else {
             desiredChassisSpeeds = new ChassisSpeeds(velocity.getX(), velocity.getY(), angularVelocity.getRadians());
-        //}
+        }
 
         //desiredChassisSpeeds = new ChassisSpeeds(0, 0, Math.PI/4);
             // I'm guessing that this line is required to prevent errors or exceptions in cases where the set values exceed certain boundaries?
@@ -186,11 +184,12 @@ public class SwerveBase extends SubsystemBase {
 
     /**
      * Turn the robot on the spot to an angle
+     * Using Kinematics to calculate the swerve state
+     * Can be use for relative angle turnning.
      * @param angle in radians
      * @param time
      */
     public void setDriveHeading(Rotation2d angle) {
-        //SmartDashboard.putNumber("drive Counter", driveCounter++);
         
         ChassisSpeeds desiredChassisSpeeds;
         desiredChassisSpeeds = new ChassisSpeeds(0,0, angle.getRadians());
@@ -203,16 +202,6 @@ public class SwerveBase extends SubsystemBase {
             // For every instance of swerve module part of this base, set each module it's desired state
         for(RevSwerveModule mod : swerveMods){
             mod.setOptimizedAngle(swerveModuleStates[mod.getModuleNumber()], 0.6); //Insert any nomber for now
-            // mod.setAngle(swerveModuleStates[mod.getModuleNumber()]);
-            // SmartDashboard.putNumber("setDD"+ mod.getModuleNumber(), swerveModuleStates[mod.getModuleNumber()].angle.getDegrees());
-            // //angle1 = angleOfRobot.getDegrees();
-            // angle1 = SmartDashboard.getNumber("setAngle", 0);
-            // if(mod.moduleNumber == 0 || mod.moduleNumber == 2) setAngle = -angle1;
-            // else setAngle = angle1;
-            // mod.setPosition(setAngle * Constants.Swerve.turnRatio);
-            
-            // You cannot be using set Position because it is not "OPTIMIZED"
-            
         }
         final double TURNING_CONSTANT = 0.58/90.0;
         for(RevSwerveModule mod: swerveMods) {
@@ -224,7 +213,9 @@ public class SwerveBase extends SubsystemBase {
     /**
      * Drives the robot from one location to another within a given time range. The locations must be field oriented.
      * <code>By Robin</code>
-     * 
+     * Usign ChassisSpeed and Kinematics to calculate the state of swerve drive
+     * Then optimize the best rotating direction to reduce the rotation angle.
+     * Can be used to drive to relative position withou change the robot Yaw.
      * @param locationTo the Translation2d destination
      * @param locationFrom the Translation2d starting point
      * @param timeToTravel the amount of time the trip should take <code>NOT USED</code>
@@ -239,7 +230,6 @@ public class SwerveBase extends SubsystemBase {
 
         ChassisSpeeds desiredChassisSpeeds;
         // Determine a vector velocity using the change in position
-
         // Counter from current location, (0,0)
         double deltaX = myInputPosition.getX(); // In meters
         double deltaY = myInputPosition.getY();
@@ -268,6 +258,8 @@ public class SwerveBase extends SubsystemBase {
 
     /**
      * Yan Hongtao. Drive a distance diagonally 45 degrees
+     * Manual calculate the position and moving state. 
+     * For test purpose. Not recommend for use
      */
     public void setSmartPosition()
     {
@@ -296,7 +288,8 @@ public class SwerveBase extends SubsystemBase {
     }
 
     /**
-     * Yan Hongtao. Not working as intended
+     * Yan Hongtao. Hard code the angle, make simple logic to turn the swerve
+     * Not recommend for use. Just for test purpose
      * @param angle
      */
     public void setSmartAngle(double angle)
@@ -307,16 +300,12 @@ public class SwerveBase extends SubsystemBase {
         SwerveModuleState state = new SwerveModuleState(0.0, direction);
         swerveMods[0].setAngle(state);
         // hard code value, need to change
-//        SmartDashboard.putNumber("wheel 1",state.angle.getDegrees());
         state.angle = Rotation2d.fromDegrees(45);
         swerveMods[1].setAngle(state);
-//        SmartDashboard.putNumber("wheel 2",state.angle.getDegrees());
         state.angle = Rotation2d.fromDegrees(45);
         swerveMods[2].setAngle(state);
-//        SmartDashboard.putNumber("wheel 3",state.angle.getDegrees());
         state.angle = Rotation2d.fromDegrees(315);
         swerveMods[3].setAngle(state);
-//        SmartDashboard.putNumber("wheel 4",state.angle.getDegrees());
         for(RevSwerveModule mod : swerveMods){
             if(mod.moduleNumber == 0 || mod.moduleNumber == 2) setAngle = -angle1;
             else setAngle = angle1;
@@ -477,11 +466,6 @@ public class SwerveBase extends SubsystemBase {
             mod.setDesiredState(mod.getState(), false);
         }
     }
-
-
-
-
-
 
     public ChassisSpeeds getChassisSpeeds() {
         return Constants.Swerve.swerveKinematics.toChassisSpeeds(
