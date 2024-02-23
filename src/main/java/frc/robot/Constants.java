@@ -141,7 +141,7 @@ public final class Constants {
                 public static final int driveMotorID = 4;
                 public static final int angleMotorID = 5;
                 public static final int canCoderID = 11;
-                public static final Rotation2d angleOffset = Rotation2d.fromDegrees(11);//188.87);// 180:-165.74);;
+                public static final Rotation2d angleOffset = Rotation2d.fromDegrees(188.87);// 180:-165.74);;
                 public static final RevSwerveModuleConstants constants = new RevSwerveModuleConstants(driveMotorID,
                         angleMotorID, canCoderID, angleOffset);
             }
@@ -161,7 +161,7 @@ public final class Constants {
                 public static final int driveMotorID = 8;
                 public static final int angleMotorID = 9;
                 public static final int canCoderID = 13;
-                public static final Rotation2d angleOffset = Rotation2d.fromDegrees(320);//139.38);
+                public static final Rotation2d angleOffset = Rotation2d.fromDegrees(139.38);
                 public static final RevSwerveModuleConstants constants = new RevSwerveModuleConstants(driveMotorID,
                         angleMotorID, canCoderID, angleOffset);
             }
