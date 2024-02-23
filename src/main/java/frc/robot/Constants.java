@@ -106,12 +106,12 @@ public final class Constants {
         public static final double driveKFF_v = 0.285; // 1 / kDriveWheelFreeSpeedRps;
         public static final double driveKFF_p = 0.000156; // 1 / kDriveWheelFreeSpeedRps;
         /** Meters per Second */
-        public static final double maxSpeed = 2; // 3.6576;
+        public static final double maxSpeed = 1; // 3.6576;
         /** Radians per Second */
         public static final double maxAngularVelocity = 1; // 5.0;
         public static double angleRampRate = 0;
 
-        public static double maxDriveVel = 2 ;          // for velocity setting, using converted value m/s
+        public static double maxDriveVel = 1 ;          // for velocity setting, using converted value m/s
         public static double maxDrivePos = 400;          // for position setting, using raw encoder rpm/m
         public static double minVel = 0;
         public static double maxDriveAccVel= 1;          // for velocity setting, using converted value m/ss

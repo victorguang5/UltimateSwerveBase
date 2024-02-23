@@ -226,10 +226,19 @@ public class RobotContainer {
         );
         goToPose(endPose);
     }
-    public void goToPose(Pose2d endPose)
+    public void goToPose(Pose2d deltaPose)
     {
-        //Pose2d startPose = s_Swerve.getPose();
         Pose2d startPose = s_Swerve.getPose();
+
+        Translation2d startTranslation2d = startPose.getTranslation();
+        Translation2d deltaTranslation2d = deltaPose.getTranslation();
+        Translation2d endTranslation2d = startTranslation2d.plus(deltaTranslation2d);
+        Rotation2d starRotation2d = startPose.getRotation();
+        Rotation2d deltaRotation2d = deltaPose.getRotation();
+        Rotation2d endRotation2d = starRotation2d.plus(deltaRotation2d);
+
+        Pose2d endPose = new Pose2d(endTranslation2d,endRotation2d);
+
         List<Translation2d> bezierPoints = PathPlannerPath.bezierFromPoses(
                 startPose,
                 endPose

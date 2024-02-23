@@ -82,8 +82,8 @@ public class SwerveBase extends SubsystemBase {
         SmartDashboard.putNumber("setDistance", 1);
         SmartDashboard.putNumber("setAngle",90);
         SmartDashboard.putNumber("setDirection",0);
-        SmartDashboard.putNumber("goto_x", 0);
-        SmartDashboard.putNumber("goto_y", 0);
+        SmartDashboard.putNumber("goto_x", 0.01);
+        SmartDashboard.putNumber("goto_y", 0.01);
         SmartDashboard.putNumber("goto_yaw", 0);
         PathPlannerLogging.setLogActivePathCallback((poses) -> field1.getObject("path").setPoses(poses));
         SmartDashboard.putData("field", field1);
