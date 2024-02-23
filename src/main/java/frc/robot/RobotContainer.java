@@ -22,6 +22,7 @@ import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
@@ -84,7 +85,7 @@ public class RobotContainer {
     private final Command m_driveSmartPosition = Commands.runOnce(()->s_Swerve.setSmartPosition());
     private final Command m_driveSmartDirection = Commands.runOnce(()->s_Swerve.setSmartAngle(90));
     private final Command m_reset = Commands.runOnce(()->s_Swerve.resetOdometry(new Pose2d()));
-
+    private final Command m_goToPose = Commands.runOnce(()->goToPoseCommand());
 
 
 
@@ -142,12 +143,8 @@ public class RobotContainer {
         //cameraDriveMove.onTrue(new CameraDriveCommand(s_Swerve, s_Swerve::getPose));
         //angleDriveMove.onTrue(new AngleDriveCommand(s_Swerve, s_Swerve::getPose));
 
-        // Kinematics method
-        //XButton.onTrue(m_driveHeading);
-        //YButton.onTrue(m_driveSmartPositionPoint);
-
         YButton.onTrue(goToPoseCommand_preplanned());
-        //YButton.onTrue(goToPoseCommand());
+        XButton.onTrue(m_goToPose);
         
         LeftBumperButton.onTrue(m_reset);
 
@@ -218,42 +215,44 @@ public class RobotContainer {
         // Create a path following command using AutoBuilder. This will also trigger event markers.
         return AutoBuilder.followPath(path);
     }
-
-    public Command goToPoseCommand()
+    public void goToPoseCommand()
+    {
+        double x = SmartDashboard.getNumber("goto_x", 0);
+        double y = SmartDashboard.getNumber("goto_y", 0);
+        double yaw = SmartDashboard.getNumber("goto_yaw", 0);
+            Pose2d endPose = new Pose2d(
+            new Translation2d(x,y),
+            Rotation2d.fromDegrees(yaw)
+        );
+        goToPose(endPose);
+    }
+    public void goToPose(Pose2d endPose)
     {
         //Pose2d startPose = s_Swerve.getPose();
-        Pose2d startPose = new Pose2d();
-        Pose2d endPose = new Pose2d(
-            new Translation2d(
-                0, 0
-            ),
-            //startPose.getRotation().plus(Rotation2d.fromDegrees(90))
-            //startPose.getRotation()
-            Rotation2d.fromDegrees(0)
-        );
-        /*
-        List<Translation2d> bezierPoints = PathPlannerPath.bezierFromPoses(
-                new Pose2d(1.0, 1.0, Rotation2d.fromDegrees(0)),
-                new Pose2d(3.0, 1.0, Rotation2d.fromDegrees(0)),
-                new Pose2d(5.0, 3.0, Rotation2d.fromDegrees(90))
-        );
-         */
+        Pose2d startPose = s_Swerve.getPose();
         List<Translation2d> bezierPoints = PathPlannerPath.bezierFromPoses(
                 startPose,
                 endPose
         );
-
+        SmartDashboard.putNumber("from_x", startPose.getX());
+        SmartDashboard.putNumber("from_y", startPose.getY());
+        SmartDashboard.putNumber("from_yaw", startPose.getRotation().getDegrees());
+        SmartDashboard.putNumber("gotoP_x", endPose.getX());
+        SmartDashboard.putNumber("gotoP_y", endPose.getY());
+        SmartDashboard.putNumber("gotoP_yaw", endPose.getRotation().getDegrees());
+        
         // Create the path using the bezier points created above
         PathPlannerPath path = new PathPlannerPath(
                 bezierPoints,
                 new PathConstraints(0.4, 1, 1 * Math.PI / 3, 1 * Math.PI / 2), // The constraints for this path. If using a differential drivetrain, the angular constraints have no effect.
-                new GoalEndState(0.0, Rotation2d.fromDegrees(90)) // Goal end state. You can set a holonomic rotation here. If using a differential drivetrain, the rotation will have no effect.
+                new GoalEndState(0.0, Rotation2d.fromDegrees(0)) // Goal end state. You can set a holonomic rotation here. If using a differential drivetrain, the rotation will have no effect.
         );
 
         // Prevent the path from being flipped if the coordinates are already correct
         path.preventFlipping =true;
 
         // Create a path following command using AutoBuilder. This will also trigger event markers.
-        return AutoBuilder.followPath(path);
+        
+        CommandScheduler.getInstance().schedule(AutoBuilder.followPath(path));
     }
 }

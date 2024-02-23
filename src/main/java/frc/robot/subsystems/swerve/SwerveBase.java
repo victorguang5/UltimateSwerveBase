@@ -77,13 +77,14 @@ public class SwerveBase extends SubsystemBase {
         };
 
         swerveOdometer = new SwerveDrivePoseEstimator(Constants.Swerve.swerveKinematics, getYaw(), getModulePositions(), new Pose2d());
-
-
-        zeroGyro();
+        // reset both gyro and odometer
+        resetOdometry(new Pose2d());
         SmartDashboard.putNumber("setDistance", 1);
         SmartDashboard.putNumber("setAngle",90);
         SmartDashboard.putNumber("setDirection",0);
-
+        SmartDashboard.putNumber("goto_x", 0);
+        SmartDashboard.putNumber("goto_y", 0);
+        SmartDashboard.putNumber("goto_yaw", 0);
         PathPlannerLogging.setLogActivePathCallback((poses) -> field1.getObject("path").setPoses(poses));
         SmartDashboard.putData("field", field1);
     }
