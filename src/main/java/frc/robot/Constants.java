@@ -103,7 +103,7 @@ public final class Constants {
         public static final double driveKP_p = 0.0005;
         public static final double driveKI = 0.0;
         public static final double driveKD = 0.0;
-        public static final double driveKFF_v = 0.285; // 1 / kDriveWheelFreeSpeedRps;
+        public static final double driveKFF_v = 0.32; // 1 / kDriveWheelFreeSpeedRps;
         public static final double driveKFF_p = 0.000156; // 1 / kDriveWheelFreeSpeedRps;
         /** Meters per Second */
         public static final double maxSpeed = 1.5; // 3.6576;

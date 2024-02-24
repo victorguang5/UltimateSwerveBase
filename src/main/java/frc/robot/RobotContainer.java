@@ -25,8 +25,10 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import frc.robot.constants.AutoConstants;
+import frc.robot.commands.MySequentialCommands;
 import frc.robot.commands.*;
 import frc.robot.subsystems.swerve.SwerveBase;
 import pabeles.concurrency.ConcurrencyOps.Reset;
@@ -87,8 +89,6 @@ public class RobotContainer {
     private final Command m_reset = Commands.runOnce(()->s_Swerve.resetOdometry(new Pose2d()));
     private final Command m_goToPose = Commands.runOnce(()->goToPoseCommand());
 
-
-
     //example of auto move
     DriveToPoseCommand autoMoveCommand = new DriveToPoseCommand(
             s_Swerve,
@@ -143,7 +143,8 @@ public class RobotContainer {
         //cameraDriveMove.onTrue(new CameraDriveCommand(s_Swerve, s_Swerve::getPose));
         //angleDriveMove.onTrue(new AngleDriveCommand(s_Swerve, s_Swerve::getPose));
 
-        YButton.onTrue(goToPoseCommand_preplanned());
+        //YButton.onTrue(goToPoseCommand_preplanned());
+        YButton.onTrue(my_seqcommands());
         XButton.onTrue(m_goToPose);
         
         LeftBumperButton.onTrue(m_reset);
@@ -200,6 +201,17 @@ public class RobotContainer {
     };
   }
 
+  public Command my_seqcommands()
+  {
+    Command cmd1 = goToPoseCommand_preplanned(); 
+    Command cmd2 = goToPoseCommand_preplanned(); 
+    Command cmd3 = goToPoseCommand_preplanned(); 
+    Command cmd4 = goToPoseCommand_preplanned(); 
+    Command cmd5 = goToPoseCommand_preplanned(); 
+    Command cmd6 = goToPoseCommand_preplanned(); 
+    return new MySequentialCommands( cmd1, cmd2, cmd3, cmd4, cmd5, cmd6);
+  } 
+
     public Command goToPoseCommand_preplanned()
     {
         //s_Swerve.resetOdometry(s_Swerve.getPose());
@@ -211,6 +223,13 @@ public class RobotContainer {
             //"turn big 90"
             );
         //path.preventFlipping =true;
+        var points = path.getAllPathPoints();
+        var lastP = points.get(points.size() - 1).position;
+        var curPose = s_Swerve.getPose().getTranslation();
+        if (curPose.getDistance(lastP) < 0.1)
+        {
+            return null;
+        }
 
         // Create a path following command using AutoBuilder. This will also trigger event markers.
         return AutoBuilder.followPath(path);
@@ -220,16 +239,12 @@ public class RobotContainer {
         double x = SmartDashboard.getNumber("goto_x", 0);
         double y = SmartDashboard.getNumber("goto_y", 0);
         double yaw = SmartDashboard.getNumber("goto_yaw", 0);
-            Pose2d endPose = new Pose2d(
+        Pose2d deltaPose = new Pose2d(
             new Translation2d(x,y),
             Rotation2d.fromDegrees(yaw)
         );
-        goToPose(endPose);
-    }
-    public void goToPose(Pose2d deltaPose)
-    {
         Pose2d startPose = s_Swerve.getPose();
-        double endAngle=0;
+
         Translation2d startTranslation2d = startPose.getTranslation();
         Translation2d deltaTranslation2d = deltaPose.getTranslation();
         Translation2d endTranslation2d = startTranslation2d.plus(deltaTranslation2d);
@@ -239,17 +254,28 @@ public class RobotContainer {
 
         Pose2d endPose = new Pose2d(endTranslation2d,endRotation2d);
 
-        List<Translation2d> bezierPoints = PathPlannerPath.bezierFromPoses(
-                startPose,
-                endPose
-        );
         SmartDashboard.putNumber("from_x", startPose.getX());
         SmartDashboard.putNumber("from_y", startPose.getY());
         SmartDashboard.putNumber("from_yaw", startPose.getRotation().getDegrees());
         SmartDashboard.putNumber("gotoP_x", endPose.getX());
         SmartDashboard.putNumber("gotoP_y", endPose.getY());
         SmartDashboard.putNumber("gotoP_yaw", endPose.getRotation().getDegrees());
+
+        goToPose(endPose);
+        goToPose(endPose);
+        goToPose(endPose);
+        goToPose(endPose);
+    }
+    public void goToPose(Pose2d endPose)
+    {
+        double endAngle=0;
         endAngle = SmartDashboard.getNumber("endAngle", 0);
+         Pose2d startPose = s_Swerve.getPose();
+        List<Translation2d> bezierPoints = PathPlannerPath.bezierFromPoses(
+                startPose,
+                endPose
+        );
+
         // Create the path using the bezier points created above
         PathPlannerPath path = new PathPlannerPath(
                 bezierPoints,
