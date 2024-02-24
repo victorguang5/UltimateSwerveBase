@@ -229,7 +229,7 @@ public class RobotContainer {
     public void goToPose(Pose2d deltaPose)
     {
         Pose2d startPose = s_Swerve.getPose();
-
+        double endAngle=0;
         Translation2d startTranslation2d = startPose.getTranslation();
         Translation2d deltaTranslation2d = deltaPose.getTranslation();
         Translation2d endTranslation2d = startTranslation2d.plus(deltaTranslation2d);
@@ -249,12 +249,12 @@ public class RobotContainer {
         SmartDashboard.putNumber("gotoP_x", endPose.getX());
         SmartDashboard.putNumber("gotoP_y", endPose.getY());
         SmartDashboard.putNumber("gotoP_yaw", endPose.getRotation().getDegrees());
-        
+        endAngle = SmartDashboard.getNumber("endAngle", 0);
         // Create the path using the bezier points created above
         PathPlannerPath path = new PathPlannerPath(
                 bezierPoints,
-                new PathConstraints(0.4, 1, 1 * Math.PI / 3, 1 * Math.PI / 2), // The constraints for this path. If using a differential drivetrain, the angular constraints have no effect.
-                new GoalEndState(0.0, Rotation2d.fromDegrees(0)) // Goal end state. You can set a holonomic rotation here. If using a differential drivetrain, the rotation will have no effect.
+                new PathConstraints(0.4, 1, Math.PI,  Math.PI), // The constraints for this path. If using a differential drivetrain, the angular constraints have no effect.
+                new GoalEndState(0.0, Rotation2d.fromDegrees(endAngle)) // Goal end state. You can set a holonomic rotation here. If using a differential drivetrain, the rotation will have no effect.
         );
 
         // Prevent the path from being flipped if the coordinates are already correct

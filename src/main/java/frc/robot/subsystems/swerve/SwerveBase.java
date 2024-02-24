@@ -85,6 +85,7 @@ public class SwerveBase extends SubsystemBase {
         SmartDashboard.putNumber("goto_x", 0.01);
         SmartDashboard.putNumber("goto_y", 0.01);
         SmartDashboard.putNumber("goto_yaw", 0);
+        SmartDashboard.putNumber("endAngle", 0);
         PathPlannerLogging.setLogActivePathCallback((poses) -> field1.getObject("path").setPoses(poses));
         SmartDashboard.putData("field", field1);
     }
@@ -391,7 +392,7 @@ public class SwerveBase extends SubsystemBase {
         SmartDashboard.putNumber("gyro", gyro.getHeading());
         SmartDashboard.putNumber("gyro.getRotation2d", gyro.getRotation2d().getDegrees());
         SmartDashboard.putNumber("gyro.getYaw", gyro.getYaw());
-        Rotation2d yaw = Rotation2d.fromDegrees(gyro.getYaw()); //getYaw();
+        Rotation2d yaw = getYaw();
         SwerveModulePosition[] latestPosition;
         SmartDashboard.putNumber("yaw", yaw.getDegrees());
         latestPosition = getModulePositions();
