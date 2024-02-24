@@ -28,7 +28,6 @@ import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import frc.robot.constants.AutoConstants;
-import frc.robot.commands.MySequentialCommands;
 import frc.robot.commands.*;
 import frc.robot.subsystems.swerve.SwerveBase;
 import pabeles.concurrency.ConcurrencyOps.Reset;
@@ -100,7 +99,7 @@ public class RobotContainer {
     /* Network Tables Elements */
 
     SendableChooser<Command> movementChooser = new SendableChooser<Command>();
-
+    SendableChooser<Command> autoChooser = new SendableChooser<>();
     /** The container for the robot. Contains subsystems, OI devices, and commands. */
     public RobotContainer() {
        // SmartDashboard.putBoolean("auto driving", false);gy
@@ -117,14 +116,16 @@ public class RobotContainer {
         /* Auto */
         //PathPlannerServer.startServer(5811);
         //movementChooser.setDefaultOption("taxi", new Taxi(s_Swerve));
-        movementChooser.addOption("No Movement", new InstantCommand());
-        //SmartDashboard.putData("Movement", movementChooser);
+        //movementChooser.addOption("No Movement", new InstantCommand());
+        initializeAutoBuilder();
+        autoChooser = AutoBuilder.buildAutoChooser();
+        SmartDashboard.putData("autoMode", autoChooser);
 
         /* Networking */
         PortForwarder.add(5800, "10.75.20.40", 5800);
         PortForwarder.add(1181, "10.75.20.40", 1181);
 
-        initializeAutoBuilder();
+
 
         // Configure the button bindings
         configureButtonBindings();
@@ -158,6 +159,24 @@ public class RobotContainer {
         //example of auto move
         autoMove.whileTrue(autoMoveCommand);
         //autoMove.toggleOnFalse(new InstantCommand(() -> autoMoveCommand.cancel()));
+        // Pickup one game piece from position 1 route
+        SmartDashboard.putData("Profile-11", AutoBuilder.followPath(PathPlannerPath.fromPathFile("Profile-11")));
+        // Pickup two game pieces from position 1 route
+        SmartDashboard.putData("Profile-12", AutoBuilder.followPath(PathPlannerPath.fromPathFile("Profile-12")));
+        // Pickup three game pieces from position 1 route
+        SmartDashboard.putData("Profile-13", AutoBuilder.followPath(PathPlannerPath.fromPathFile("Profile-13")));
+        // Pickup one game piece from position 2 route
+        SmartDashboard.putData("Profile-21", AutoBuilder.followPath(PathPlannerPath.fromPathFile("Profile-21")));
+        // Pickup two game pieces from position 2 route
+        SmartDashboard.putData("Profile-22", AutoBuilder.followPath(PathPlannerPath.fromPathFile("Profile-22")));
+        // Pickup three game pieces from position 2 route
+        SmartDashboard.putData("Profile-23", AutoBuilder.followPath(PathPlannerPath.fromPathFile("Profile-23")));
+        // Pickup one game piece from position 3 route
+        SmartDashboard.putData("Profile-21", AutoBuilder.followPath(PathPlannerPath.fromPathFile("Profile-31")));
+        // Pickup two game pieces from position 3 route
+        SmartDashboard.putData("Profile-22", AutoBuilder.followPath(PathPlannerPath.fromPathFile("Profile-32")));
+        // Pickup three game pieces from position 3 route
+        SmartDashboard.putData("Profile-23", AutoBuilder.followPath(PathPlannerPath.fromPathFile("Profile-33")));
     }
 
     /**
@@ -166,9 +185,13 @@ public class RobotContainer {
      * @return the command to run in autonomous
      */
     public Command getAutonomousCommand() {
-        return movementChooser.getSelected();
+        return autoChooser.getSelected();
     }
 
+    public Command getTestCommand()
+    {
+        return movementChooser.getSelected();
+    }
     public SwerveBase getSwerveBase() {
         return s_Swerve;
     }
