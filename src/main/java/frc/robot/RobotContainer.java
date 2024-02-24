@@ -111,7 +111,7 @@ public class RobotContainer {
                 () -> -driver.getRawAxis(strafeAxis),
                 () -> -driver.getRawAxis(rotationAxis),
                 () -> driver.getRawButtonPressed(XboxController.Button.kY.value),
-                () -> false
+                () -> true
             )
         );
         /* Auto */
@@ -226,9 +226,12 @@ public class RobotContainer {
         var points = path.getAllPathPoints();
         var lastP = points.get(points.size() - 1).position;
         var curPose = s_Swerve.getPose().getTranslation();
+        var lastAngle = path.getGoalEndState().getRotation().getDegrees();
+        var curAngle = s_Swerve.getPose().getRotation().getDegrees();
         if (curPose.getDistance(lastP) < 0.1)
         {
-            return null;
+            if (Math.abs(curAngle - lastAngle) < 2)
+                return null;
         }
 
         // Create a path following command using AutoBuilder. This will also trigger event markers.
