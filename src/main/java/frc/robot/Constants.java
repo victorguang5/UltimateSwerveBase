@@ -13,7 +13,24 @@ import frc.lib.util.swerveUtil.RevSwerveModuleConstants;
 
 public final class Constants {
     public static final double stickDeadband = 0.05;
+    public static final int CAMERA_PITCH_ANGLE = 1;
+    public static final double SPEAKER_SUBWOOFER_WIDTH = 0.92;
+  public static final double AMP_WIDTH = 0;
+  public static final double SPEAKER_APRIL_TAG_WIDTH = 0.43;
+  public static final double APRILTAG_WIDTH = 0.135; //  0.27 / 2
+  public static final double SRC_WIDTH = 0.5;
 
+
+  public static final double cameraHeight = 0.64; //0.77 original
+  public static final double targetHeight = 0;
+  //public static final double cameraPitch = -0.33144444;
+    public static final double cameraPitch = -0.355;
+
+  public static final double goalDistance = 0.0;
+
+  
+  // AprilTag ID to be detected for center
+  public static final int APRILTAG_ID_BE_DETECTED = 15;
     public static final class Swerve {
 
         // Spark Max Idle Modes

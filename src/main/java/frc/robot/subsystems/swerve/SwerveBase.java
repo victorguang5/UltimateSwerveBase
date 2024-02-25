@@ -21,6 +21,8 @@ import frc.lib.util.PhotonCameraWrapper;
 import frc.lib.util.swerveUtil.CTREModuleState;
 import frc.robot.RobotContainer;
 import frc.robot.Constants;
+import frc.robot.RobotMoveTargetParameters;
+import frc.robot.TargetDetection;
 import frc.robot.util.NavXGyro;
 
 import static frc.robot.Constants.Swerve.DegreesPerTurnRotation;
@@ -36,8 +38,8 @@ public class SwerveBase extends SubsystemBase {
 
     public Field2d field1 = new Field2d();
 
-    public PhotonCameraWrapper cam = new PhotonCameraWrapper(Constants.CameraConstants.CAMERA_NAME,
-            Constants.CameraConstants.KCAMERA_TO_ROBOT.inverse());
+    //public PhotonCameraWrapper cam = new PhotonCameraWrapper(Constants.CameraConstants.CAMERA_NAME,
+            //Constants.CameraConstants.KCAMERA_TO_ROBOT.inverse());
 
     public SwerveDrivePoseEstimator swerveOdometer;
     public RevSwerveModule[] swerveMods;
@@ -192,8 +194,19 @@ public class SwerveBase extends SubsystemBase {
      * @param angle in radians
      * @param time
      */
-    public void setDriveHeading(Rotation2d angle) {
-        
+    private TargetDetection   m_TargetTest = new TargetDetection("HD_Pro_Webcam_C920", TargetDetection.PipeLineType.APRIL_TAG);
+    private TargetDetection   m_TargetGamePiece = new TargetDetection("photoncamera", TargetDetection.PipeLineType.COLORED_SHAPE);
+
+    public void setDriveHeading(Rotation2d angle1) {
+        //SmartDashboard.putNumber("drive Counter", driveCounter++);
+        Rotation2d angle;
+        RobotMoveTargetParameters data = m_TargetTest.GetRobotTurnParamters();
+        // Rotation2d angle = new Rotation2d().fromDegrees(angleInput);
+        angle = data.turn;
+        //double angleInput = SmartDashboard.getNumber("setAngle", 45);
+       
+       // SmartDashboard.putNumber("PhotoAngle", angle.getDegrees());
+
         ChassisSpeeds desiredChassisSpeeds;
         desiredChassisSpeeds = new ChassisSpeeds(0,0, angle.getRadians());
             // I'm guessing that this line is required to prevent errors or exceptions in cases where the set values exceed certain boundaries?
@@ -225,19 +238,42 @@ public class SwerveBase extends SubsystemBase {
      * @param angleOfRobot the facing of the robot relative to field
      * 
      */
-    public void setSmartPositionPoint(Translation2d locationTo, Translation2d locationFrom, double timeToTravel, Rotation2d angleOfRobot) {
+    // SeanLIU modify this code for game piece
+    public void setSmartPositionPoint(Translation2d locationTo, Translation2d locationFrom, double timeToTravel, Rotation2d angleOfRobot) { 
+        
+        /* comment out below 2 lines for game piece 
+        RobotMoveTargetParameters data = m_TargetTest.GetRobotMoveToTargetParamters();
+        angleOfRobot = Rotation2d.fromDegrees(0); */
+
+        // this is new for game piece
+        RobotMoveTargetParameters data = m_TargetGamePiece.GetRobotMoveforGamePiece();
+        if(!data.IsValid) {
+            //SmartDashboard.putString("Game piece Data", "ERROR!!!");
+            System.out.println("Game piece error");
+            return;
+        }
+        angleOfRobot = data.turn;
+        System.out.println("Game piece OK");
+
         double inputDistance = SmartDashboard.getNumber("setDistance", 1);
         double inputAngle = SmartDashboard.getNumber("setDirection", 0);
         
-        Translation2d myInputPosition = new Translation2d(inputDistance, Rotation2d.fromDegrees(inputAngle));
+        Translation2d myInputPosition =  data.move;
 
         ChassisSpeeds desiredChassisSpeeds;
         // Determine a vector velocity using the change in position
         // Counter from current location, (0,0)
         double deltaX = myInputPosition.getX(); // In meters
         double deltaY = myInputPosition.getY();
+        System.out.printf("deltaX %f, deltaY %f, angle %f\n",deltaX, deltaY, angleOfRobot.getDegrees());
+        /*if(true) {
+            return;
+        }*/
+        SmartDashboard.putNumber("DeltaX", deltaX);
+        SmartDashboard.putNumber("DeltaY", deltaY);
         Translation2d velocity = new Translation2d(deltaX/timeToTravel, deltaY/timeToTravel);
         double distance = velocity.getNorm();
+
 
         ChassisSpeeds fieldRSpeed = new ChassisSpeeds(velocity.getX(), velocity.getY(), 0);
         desiredChassisSpeeds = ChassisSpeeds.fromFieldRelativeSpeeds(fieldRSpeed, angleOfRobot);
@@ -295,9 +331,21 @@ public class SwerveBase extends SubsystemBase {
      * Not recommend for use. Just for test purpose
      * @param angle
      */
-    public void setSmartAngle(double angle)
+    public void setSmartAngle(double angl2)
     {
-        double angle1 = SmartDashboard.getNumber("setAngle", 90);
+
+    //SmartDashboard.putNumber("drive Counter", driveCounter++);
+        Rotation2d angle0 = new Rotation2d().fromDegrees(0);
+        RobotMoveTargetParameters data = m_TargetTest.GetRobotTurnParamters();
+        if(!data.IsValid)
+        {
+            return;
+        }
+        angle0 = data.turn;
+        double angle1 = angle0.getDegrees();
+
+        //double angle1 = SmartDashboard.getNumber("setAngle", 90);
+        SmartDashboard.putNumber("TurnAngle", angle1);
         double setAngle;
         Rotation2d direction = Rotation2d.fromDegrees(315);
         SwerveModuleState state = new SwerveModuleState(0.0, direction);
@@ -408,7 +456,8 @@ public class SwerveBase extends SubsystemBase {
                 
         
         //SmartDashboard.putBoolean("photonGood", cam.latency() < 0.6);
-        if (!hasInitialized /* || DriverStation.isDisabled() */) {
+       /*  
+        if (!hasInitialized  || DriverStation.isDisabled() ) {
             var robotPose = cam.getInitialPose();
             if (robotPose.isPresent()) {
                 swerveOdometer.resetPosition(getYaw(), getModulePositions(), robotPose.get());
@@ -427,11 +476,13 @@ public class SwerveBase extends SubsystemBase {
                 field.getObject("Cam Est Pose").setPose(new Pose2d(-100, -100, new Rotation2d()));
             }
         }
-
+*/
         SmartDashboard.putData("field", field);
 
         field.setRobotPose(getPose());
-        aprilTagTarget.setBoolean(cam.seesTarget());
+      //  aprilTagTarget.setBoolean(cam.seesTarget());
+
+    
 
         avgOmega = getAvgOmega();
 
