@@ -7,6 +7,7 @@ import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.path.GoalEndState;
 import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.path.PathPlannerPath;
+import com.pathplanner.lib.path.RotationTarget;
 
 //import com.pathplanner.lib.server.PathPlannerServer;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -239,6 +240,18 @@ public class RobotContainer {
     }
     public void goToPoseCommand()
     {
+        var photonPose = s_Swerve.GetPhotonvisionPose2d();
+        
+        SmartDashboard.putBoolean("photonPose found ", (photonPose != null));
+        if (photonPose == null)
+        {
+            return;
+        }
+
+        SmartDashboard.putNumber("photonPose from_x", photonPose.getX());
+        SmartDashboard.putNumber("photonPose from_y", photonPose.getY());
+        SmartDashboard.putNumber("photonPose from_yaw", photonPose.getRotation().getDegrees());
+/* 
         double x = SmartDashboard.getNumber("goto_x", 0);
         double y = SmartDashboard.getNumber("goto_y", 0);
         double yaw = SmartDashboard.getNumber("goto_yaw", 0);
@@ -246,6 +259,8 @@ public class RobotContainer {
             new Translation2d(x,y),
             Rotation2d.fromDegrees(yaw)
         );
+        */
+        var deltaPose = photonPose;
         Pose2d startPose = s_Swerve.getPose();
 
         Translation2d startTranslation2d = startPose.getTranslation();
@@ -264,19 +279,59 @@ public class RobotContainer {
         SmartDashboard.putNumber("gotoP_y", endPose.getY());
         SmartDashboard.putNumber("gotoP_yaw", endPose.getRotation().getDegrees());
 
-        goToPose(endPose);
-        goToPose(endPose);
-        goToPose(endPose);
-        goToPose(endPose);
+        goToPose_photon(endPose);
+        //goToPose(endPose, false);
+        //goToPose(endPose, false);
+        //goToPose(endPose, false);
+
+/*
+            Command cmd1 = goToPoseCommand_preplanned(); 
+            Command cmd2 = goToPoseCommand_preplanned(); 
+            Command cmd3 = goToPoseCommand_preplanned(); 
+            Command cmd4 = goToPoseCommand_preplanned(); 
+            Command cmd5 = goToPoseCommand_preplanned(); 
+            Command cmd6 = goToPoseCommand_preplanned(); 
+            return new MySequentialCommands( cmd1, cmd2, cmd3, cmd4, cmd5, cmd6);
+ */
+
+
     }
+    public void goToPose_photon(Pose2d endPose)
+    {
+        Pose2d startPose = s_Swerve.getPose();
+        List<Translation2d> bezierPoints = PathPlannerPath.bezierFromPoses(
+            startPose,
+            endPose
+        );
+        PathPlannerPath path = new PathPlannerPath(
+                bezierPoints,
+                new PathConstraints(0.4, 1, Math.PI,  Math.PI), // The constraints for this path. If using a differential drivetrain, the angular constraints have no effect.
+                new GoalEndState(0.0, Rotation2d.fromDegrees(endAngle)) // Goal end state. You can set a holonomic rotation here. If using a differential drivetrain, the rotation will have no effect.
+        );
+        var points = path.getAllPathPoints();
+        int size = points.size();
+        for(int i=size / 2; i<size; i++)
+        {
+            var rt = points.get(i).rotationTarget;
+            RotationTarget rt2 = new RotationTarget(rt.getPosition(), 
+                endPose.getRotation(), false);
+            points.get(i).rotationTarget = rt2;
+        }
+        
+        path.preventFlipping =true;
+        CommandScheduler.getInstance().schedule(AutoBuilder.followPath(path));
+    }
+
     public void goToPose(Pose2d endPose)
     {
         double endAngle=0;
-        endAngle = SmartDashboard.getNumber("endAngle", 0);
-         Pose2d startPose = s_Swerve.getPose();
+        //endAngle = SmartDashboard.getNumber("endAngle", 0);
+        Pose2d startPose = s_Swerve.getPose();
+        endAngle = endPose.getRotation().getDegrees();
+
         List<Translation2d> bezierPoints = PathPlannerPath.bezierFromPoses(
-                startPose,
-                endPose
+            startPose,
+            endPose
         );
 
         // Create the path using the bezier points created above
@@ -292,5 +347,6 @@ public class RobotContainer {
         // Create a path following command using AutoBuilder. This will also trigger event markers.
         
         CommandScheduler.getInstance().schedule(AutoBuilder.followPath(path));
+
     }
 }

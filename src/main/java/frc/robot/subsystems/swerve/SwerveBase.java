@@ -127,8 +127,8 @@ public class SwerveBase extends SubsystemBase {
        }
         ChassisSpeeds desiredChassisSpeeds =
        // fieldRelative ?
-       //false ?
-       true ?
+       false ?
+       //true ?
         ChassisSpeeds.fromFieldRelativeSpeeds(
                 translation.getX(),
                 translation.getY(),
@@ -197,6 +197,23 @@ public class SwerveBase extends SubsystemBase {
     private TargetDetection   m_TargetTest = new TargetDetection("HD_Pro_Webcam_C920", TargetDetection.PipeLineType.APRIL_TAG);
     private TargetDetection   m_TargetGamePiece = new TargetDetection("photoncamera", TargetDetection.PipeLineType.COLORED_SHAPE);
 
+    public Pose2d GetPhotonvisionPose2d()
+    {
+        // this is new for game piece
+        RobotMoveTargetParameters data = m_TargetTest.GetSwerveTrainMoveParameters();
+        if(!data.IsValid) {
+            System.out.println("Target not found");
+            return null;
+        }
+        System.out.println("Target OK");
+        var angle = data.turn;
+        
+        Translation2d myInputPosition =  data.move;
+
+        return new Pose2d(myInputPosition, angle);
+    }
+
+
     public void setDriveHeading(Rotation2d angle1) {
         //SmartDashboard.putNumber("drive Counter", driveCounter++);
         Rotation2d angle;
@@ -259,6 +276,9 @@ public class SwerveBase extends SubsystemBase {
         double inputAngle = SmartDashboard.getNumber("setDirection", 0);
         
         Translation2d myInputPosition =  data.move;
+
+
+
 
         ChassisSpeeds desiredChassisSpeeds;
         // Determine a vector velocity using the change in position

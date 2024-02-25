@@ -68,7 +68,7 @@ public class TargetDetection {
         }
     }
 
-    private RobotMoveTargetParameters GetSwerveTrainMoveParameters() {
+    public RobotMoveTargetParameters GetSwerveTrainMoveParameters() {
         RobotMoveTargetParameters para = new RobotMoveTargetParameters();
         para.IsValid = false;
         if(!IsOpen) {
@@ -136,7 +136,7 @@ public class TargetDetection {
                         System.out.println("Nee to check turn ......");
 
                         // this Y distance need to adjust, basically the detect is not accaray if Y is too small
-                        if(Math.abs(y_distance) < 0.1) {
+                        if(false/*Math.abs(y_distance) < 0.1*/) {
                             // if Y is too small, RZ not stable, need YAW assit
                             System.out.println("Y too small, need to move and recheck");
                             return para;
@@ -217,9 +217,15 @@ public class TargetDetection {
                         }
                         para.MoveRadian = move_degree; 
                         para.MoveDistance = move_distance;
+                        para.turn = (z_rotate > 0) ? (Rotation2d.fromRadians(-need_turn_radian)) : (Rotation2d.fromRadians(need_turn_radian));
+                        //para.move = new Translation2d(x1, x4);
+                        x_distance -= Constants.SPEAKER_SUBWOOFER_WIDTH;
+                        para.move = new Translation2d(x_distance, y_distance);
+
                     } else {
                         // already face
                         para.TurnRadian_swerve = 0;
+                        para.turn = Rotation2d.fromRadians(0);
                         double x1 = (x_distance - Constants.SPEAKER_SUBWOOFER_WIDTH);
                         if(y_distance != 0.0) {
                             para.MoveRadian = (Math.atan(x1 / y_distance));
@@ -227,7 +233,8 @@ public class TargetDetection {
                         } else {
                             para.MoveRadian = 0;
                             para.MoveDistance = x1;
-                        }                        
+                        }                   
+                        para.move = new Translation2d(x1, y_distance);     
                         System.out.printf("Moving Result, No Trun, MoveAngle: %f, Distance, %f\n", para.MoveRadian, para.MoveDistance);
                     }                
                     para.IsValid = true;

@@ -30,7 +30,7 @@ public final class Constants {
 
   
   // AprilTag ID to be detected for center
-  public static final int APRILTAG_ID_BE_DETECTED = 15;
+  public static final int APRILTAG_ID_BE_DETECTED = 14;
     public static final class Swerve {
 
         // Spark Max Idle Modes
