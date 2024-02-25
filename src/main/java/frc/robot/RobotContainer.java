@@ -29,7 +29,6 @@ import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import frc.robot.constants.AutoConstants;
-import frc.robot.commands.MySequentialCommands;
 import frc.robot.commands.*;
 import frc.robot.subsystems.swerve.SwerveBase;
 import pabeles.concurrency.ConcurrencyOps.Reset;
@@ -88,7 +87,10 @@ public class RobotContainer {
     private final Command m_driveSmartPosition = Commands.runOnce(()->s_Swerve.setSmartPosition());
     private final Command m_driveSmartDirection = Commands.runOnce(()->s_Swerve.setSmartAngle(90));
     private final Command m_reset = Commands.runOnce(()->s_Swerve.resetOdometry(new Pose2d()));
-    private final Command m_goToPose = Commands.runOnce(()->goToPoseCommand());
+    private final Command m_goToPose = Commands.runOnce(()->{
+        var cmd = goToPoseCommand(true, true); 
+        if (cmd != null)    CommandScheduler.getInstance().schedule(cmd);
+    });
 
     //example of auto move
     DriveToPoseCommand autoMoveCommand = new DriveToPoseCommand(
@@ -238,64 +240,112 @@ public class RobotContainer {
         // Create a path following command using AutoBuilder. This will also trigger event markers.
         return AutoBuilder.followPath(path);
     }
-    public void goToPoseCommand()
+
+    static Pose2d prevEndPose;
+
+    public Command goToPoseCommand(boolean checkPhoton, boolean createMid)
     {
-        var photonPose = s_Swerve.GetPhotonvisionPose2d();
-        
-        SmartDashboard.putBoolean("photonPose found ", (photonPose != null));
-        if (photonPose == null)
+        int counter1 = 0;
+        int counter2 = 0;
+
+        if (checkPhoton)
         {
-            return;
+            var photonPose = s_Swerve.GetPhotonvisionPose2d();
+            
+            SmartDashboard.putBoolean("photonPose found ", (photonPose != null));
+            if (photonPose == null)
+            {
+                return goToPose(prevEndPose, true);
+            }
+
+            SmartDashboard.putNumber("photonPose from_x", photonPose.getX());
+            SmartDashboard.putNumber("photonPose from_y", photonPose.getY());
+            SmartDashboard.putNumber("photonPose from_yaw", photonPose.getRotation().getDegrees());
+    /* 
+            double x = SmartDashboard.getNumber("goto_x", 0);
+            double y = SmartDashboard.getNumber("goto_y", 0);
+            double yaw = SmartDashboard.getNumber("goto_yaw", 0);
+            Pose2d deltaPose = new Pose2d(
+                new Translation2d(x,y),
+                Rotation2d.fromDegrees(yaw)
+            );
+            */
+            var deltaPose = photonPose;
+            Pose2d startPose = s_Swerve.getPose();
+
+            Translation2d startTranslation2d = startPose.getTranslation();
+            Translation2d deltaTranslation2d = deltaPose.getTranslation();
+            Translation2d endTranslation2d = startTranslation2d.plus(deltaTranslation2d);
+            Rotation2d starRotation2d = startPose.getRotation();
+            Rotation2d deltaRotation2d = deltaPose.getRotation();
+            Rotation2d endRotation2d = starRotation2d.plus(deltaRotation2d);
+
+            Pose2d endPose = new Pose2d(endTranslation2d,endRotation2d);
+
+            prevEndPose = endPose;
+
+            if (!createMid)
+            {
+                counter1++;
+
+                SmartDashboard.putNumber("from_x", startPose.getX());
+                SmartDashboard.putNumber("from_y", startPose.getY());
+                SmartDashboard.putNumber("from_yaw", startPose.getRotation().getDegrees());
+        
+                SmartDashboard.putNumber("gotoP_x", endPose.getX());
+                SmartDashboard.putNumber("gotoP_y", endPose.getY());
+                SmartDashboard.putNumber("gotoP_yaw", endPose.getRotation().getDegrees());
+            }
+  
+        
+            if (createMid)
+            {             
+                counter2++;
+
+                SmartDashboard.putNumber("mid start from_x", startPose.getX());
+                SmartDashboard.putNumber("mid start from_y", startPose.getY());
+                SmartDashboard.putNumber("mid start from_yaw", startPose.getRotation().getDegrees());
+
+                SmartDashboard.putNumber("mid see end from_x", endPose.getX());
+                SmartDashboard.putNumber("mid see end from_y", endPose.getY());
+                SmartDashboard.putNumber("mid see end from_yaw", endPose.getRotation().getDegrees());
+
+                var t0 = startPose.getTranslation();
+                var t1 = endPose.getTranslation();
+
+                Pose2d midPose = new Pose2d(
+                    new Translation2d(
+                        (t0.getX() + t1.getX()) / 2.0,
+                        (t0.getY() + t1.getY()) / 2.0
+                    ),
+                    endPose.getRotation()
+                );   
+
+                Command cmd1 = goToPose(midPose, false); 
+                Command cmd2 = goToPoseCommand(true, false); 
+
+                SmartDashboard.putNumber("counter1", counter1);
+                SmartDashboard.putNumber("counter2", counter2);
+                return new TwoStepsSequentialCommands(cmd1, cmd2);
+            }
+            else
+            {
+                SmartDashboard.putNumber("counter1", counter1);
+                SmartDashboard.putNumber("counter2", counter2);
+                return goToPose(endPose, true); 
+            }            
         }
+        else
+        {
+                SmartDashboard.putNumber("counter1", counter1)
+                SmartDashboard.putNumber("counter2", counter2);
 
-        SmartDashboard.putNumber("photonPose from_x", photonPose.getX());
-        SmartDashboard.putNumber("photonPose from_y", photonPose.getY());
-        SmartDashboard.putNumber("photonPose from_yaw", photonPose.getRotation().getDegrees());
-/* 
-        double x = SmartDashboard.getNumber("goto_x", 0);
-        double y = SmartDashboard.getNumber("goto_y", 0);
-        double yaw = SmartDashboard.getNumber("goto_yaw", 0);
-        Pose2d deltaPose = new Pose2d(
-            new Translation2d(x,y),
-            Rotation2d.fromDegrees(yaw)
-        );
-        */
-        var deltaPose = photonPose;
-        Pose2d startPose = s_Swerve.getPose();
-
-        Translation2d startTranslation2d = startPose.getTranslation();
-        Translation2d deltaTranslation2d = deltaPose.getTranslation();
-        Translation2d endTranslation2d = startTranslation2d.plus(deltaTranslation2d);
-        Rotation2d starRotation2d = startPose.getRotation();
-        Rotation2d deltaRotation2d = deltaPose.getRotation();
-        Rotation2d endRotation2d = starRotation2d.plus(deltaRotation2d);
-
-        Pose2d endPose = new Pose2d(endTranslation2d,endRotation2d);
-
-        SmartDashboard.putNumber("from_x", startPose.getX());
-        SmartDashboard.putNumber("from_y", startPose.getY());
-        SmartDashboard.putNumber("from_yaw", startPose.getRotation().getDegrees());
-        SmartDashboard.putNumber("gotoP_x", endPose.getX());
-        SmartDashboard.putNumber("gotoP_y", endPose.getY());
-        SmartDashboard.putNumber("gotoP_yaw", endPose.getRotation().getDegrees());
-
-        goToPose_photon(endPose);
-        //goToPose(endPose, false);
-        //goToPose(endPose, false);
-        //goToPose(endPose, false);
-
-/*
-            Command cmd1 = goToPoseCommand_preplanned(); 
-            Command cmd2 = goToPoseCommand_preplanned(); 
-            Command cmd3 = goToPoseCommand_preplanned(); 
-            Command cmd4 = goToPoseCommand_preplanned(); 
-            Command cmd5 = goToPoseCommand_preplanned(); 
-            Command cmd6 = goToPoseCommand_preplanned(); 
-            return new MySequentialCommands( cmd1, cmd2, cmd3, cmd4, cmd5, cmd6);
- */
-
-
+            if (prevEndPose == null) return null;
+            var newEndPose = new Pose2d(prevEndPose.getTranslation(), prevEndPose.getRotation());
+            return goToPose(newEndPose, true); 
+        }
     }
+
     public void goToPose_photon(Pose2d endPose)
     {
         Pose2d startPose = s_Swerve.getPose();
@@ -306,7 +356,7 @@ public class RobotContainer {
         PathPlannerPath path = new PathPlannerPath(
                 bezierPoints,
                 new PathConstraints(0.4, 1, Math.PI,  Math.PI), // The constraints for this path. If using a differential drivetrain, the angular constraints have no effect.
-                new GoalEndState(0.0, Rotation2d.fromDegrees(endAngle)) // Goal end state. You can set a holonomic rotation here. If using a differential drivetrain, the rotation will have no effect.
+                new GoalEndState(0.0, endPose.getRotation()) // Goal end state. You can set a holonomic rotation here. If using a differential drivetrain, the rotation will have no effect.
         );
         var points = path.getAllPathPoints();
         int size = points.size();
@@ -322,8 +372,10 @@ public class RobotContainer {
         CommandScheduler.getInstance().schedule(AutoBuilder.followPath(path));
     }
 
-    public void goToPose(Pose2d endPose)
+    public Command goToPose(Pose2d endPose, boolean clearPrevEndPose)
     {
+        if (endPose == null) return null;
+
         double endAngle=0;
         //endAngle = SmartDashboard.getNumber("endAngle", 0);
         Pose2d startPose = s_Swerve.getPose();
@@ -344,9 +396,11 @@ public class RobotContainer {
         // Prevent the path from being flipped if the coordinates are already correct
         path.preventFlipping =true;
 
+        if (clearPrevEndPose) prevEndPose = null;
         // Create a path following command using AutoBuilder. This will also trigger event markers.
         
-        CommandScheduler.getInstance().schedule(AutoBuilder.followPath(path));
+        //CommandScheduler.getInstance().schedule(AutoBuilder.followPath(path));
+        return AutoBuilder.followPath(path);
 
     }
 }
