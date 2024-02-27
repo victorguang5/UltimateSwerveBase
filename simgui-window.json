@@ -11,11 +11,11 @@
   "MainWindow": {
     "GLOBAL": {
       "fps": "120",
-      "height": "1009",
+      "height": "1779",
       "maximized": "1",
       "style": "0",
       "userScale": "2",
-      "width": "1920",
+      "width": "3072",
       "xpos": "1920",
       "ypos": "23"
     }
@@ -28,7 +28,7 @@
     },
     "###/SmartDashboard/field": {
       "Collapsed": "0",
-      "Pos": "62,532",
+      "Pos": "149,1124",
       "Size": "918,465"
     },
     "###FMS": {
@@ -39,17 +39,22 @@
     },
     "###Joysticks": {
       "Collapsed": "0",
-      "Pos": "1080,735",
-      "Size": "796,240"
+      "Pos": "1391,780",
+      "Size": "1516,392"
     },
     "###NetworkTables": {
       "Collapsed": "0",
       "Pos": "15,22",
       "Size": "750,500"
     },
+    "###NetworkTables Info": {
+      "Collapsed": "0",
+      "Pos": "250,130",
+      "Size": "750,145"
+    },
     "###Other Devices": {
       "Collapsed": "0",
-      "Pos": "1645,28",
+      "Pos": "1992,44",
       "Size": "250,695"
     },
     "###Plot <0>": {
@@ -60,8 +65,8 @@
     },
     "###System Joysticks": {
       "Collapsed": "0",
-      "Pos": "1361,496",
-      "Size": "192,218"
+      "Pos": "1351,1187",
+      "Size": "354,362"
     },
     "###Timing": {
       "Collapsed": "0",
@@ -76,8 +81,8 @@
     },
     "Robot State": {
       "Collapsed": "0",
-      "Pos": "1539,305",
-      "Size": "92,99"
+      "Pos": "1584,206",
+      "Size": "161,188"
     }
   }
 }
