@@ -148,8 +148,8 @@ public class RobotContainer {
 
         //YButton.onTrue(goToPoseCommand_preplanned());
         YButton.onTrue(my_seqcommands());
-        XButton.onTrue(m_goToPose);
-        
+        //XButton.onTrue(m_goToPose);
+        XButton.onTrue(Commands.runOnce(()->runPath()));
         LeftBumperButton.onTrue(m_reset);
 
         // Manual method
@@ -195,7 +195,16 @@ public class RobotContainer {
         return autoChooser.getSelected();
     }
 
-    public Command getTestCommand()
+    public void runPath()
+    {
+      Command path = getPathPlanerRoute();
+      if(path != null)
+      {
+        path.schedule();
+      }
+    }
+
+    public Command getPathPlanerRoute()
     {
         return pathChooser.getSelected();
     }
