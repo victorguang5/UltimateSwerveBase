@@ -7,6 +7,7 @@ import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.path.GoalEndState;
 import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.path.PathPlannerPath;
+import com.pathplanner.lib.commands.PathPlannerAuto;
 
 //import com.pathplanner.lib.server.PathPlannerServer;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -98,7 +99,7 @@ public class RobotContainer {
 
     /* Network Tables Elements */
 
-    SendableChooser<Command> movementChooser = new SendableChooser<Command>();
+    SendableChooser<Command> pathChooser = new SendableChooser<>();
     SendableChooser<Command> autoChooser = new SendableChooser<>();
     /** The container for the robot. Contains subsystems, OI devices, and commands. */
     public RobotContainer() {
@@ -114,17 +115,18 @@ public class RobotContainer {
             )
         );
         /* Auto */
-        //PathPlannerServer.startServer(5811);
-        //movementChooser.setDefaultOption("taxi", new Taxi(s_Swerve));
-        //movementChooser.addOption("No Movement", new InstantCommand());
         initializeAutoBuilder();
         autoChooser = AutoBuilder.buildAutoChooser();
+
         SmartDashboard.putData("autoMode", autoChooser);
 
         /* Networking */
         PortForwarder.add(5800, "10.75.20.40", 5800);
         PortForwarder.add(1181, "10.75.20.40", 1181);
 
+        // Display Chooser 
+        SmartDashboard.putData("Auto Mode", autoChooser);
+        SmartDashboard.putData("PathPlanner Route", pathChooser); 
 
 
         // Configure the button bindings
@@ -159,26 +161,31 @@ public class RobotContainer {
         //example of auto move
         autoMove.whileTrue(autoMoveCommand);
         //autoMove.toggleOnFalse(new InstantCommand(() -> autoMoveCommand.cancel()));
-        // Pickup one game piece from position 1 route
-        SmartDashboard.putData("Profile-11", AutoBuilder.followPath(PathPlannerPath.fromPathFile("Profile-11")));
-        // Pickup two game pieces from position 1 route
-        SmartDashboard.putData("Profile-12", AutoBuilder.followPath(PathPlannerPath.fromPathFile("Profile-12")));
-        // Pickup three game pieces from position 1 route
-        SmartDashboard.putData("Profile-13", AutoBuilder.followPath(PathPlannerPath.fromPathFile("Profile-13")));
-        // Pickup one game piece from position 2 route
-        SmartDashboard.putData("Profile-21", AutoBuilder.followPath(PathPlannerPath.fromPathFile("Profile-21")));
-        // Pickup two game pieces from position 2 route
-        SmartDashboard.putData("Profile-22", AutoBuilder.followPath(PathPlannerPath.fromPathFile("Profile-22")));
-        // Pickup three game pieces from position 2 route
-        SmartDashboard.putData("Profile-23", AutoBuilder.followPath(PathPlannerPath.fromPathFile("Profile-23")));
-        // Pickup one game piece from position 3 route
-        SmartDashboard.putData("Profile-21", AutoBuilder.followPath(PathPlannerPath.fromPathFile("Profile-31")));
-        // Pickup two game pieces from position 3 route
-        SmartDashboard.putData("Profile-22", AutoBuilder.followPath(PathPlannerPath.fromPathFile("Profile-32")));
-        // Pickup three game pieces from position 3 route
-        SmartDashboard.putData("Profile-23", AutoBuilder.followPath(PathPlannerPath.fromPathFile("Profile-33")));
+        ConfigureAutoPathProfile();
+        ConfigureManualPathProfile();
     }
 
+    void ConfigureAutoPathProfile()
+    {
+        // Pickup one game piece from position 1 route
+        new PathPlannerAuto("Profile-11");
+        new PathPlannerAuto("Profile-12");
+        new PathPlannerAuto("Profile-13");
+        new PathPlannerAuto("Profile-21");
+        new PathPlannerAuto("Profile-22");
+        new PathPlannerAuto("Profile-23");
+        new PathPlannerAuto("Profile-31");
+        new PathPlannerAuto("Profile-32");
+        new PathPlannerAuto("Profile-33");
+    }
+    void ConfigureManualPathProfile()
+    {
+        pathChooser.setDefaultOption("X 1m",new AutoBuilder().followPath(PathPlannerPath.fromPathFile("X_1m")));
+        pathChooser.setDefaultOption("Y 1m",new AutoBuilder().followPath(PathPlannerPath.fromPathFile("Y_1m")));
+        pathChooser.setDefaultOption("turn 90",new AutoBuilder().followPath(PathPlannerPath.fromPathFile("turn_90")));
+        pathChooser.setDefaultOption("turn -90",new AutoBuilder().followPath(PathPlannerPath.fromPathFile("turn_-90")));
+
+    }
     /**
      * Use this to pass the autonomous command to the main {@link Robot} class.
      *
@@ -190,13 +197,11 @@ public class RobotContainer {
 
     public Command getTestCommand()
     {
-        return movementChooser.getSelected();
+        return pathChooser.getSelected();
     }
     public SwerveBase getSwerveBase() {
         return s_Swerve;
     }
-
-
 
     public void initializeAutoBuilder(){
         AutoBuilder.configureHolonomic(
@@ -224,7 +229,7 @@ public class RobotContainer {
     };
   }
 
-  public Command my_seqcommands()
+    public Command my_seqcommands()
   {
     Command cmd1 = goToPoseCommand_preplanned(); 
     Command cmd2 = goToPoseCommand_preplanned(); 
@@ -260,6 +265,7 @@ public class RobotContainer {
         // Create a path following command using AutoBuilder. This will also trigger event markers.
         return AutoBuilder.followPath(path);
     }
+    
     public void goToPoseCommand()
     {
         double x = SmartDashboard.getNumber("goto_x", 0);
@@ -292,6 +298,7 @@ public class RobotContainer {
         goToPose(endPose);
         goToPose(endPose);
     }
+    
     public void goToPose(Pose2d endPose)
     {
         double endAngle=0;
