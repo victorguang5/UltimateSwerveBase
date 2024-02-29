@@ -4,9 +4,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.BooleanSupplier;
 
-import javax.lang.model.util.ElementScanner14;
-import javax.smartcardio.CommandAPDU;
-
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.path.ConstraintsZone;
 import com.pathplanner.lib.path.EventMarker;
@@ -95,58 +92,60 @@ public class RobotContainer {
     private final Command m_driveSmartPosition = Commands.runOnce(()->s_Swerve.setSmartPosition());
     private final Command m_driveSmartDirection = Commands.runOnce(()->s_Swerve.setSmartAngle(90));
     private final Command m_reset = Commands.runOnce(()->s_Swerve.resetOdometry(new Pose2d()));
-    private final Command my_seqcommands_on_the_fly_2Steps = 
-        Commands.runOnce(()->
+    private final Command m_preplanned = Commands.runOnce(()->pathplanner_preplanned());
+    private final Command m_apriltag_1Steps = Commands.runOnce(()->{
+        Pose2d photonPose = GetPhotonPose2d();
+        if (photonPose != null)
         {
-            tmpEndPose = null;
-            var cmd = goToPoseCommand();
+            var cmd = goToPose_photon(photonPose);
             if (cmd != null)
             {
                 CommandScheduler.getInstance().schedule(cmd);
             }
-        });
-
-    private final Command my_gotoPose_photon_checkPhotonAtEnd = 
+        }
+    });
+    private final Command m_apriltag_2Steps = 
         Commands.runOnce(()->
         {
+            //CommandScheduler.getInstance().cancelAll();
+            tmpEndPose = null;
+            Pose2d photonPose = GetPhotonPose2d();
+            if (photonPose != null)
+            {
+                var cmd = goToPoseCommand();
+                if (cmd != null)
+                {
+                    CommandScheduler.getInstance().schedule(cmd);
+                }
+            }
+        });
+
+    private final Command m_gotoPose_photon_withDefaultPose = 
+        Commands.runOnce(()->
+        {
+            //var cmd1 = new CameraGoToPoseCommand(s_Swerve);
+            //* 
+
             Pose2d photonPose = GetPhotonPose2d();
             if (photonPose == null)
                 photonPose = tmpEndPose;
             if (photonPose != null)
             {
-
-
-                        var deltaPose = photonPose;
-        Pose2d startPose = s_Swerve.getPose();
-
-        Translation2d startTranslation2d = startPose.getTranslation();
-        Translation2d deltaTranslation2d = deltaPose.getTranslation();
-        Translation2d endTranslation2d = startTranslation2d.plus(deltaTranslation2d);
-        Rotation2d starRotation2d = startPose.getRotation();
-        Rotation2d deltaRotation2d = deltaPose.getRotation();
-        Rotation2d endRotation2d = starRotation2d.plus(deltaRotation2d);
-        //Rotation2d endRotation2d = tmpEndPose.getRotation();
-
-         Pose2d endPose = new Pose2d(endTranslation2d,endRotation2d);
+                Pose2d endPose = photonPose;
                 SmartDashboard.putNumber("photonPose second step end_x", endPose.getX());
                 SmartDashboard.putNumber("photonPose second step end_y", endPose.getY());
                 SmartDashboard.putNumber("photonPose second step end_yaw", endPose.getRotation().getDegrees());
 
-
-                var cmd = new MySequentialCommands(
+                var cmd = new SequentialCommandGroup(
                     goToPose_photon(endPose), 
                     goToPose(endPose),
                     goToPose(endPose),
-                    goToPose(endPose),
-                    goToPose(endPose),
-                    goToPose(endPose)     
+                    goToPose(endPose)
                     );
+                //var cmd = goToPose_photon(endPose);
                 CommandScheduler.getInstance().schedule(cmd);
             }
-            else {
-                CommandScheduler.getInstance().schedule(new EmptyCommand());
-            }
-
+            //*/
         });
 
     //example of auto move
@@ -200,13 +199,9 @@ public class RobotContainer {
         /* Driver Buttons */
         zeroGyro.onTrue(new InstantCommand(() -> s_Swerve.zeroGyro()));
 
-        //cameraDriveMove.onTrue(new CameraDriveCommand(s_Swerve, s_Swerve::getPose));
-        //angleDriveMove.onTrue(new AngleDriveCommand(s_Swerve, s_Swerve::getPose));
-
-        //YButton.onTrue(goToPoseCommand_preplanned());
-        YButton.onTrue(my_seqcommands_preplanned());
-        XButton.onTrue(my_seqcommands_on_the_fly_2Steps);
-        //XButton.onTrue(m_goToPose);
+        YButton.onTrue(m_preplanned);
+        XButton.onTrue(m_apriltag_2Steps);
+        //XButton.onTrue(m_apriltag_1Steps);
         
         LeftBumperButton.onTrue(m_reset);
 
@@ -246,17 +241,6 @@ public class RobotContainer {
             getAllianceColorBooleanSupplier(),
             s_Swerve
         );
-
-        //goToPoseCommand_preplanned();
-        /*
-        Pose2d endPose = new Pose2d(
-            new Translation2d(2.427969,0.944030),
-            new Rotation2d().fromDegrees(40.996326)
-        );
-
-        goToPoseCommand();
-        //goToPose_photon(endPose);
-        */
     }
 
    public static BooleanSupplier getAllianceColorBooleanSupplier(){
@@ -273,27 +257,18 @@ public class RobotContainer {
     };
   }
 
-  public Command my_seqcommands_preplanned()
-  {
-    Command cmd1 = goToPoseCommand_preplanned(); 
-    Command cmd2 = goToPoseCommand_preplanned(); 
-    Command cmd3 = goToPoseCommand_preplanned(); 
-    Command cmd4 = goToPoseCommand_preplanned(); 
-    Command cmd5 = goToPoseCommand_preplanned(); 
-    Command cmd6 = goToPoseCommand_preplanned(); 
-    try
-    {        
-        return new MySequentialCommands( cmd1, cmd2, cmd3, cmd4, cmd5, cmd6);
-    }
-    catch (Exception ex)
+    public void pathplanner_preplanned()
     {
-        return new EmptyCommand();
-    }
-    finally
-    {
-
-    }
-  } 
+        Command cmd1 = goToPoseCommand_preplanned(); 
+        Command cmd2 = goToPoseCommand_preplanned(); 
+        Command cmd3 = goToPoseCommand_preplanned(); 
+        Command cmd4 = goToPoseCommand_preplanned(); 
+        Command cmd5 = goToPoseCommand_preplanned(); 
+        Command cmd6 = goToPoseCommand_preplanned(); 
+        CommandScheduler.getInstance().schedule(
+            new SequentialCommandGroup( cmd1, cmd2, cmd3, cmd4, cmd5, cmd6)
+        );
+    } 
 
     public Command goToPoseCommand_preplanned()
     {
@@ -315,45 +290,27 @@ public class RobotContainer {
         if (curPose.getDistance(lastP) < 0.1)
         {
             if (Math.abs(curAngle - lastAngle) < 2)
-                return new EmptyCommand();
+                return null;
         }
 
         // Create a path following command using AutoBuilder. This will also trigger event markers.
         return AutoBuilder.followPath(path);
     }
 
-    public Pose2d GetPhotonPose2d()
+    private Pose2d GetPhotonPose2d()
     {
         var photonPose = s_Swerve.GetPhotonvisionPose2d();
+        photonPose = ConvertToAbsolutePose(photonPose);
         
         SmartDashboard.putBoolean("photonPose found ", (photonPose != null));
         return photonPose;
     }
 
-    public Command goToPoseCommand()
+    private Pose2d ConvertToAbsolutePose(Pose2d srcPose)
     {
-        var photonPose = GetPhotonPose2d();
-        if (photonPose == null)
-            return new EmptyCommand();
+        if (srcPose == null) return null;
 
-        SmartDashboard.putNumber("photonPose first step end_x", photonPose.getX());
-        SmartDashboard.putNumber("photonPose first step end_y", photonPose.getY());
-        SmartDashboard.putNumber("photonPose first step end_yaw", photonPose.getRotation().getDegrees());
-
-        SmartDashboard.putNumber("photonPose second step end_x", 0);
-        SmartDashboard.putNumber("photonPose second step end_y", 0);
-        SmartDashboard.putNumber("photonPose second step end_yaw", 0);
-
-/* 
-        double x = SmartDashboard.getNumber("goto_x", 0);
-        double y = SmartDashboard.getNumber("goto_y", 0);
-        double yaw = SmartDashboard.getNumber("goto_yaw", 0);
-        Pose2d deltaPose = new Pose2d(
-            new Translation2d(x,y),
-            Rotation2d.fromDegrees(yaw)
-        );
-        */
-        var deltaPose = photonPose;
+        var deltaPose = srcPose;
         Pose2d startPose = s_Swerve.getPose();
 
         Translation2d startTranslation2d = startPose.getTranslation();
@@ -365,85 +322,109 @@ public class RobotContainer {
 
         Pose2d endPose = new Pose2d(endTranslation2d,endRotation2d);
 
+        return endPose;
+    }
+
+
+
+    public Command goToPoseCommand()
+    {
+        var photonPose = GetPhotonPose2d();
+        if (photonPose == null)
+            return null;
+
+        // output first photonview endpose
+        SmartDashboard.putNumber("photonPose first step end_x", photonPose.getX());
+        SmartDashboard.putNumber("photonPose first step end_y", photonPose.getY());
+        SmartDashboard.putNumber("photonPose first step end_yaw", photonPose.getRotation().getDegrees());
+
+        // clear second photonview endpose
+        SmartDashboard.putNumber("photonPose second step end_x", 0);
+        SmartDashboard.putNumber("photonPose second step end_y", 0);
+        SmartDashboard.putNumber("photonPose second step end_yaw", 0);
+
+        Pose2d endPose = photonPose;
+
+        var startPose = s_Swerve.getPose();
         SmartDashboard.putNumber("from_x", startPose.getX());
         SmartDashboard.putNumber("from_y", startPose.getY());
         SmartDashboard.putNumber("from_yaw", startPose.getRotation().getDegrees());
+
         SmartDashboard.putNumber("gotoP_x", endPose.getX());
         SmartDashboard.putNumber("gotoP_y", endPose.getY());
         SmartDashboard.putNumber("gotoP_yaw", endPose.getRotation().getDegrees());
 
-        tmpEndPose = endPose;
-
-        //return goToPose_photon(endPose);
         return goToPose_photon_2Steps(endPose);
     }
 
     public Command goToPose_photon_2Steps(Pose2d endPose)
     {
-        Pose2d startPose = s_Swerve.getPose();
-        List<Translation2d> bezierPoints = PathPlannerPath.bezierFromPoses(
-            startPose,
-            endPose
-        );
-        double lengthToCompare = 1;
-        int size = bezierPoints.size();
-        var totalDistance = getTotalDistance(bezierPoints);
-        if (totalDistance < lengthToCompare || size < 3)
+        try
         {
-            try
-            {
-            return new MySequentialCommands(
-                goToPose_photon(endPose),
-                goToPose(endPose),
-                goToPose(endPose),
-                goToPose(endPose),
-                goToPose(endPose),
-                goToPose(endPose)
+            // get the endPose from photonvision
+            // if it very close, go there directly
+            // otherwise, go to the middle pose first, check photovision again, 
+            // get the new endPose, then go to the final endPose
+            Pose2d startPose = s_Swerve.getPose();
+            List<Translation2d> bezierPoints = PathPlannerPath.bezierFromPoses(
+                startPose,
+                endPose
             );
-            }
-            catch(Exception ex)
+            double lengthToCompare = 1;
+            int size = bezierPoints.size();
+            var totalDistance = getTotalDistance(bezierPoints);
+            if (totalDistance < lengthToCompare || size < 3)
             {
-                System.out.println(ex);
-                return new EmptyCommand();
+                /*
+                return new SequentialCommandGroup(
+                    goToPose_photon(endPose),
+                    goToPose(endPose),
+                    goToPose(endPose),
+                    goToPose(endPose)
+                );
+                 */
+                return goToPose_photon(endPose);
+            }
+            else
+            {
+                double distance = 0; 
+                Translation2d midT = bezierPoints.get(0);
+                for(int i=1; i<size; i++)
+                {
+                    distance += bezierPoints.get(i).getDistance(bezierPoints.get(i-1));
+                    midT = bezierPoints.get(i);
+                    if(totalDistance - distance <= lengthToCompare)
+                        break;
+                }
+                Pose2d midPose = new Pose2d(midT, endPose.getRotation());
+                SmartDashboard.putNumber("midPose_x", midPose.getX());
+                SmartDashboard.putNumber("midPose_y", midPose.getY());
+                SmartDashboard.putNumber("midPose_yaw", midPose.getRotation().getDegrees());
+                tmpEndPose = endPose;
+
+                var cmd = goToPose_photon(midPose);
+                if (cmd != null)
+                {
+                    return new SequentialCommandGroup(
+                        cmd,
+                        //goToPose(midPose),
+                        m_gotoPose_photon_withDefaultPose
+                    );
+                }
+                else
+                    return null;
             }
         }
-        else
+        catch(Exception ex)
         {
-            double distance = 0; 
-            Translation2d midT = bezierPoints.get(0);
-            for(int i=1; i<size; i++)
-            {
-                distance += bezierPoints.get(i).getDistance(bezierPoints.get(i-1));
-                midT = bezierPoints.get(i);
-                if(totalDistance - distance <= lengthToCompare)
-                    break;
-            }
-            Pose2d midPose = new Pose2d(midT, endPose.getRotation());
-            SmartDashboard.putNumber("midPose_x", midPose.getX());
-            SmartDashboard.putNumber("midPose_y", midPose.getY());
-            SmartDashboard.putNumber("midPose_yaw", midPose.getRotation().getDegrees());
-            try
-            {
-            return new MySequentialCommands(
-                //goToPose_photon(midPose),
-                goToPose(midPose),
-                my_gotoPose_photon_checkPhotonAtEnd,
-                new EmptyCommand(),
-                new EmptyCommand(),
-                new EmptyCommand(),
-                new EmptyCommand()
-            );
-            }
-            catch(Exception ex)
-            {
-                System.out.println(ex);
-                return new EmptyCommand();
-            }
+            System.out.println("ERROR: " + ex.getMessage());
+            return null;
         }
     }
 
     public Command goToPose_photon(Pose2d endPose)
     {
+        // go to the endPose directly, finish cart heading rotation in the middle
         Pose2d startPose = s_Swerve.getPose();
         List<Translation2d> bezierPoints = PathPlannerPath.bezierFromPoses(
             startPose,
@@ -468,15 +449,12 @@ public class RobotContainer {
         
         path.preventFlipping =true;
         
-        var cmd = AutoBuilder.followPath(path);
-        if (cmd == null)
-            return new EmptyCommand();
-        else
-            return cmd;
+        return AutoBuilder.followPath(path);
     }
 
     public Command goToPose(Pose2d endPose)
     {
+        // go to the endPose directly
         double endAngle=0;
         //endAngle = SmartDashboard.getNumber("endAngle", 0);
         Pose2d startPose = s_Swerve.getPose();
@@ -490,7 +468,7 @@ public class RobotContainer {
         if (curPose.getDistance(lastP) < 0.05)
         {
             if (Math.abs(curAngle - lastAngle) < 1)
-                return new EmptyCommand();
+                return null;
         }
 
         List<Translation2d> bezierPoints = PathPlannerPath.bezierFromPoses(
@@ -510,12 +488,7 @@ public class RobotContainer {
 
         // Create a path following command using AutoBuilder. This will also trigger event markers.
         
-        var cmd = AutoBuilder.followPath(path);
-        if (cmd == null)
-            return new EmptyCommand();
-        else
-            return cmd;
-
+        return AutoBuilder.followPath(path);
     }
 
 
