@@ -13,12 +13,17 @@ import org.photonvision.PhotonUtils;
 import org.photonvision.targeting.PhotonTrackedTarget;
 //import org.photonvision.targeting.TargetCorner;
 
+import edu.wpi.first.apriltag.AprilTagFieldLayout;
+import edu.wpi.first.apriltag.AprilTagFields;
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 //import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 //import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -36,6 +41,11 @@ public class TargetDetection {
         APRIL_TAG,
         COLORED_SHAPE,
         REFLECTIVE
+    }
+
+    private class BoundryOffset {
+        public double x;
+        public double y;
     }
 
     private class PhotonVisonData {
@@ -58,6 +68,7 @@ public class TargetDetection {
     }
 
     public TargetDetection(String camera_name, PipeLineType type) {
+        
         this.type = type;
         this.camera_name = camera_name;
         camera = new PhotonCamera(camera_name);
@@ -71,189 +82,90 @@ public class TargetDetection {
     public RobotMoveTargetParameters GetSwerveTrainMoveParameters() {
         RobotMoveTargetParameters para = new RobotMoveTargetParameters();
         para.IsValid = false;
-        if(!IsOpen) {
-            System.out.printf("Check PhotonVison Camera %s, which is NOT open\n", camera_name);
-            camera = new PhotonCamera(camera_name);
-            if(camera.isConnected()) {
-                IsOpen = true;
-                System.out.printf("PhotonVison Camera %s, opened now\n", camera_name);
-            } else {    
-                return para;
-            }
-        }
-        var result = camera.getLatestResult();
-        if(result.hasTargets()) {
-            PhotonTrackedTarget target = result.getBestTarget();
-            
-            // Get information from target.
-            // The yaw of the target in degrees (positive right).            
-            double yaw = target.getYaw();
-            
-            // The pitch of the target in degrees (positive up).
-            double pitch = target.getPitch();
-            
-            // The area (how much of the camera feed the bounding box takes up) as a percent (0-100).            
-            double area = target.getArea();           
-            if(type == PipeLineType.APRIL_TAG) {
+        PhotonVisonData data = GetPVTargetData();
+        if(data.is_vaild) {
+            double tmp_radian = Math.abs(data.z_rotate);
+            double need_turn_radian = (3.1415926 - tmp_radian);
+            BoundryOffset offset = GetOffsetBaseOnApriltagID(data.april_tag_id);
+            if(tmp_radian > 3.05 && tmp_radian < 3.2) {
+             //   System.out.println("Already face to ArpilTag, no need to turn");
+                para.turn = Rotation2d.fromRadians(0);                
+                para.move = new Translation2d(data.x_distance - offset.x, data.y_distance + offset.y);
+               // System.out.printf("move: x:%f, y:%f\n", data.x_distance - offset.x, data.y_distance + offset.y);
+            } else {
+                para.turn = (data.z_rotate > 0) ? (Rotation2d.fromRadians(-need_turn_radian)) : (Rotation2d.fromRadians(need_turn_radian));
                 
-                // The ID of the detected fiducial marker.
-                if(target.getFiducialId() == Constants.APRILTAG_ID_BE_DETECTED) {
-                   /* Get the transform that maps camera space (X = forward, Y = left, Z = up) to object/fiducial tag space 
-                      (X forward, Y left, Z up) with the lowest reprojection error.     */
-                    Transform3d bestCameraToTarget = target.getBestCameraToTarget();
-                    //Transform3d alternateCameraToTarget = target.getAlternateCameraToTarget();
+                double trz = (3.1415926 - data.z_rotate);
+                double mx = (data.x_distance - data.y_distance * Math.tan(trz)) * Math.cos(trz) - offset.x;
+                double my = Math.abs(
+                                     data.y_distance / Math.cos(trz) + 
+                                     Math.sin(trz) * (data.x_distance - data.y_distance * Math.tan(trz))
+                                     );
+                double h = Math.abs(Math.tan(trz) * data.x_distance);
                 
-                    double x_distance = bestCameraToTarget.getX();
-                    double y_distance = bestCameraToTarget.getY();
-                    double z_distance = bestCameraToTarget.getZ();
-                    Rotation3d trans_3d_rotate = bestCameraToTarget.getRotation();
-                    double x_rotate = trans_3d_rotate.getX();
-                    double y_rotate = trans_3d_rotate.getY();
-                    double z_rotate = trans_3d_rotate.getZ();
-                    double a_rotate = trans_3d_rotate.getAngle();
-                    System.out.printf("AprilTag raw Data: yaw:%f,pitch:%f,area:%f, 3D: X:%f,Y:%f,Z:%f, RX:%f,RY:%f,RZ:%f,RW:%f\n",
-                        yaw, pitch, area,x_distance,y_distance,z_distance,x_rotate,y_rotate,z_rotate,a_rotate); 
-
-                    /*
-                    SmartDashboard.putNumber("Yaw", yaw);
-                    SmartDashboard.putNumber("Pitch", pitch);
-                    SmartDashboard.putNumber("Area", area);
-                    SmartDashboard.putNumber("X Distance", x_distance);
-                    SmartDashboard.putNumber("Y Distance", y_distance);
-                    SmartDashboard.putNumber("Z Distance", z_distance);
-                    SmartDashboard.putNumber("Rotate X", x_rotate);
-                    SmartDashboard.putNumber("Rotate Y", y_rotate);
-                    SmartDashboard.putNumber("Rotate Z", z_rotate);
-                    SmartDashboard.putNumber("Rotate Angel", a_rotate);
-                    */
-
-                    double tmp_radian = Math.abs(z_rotate);
-                    double need_turn_radian = (3.1415926 - tmp_radian);
-                    boolean is_turn_left = false;
-                    if(tmp_radian > 3.05 && tmp_radian < 3.2) {
-                        System.out.println("Already face to ArpilTag, no need to turn");
+                if(data.z_rotate > 0) {
+                    if(data.y_distance >= 0) {
+                        para.move = new Translation2d(mx, my + offset.y);
+                    //    System.out.printf("turn: %f, mx:%f, my:%f, y:%f\n", -need_turn_radian, mx, my, my + offset.y);
                     } else {
-                        System.out.println("Nee to check turn ......");
-
-                        // this Y distance need to adjust, basically the detect is not accaray if Y is too small
-                        if(false/*Math.abs(y_distance) < 0.1*/) {
-                            // if Y is too small, RZ not stable, need YAW assit
-                            System.out.println("Y too small, need to move and recheck");
-                            return para;
-                        } else {        
-                            if(y_distance < 0) {
-                                if(z_rotate > 0) {
-                                   if(true /*para.yaw < 0*/) {
-                                        System.out.printf("Tank need to trun right, %f\n", need_turn_radian);
-                                        is_turn_left = false;
-                                    } else {
-                                        System.out.println("cannot process, need to move left/right, check again");
-                                        return para;
-                                    }
-                                } else {
-                                    if(yaw > 0) {
-                                        System.out.printf("Tank need to trun left, %f\n", need_turn_radian);
-                                        is_turn_left = true;
-                                    } else {
-                                        System.out.println("cannot process, need to move left/right, check again");
-                                        return para;
-                                    }
-                                }
-                            } else if(y_distance > 0) {
-                                if(z_rotate > 0) {
-                                    if(yaw < 0) {
-                                        System.out.printf("Tank move trun right, %f\n", need_turn_radian);
-                                        is_turn_left = false;
-                                    } else {
-                                        System.out.println("cannot process, need to move left/right, check again");
-                                        return para;
-                                    }
-                                } else {
-                                    if(true /*para.yaw > 0*/){
-                                       System.out.printf("Tank move trun left, %f\n", need_turn_radian);
-                                       is_turn_left = true;
-                                    } else {
-                                        System.out.println("cannot process, need to move left/right, check again");
-                                        return para;
-                                    }
-                                } 
-                            }
+                        if(Math.abs(data.y_distance) <= h) {
+                            para.move = new Translation2d(mx, my + offset.y);
+                       //     System.out.printf("turn: %f, mx:%f, my:%f, y:%f\n", -need_turn_radian, mx, my, my + offset.y);
+                        } else {
+                            para.move = new Translation2d(mx, -my + offset.y);
+                       //     System.out.printf("turn: %f, mx:%f, my:%f, y:%f\n", -need_turn_radian, mx, -my, -my + offset.y);
                         }
-                    }    
-                    // calculate distance and angle                  
-                    double z_angle = (3.14159265 - Math.abs(z_rotate));
-                    if(z_angle > 0.1) {
-                        //double y_dist = Math.abs(y_distance);
-                        double y_dist = y_distance;
-                        double z_degree = (3.14159265 - z_rotate);
-                        double x1 = y_dist * (Math.tan(z_degree));
+                    }
+                } else if (data.z_rotate < 0) {
+                    if(data.y_distance <= 0) {
+                        para.move = new Translation2d(mx, -my + offset.y);
+                    //    System.out.printf("turn: %f, mx:%f, my:%f, y:%f\n", need_turn_radian, mx, -my, -my + offset.y);
+                    } else {
+                        if(Math.abs(data.y_distance) <= h) {
+                            para.move = new Translation2d(mx, -my + offset.y);
+                       //     System.out.printf("turn: %f, mx:%f, my:%f, y:%f\n", need_turn_radian, mx, -my, -my + offset.y);
+                        } else {
+                            para.move = new Translation2d(mx, my + offset.y);
+                         //   System.out.printf("turn: %f, mx:%f, my:%f, y:%f\n", need_turn_radian, mx, my, my + offset.y);
+                        }
+                    }
+                } 
+
+/*
+                double y_dist = data.y_distance;
+                double z_degree = (3.14159265 - data.z_rotate);
+                double x1 = y_dist * (Math.tan(z_degree));
                         
-                        if(Math.cos(z_degree) == 0) {
-                            // normally shouldn't be, but just protect 
-                            System.out.println("should not be here, but hit here, means 90 degree, still can see target, think over later");
-                            return para;
-                        }
-                        double x2 = y_dist / (Math.cos(z_degree));
-                        double x5 = (x_distance - x1);
-                        double x4 = x5 * (Math.cos(z_degree));
-                        double x6 = (x4 - Constants.SPEAKER_SUBWOOFER_WIDTH);
-                        double x3 = x5 * (Math.sin(z_degree));
-                        if(x6 == 0) {
-                            // normally shoultn't be, but just protect 
-                            System.out.println("should not be here, just in case, think over later if still happen");
-                            return para;
-                        }
-                        // direction: first get radian
-                        double move_degree = (Math.atan((x2 + x3) / x6));
-                        // convert to degree for verify
-                        double move_degree_unit_degree = Math.toDegrees(move_degree);
-                        double move_distance = Math.sqrt(Math.pow((x2+x3), 2) +  Math.pow(x6, 2));
-                        if(is_turn_left) {
-                            para.TurnRadian_swerve = (-need_turn_radian);
-                            System.out.printf("Moving Result, Left turn angle: %f, MoveAngle: %f, Distance, %f\n", need_turn_radian, move_degree_unit_degree, move_distance);
-                        } else {
-                            para.TurnRadian_swerve = need_turn_radian;
-                            System.out.printf("Moving Result, Right turn angle: %f, MoveAngle: %f, Distance, %f\n", need_turn_radian, move_degree_unit_degree, move_distance);
-                        }
-                        para.MoveRadian = move_degree; 
-                        para.MoveDistance = move_distance;
-                        para.turn = (z_rotate > 0) ? (Rotation2d.fromRadians(-need_turn_radian)) : (Rotation2d.fromRadians(need_turn_radian));
-                        //para.move = new Translation2d(x1, x4);
-                        x_distance -= Constants.SPEAKER_SUBWOOFER_WIDTH;
-                        para.move = new Translation2d(x_distance, y_distance);
-
-                    } else {
-                        // already face
-                        para.TurnRadian_swerve = 0;
-                        para.turn = Rotation2d.fromRadians(0);
-                        double x1 = (x_distance - Constants.SPEAKER_SUBWOOFER_WIDTH);
-                        if(y_distance != 0.0) {
-                            para.MoveRadian = (Math.atan(x1 / y_distance));
-                            para.MoveDistance = Math.sqrt(Math.pow(x1, 2) +  Math.pow(y_distance, 2));
-                        } else {
-                            para.MoveRadian = 0;
-                            para.MoveDistance = x1;
-                        }                   
-                        para.move = new Translation2d(x1, y_distance);     
-                        System.out.printf("Moving Result, No Trun, MoveAngle: %f, Distance, %f\n", para.MoveRadian, para.MoveDistance);
-                    }                
-                    para.IsValid = true;
-
-                } else {
-                    System.out.println("AprilTag ID wrong");
+                if(Math.cos(z_degree) == 0) {
+                    // normally shouldn't be, but just protect 
+                    System.out.println("should not be here, but hit here, means 90 degree, still can see target, think over later");
                     return para;
                 }
-            } else if(type == PipeLineType.COLORED_SHAPE) {
-                
-                // The skew of the target in degrees (counter-clockwise positive).
-                double skew = target.getSkew(); 
-                // calculate tank move
-                para.IsValid = true;
-            } else {
-                System.out.println("Currently NOT support");
-            }
+                double x2 = y_dist / (Math.cos(z_degree));
+                double x5 = (data.x_distance - x1);
+                double x4 = x5 * (Math.cos(z_degree));
+                BoundryOffset offset = GetOffsetBaseOnApriltagID(data.april_tag_id);
+                //double x6 = (x4 - Constants.SPEAKER_SUBWOOFER_WIDTH);
+                double x6 = (x4 - offset.x);
+                double x3 = x5 * (Math.sin(z_degree));
+                if(x6 == 0) {
+                    // normally shoultn't be, but just protect 
+                    System.out.println("should not be here, just in case, think over later if still happen");
+                    return para;
+                }
+                // direction: first get radian
+               // double move_degree = (Math.atan((x2 + x3) / x6));
+                // convert to degree for verify
+               // double move_degree_unit_degree = Math.toDegrees(move_degree);
+               // double move_distance = Math.sqrt(Math.pow((x2+x3), 2) +  Math.pow(x6, 2));
+                //para.move = new Translation2d(x1, x4);
+                para.move = new Translation2d(x6, x2 + x3 + offset.y);
+                */
+			}
+            para.IsValid = true;
+        } else {
+            System.out.println("Target Data invalid");
         }
-        
         return para;
     }
 
@@ -394,6 +306,7 @@ public class TargetDetection {
                 para.TurnRadian_swerve = 0;
                 para.TurnRadian_tank = 1.5707963; // 90 degree
                 para.turn = Rotation2d.fromRadians(0);
+                para.move = new Translation2d(0, 0);
                 para.IsValid = true;
             } else {
                 System.out.println("Nee to check turn ......");
@@ -408,11 +321,75 @@ public class TargetDetection {
                 para.TurnRadian_tank = (data.z_rotate > 0) ? (need_turn_radian - 1.5707963) : (1.5707963 - need_turn_radian);
                 para.turn = (data.z_rotate > 0) ? (Rotation2d.fromRadians(-need_turn_radian)) : (Rotation2d.fromRadians(need_turn_radian));
                 System.out.printf("Need to turn (postive left), swerve: %f, tank:%f\n", para.TurnRadian_swerve, para.TurnRadian_tank);
+                double small_distance = (data.z_rotate > 0) ? 0.5 : -0.5;
+                para.move = new Translation2d(0, small_distance);
                 para.IsValid = true;
             }
             already_turned_to_face_target = true;        
         } else {
             System.out.println("Target Data invalid before detect facing");
+        }
+        return para;
+    }
+
+    private BoundryOffset GetOffsetBaseOnApriltagID(int ApriltagID) {
+        BoundryOffset para = new BoundryOffset();
+        para.x = 0;
+        para.y = 0;
+        Optional<DriverStation.Alliance> team = DriverStation.getAlliance();
+        if(team.isPresent()) {
+             // different moving strategy based on AprilTag ID 
+            if(team.get() == DriverStation.Alliance.Red) {
+                switch (ApriltagID) {
+                    case 9: //src right
+                        para.x = 0;
+                        para.y = (Constants.SRC_WIDTH + Constants.APRILTAG_WIDTH);    break;
+                    case 10: // src left
+                        para.x = 0;
+                        para.y = -(Constants.SRC_WIDTH + Constants.APRILTAG_WIDTH); break;
+                    case 3: //speaker
+                        para.x = Constants.SPEAKER_SUBWOOFER_WIDTH;
+                        para.y = (Constants.SPEAKER_APRIL_TAG_WIDTH + Constants.APRILTAG_WIDTH);    break;
+                    case 4: //speaker
+                        para.x = Constants.SPEAKER_SUBWOOFER_WIDTH;    break;
+                    case 5: //amp
+                        para.x = 0;    break;
+                    case 11: //stage
+                        para.x = 0;    break;
+                    case 12: //stage
+                        para.x = 0;    break;
+                    case 13: //stage
+                        para.x = 0;    break;
+                    default:
+                        System.out.printf("Not support this AprilTag ID:%d\n", ApriltagID); break;
+                }
+            } else if (team.get() == DriverStation.Alliance.Blue){
+                switch (ApriltagID) {
+                    case 6: // AMP center
+                        para.x = 0;    break;
+                    case 14: // speaker
+                        para.x = Constants.SPEAKER_SUBWOOFER_WIDTH;    break;
+                    case 8: //speaker
+                        para.x = Constants.SPEAKER_SUBWOOFER_WIDTH;
+                        para.y = -(Constants.SPEAKER_APRIL_TAG_WIDTH + Constants.APRILTAG_WIDTH);   break;
+                    case 1: //src right
+                        para.x = 0;
+                        para.y = (Constants.SRC_WIDTH + Constants.APRILTAG_WIDTH);    break;
+                    case 2: //src left
+                        para.x = 0;
+                        para.y = -(Constants.SRC_WIDTH + Constants.APRILTAG_WIDTH);    break; 
+                    case 7: //stage
+                        para.x = 0;    break;
+                    case 15: //stage
+                        para.x = 0;    break;
+                    case 16: //stage
+                        para.x = 0;    break;
+                    default:
+                        System.out.printf("Not support this AprilTag ID:%d\n", ApriltagID);
+                }
+            } else {
+                System.out.println("Alliance team Unknown");
+            }
         }
         return para;
     }
@@ -503,4 +480,28 @@ public class TargetDetection {
         }
         return para;
     }
+
+    public Pose2d GetCurrentRobotFieldPose() {
+        var result = camera.getLatestResult();
+        // camera for robot center x, y, z
+        double camera_pos_for_robot_x = 0.8;
+        double camera_pos_for_robot_y = 0.4;
+        double camera_pos_for_robot_z = 0.5;
+        Transform3d cameraToRobot = new Transform3d(camera_pos_for_robot_x, 
+                                                    camera_pos_for_robot_y, 
+                                                    camera_pos_for_robot_z, 
+                                                    new Rotation3d(0,0,0));
+        if(result.hasTargets()) {
+            PhotonTrackedTarget target = result.getBestTarget();
+            AprilTagFieldLayout aprilTagFieldLayout = AprilTagFields.k2024Crescendo.loadAprilTagLayoutField();
+            Pose3d robotPose = PhotonUtils.estimateFieldToRobotAprilTag(
+                    target.getBestCameraToTarget(), 
+                    aprilTagFieldLayout.getTagPose(target.getFiducialId()).get(), 
+                    cameraToRobot);
+            return robotPose.toPose2d();
+        } else {
+            return null;
+        }
+    }
+    
 }
