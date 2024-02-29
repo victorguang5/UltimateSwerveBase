@@ -1,9 +1,12 @@
 package frc.robot;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.function.BooleanSupplier;
 
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.path.ConstraintsZone;
+import com.pathplanner.lib.path.EventMarker;
 import com.pathplanner.lib.path.GoalEndState;
 import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.path.PathPlannerPath;
@@ -29,7 +32,6 @@ import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import frc.robot.constants.AutoConstants;
-import frc.robot.commands.MySequentialCommands;
 import frc.robot.commands.*;
 import frc.robot.subsystems.swerve.SwerveBase;
 import pabeles.concurrency.ConcurrencyOps.Reset;
@@ -303,20 +305,23 @@ public class RobotContainer {
             startPose,
             endPose
         );
+        var distance = getTotalDistance(bezierPoints);
+        
+        RotationTarget rt = new RotationTarget(
+            distance / 2.0, 
+            endPose.getRotation(), false);
+        List<RotationTarget> rts = Arrays.asList(rt);
+        //List<ConstraintsZone> czs = Arrays.asList();
+        //List<EventMarker> ems = Arrays.asList();
         PathPlannerPath path = new PathPlannerPath(
                 bezierPoints,
+                rts,
+                null, //czs, // list ConstraintsZone
+                null, //ems, // list event marker
                 new PathConstraints(0.4, 1, Math.PI,  Math.PI), // The constraints for this path. If using a differential drivetrain, the angular constraints have no effect.
-                new GoalEndState(0.0, Rotation2d.fromDegrees(endAngle)) // Goal end state. You can set a holonomic rotation here. If using a differential drivetrain, the rotation will have no effect.
+                new GoalEndState(0.0, endPose.getRotation()), // Goal end state. You can set a holonomic rotation here. If using a differential drivetrain, the rotation will have no effect.
+                false
         );
-        var points = path.getAllPathPoints();
-        int size = points.size();
-        for(int i=size / 2; i<size; i++)
-        {
-            var rt = points.get(i).rotationTarget;
-            RotationTarget rt2 = new RotationTarget(rt.getPosition(), 
-                endPose.getRotation(), false);
-            points.get(i).rotationTarget = rt2;
-        }
         
         path.preventFlipping =true;
         CommandScheduler.getInstance().schedule(AutoBuilder.followPath(path));
@@ -348,5 +353,20 @@ public class RobotContainer {
         
         CommandScheduler.getInstance().schedule(AutoBuilder.followPath(path));
 
+    }
+
+
+    public static double getTotalDistance(List<Translation2d> waypoints) {
+        double totalDistance = 0.0;
+
+        for (int i = 1; i < waypoints.size(); i++) {
+            Translation2d currentPoint = waypoints.get(i);
+            Translation2d prevPoint = waypoints.get(i - 1);
+
+            double distance = currentPoint.getDistance(prevPoint);
+            totalDistance += distance;
+        }
+
+        return totalDistance;
     }
 }
