@@ -34,6 +34,7 @@ import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import frc.robot.constants.AutoConstants;
 import frc.robot.commands.*;
 import frc.robot.subsystems.swerve.SwerveBase;
+import frc.robot.util.PathPlannerHelper;
 import pabeles.concurrency.ConcurrencyOps.Reset;
 
 /**
@@ -92,61 +93,6 @@ public class RobotContainer {
     private final Command m_driveSmartPosition = Commands.runOnce(()->s_Swerve.setSmartPosition());
     private final Command m_driveSmartDirection = Commands.runOnce(()->s_Swerve.setSmartAngle(90));
     private final Command m_reset = Commands.runOnce(()->s_Swerve.resetOdometry(new Pose2d()));
-    private final Command m_preplanned = Commands.runOnce(()->pathplanner_preplanned());
-    private final Command m_apriltag_1Steps = Commands.runOnce(()->{
-        Pose2d photonPose = GetPhotonPose2d();
-        if (photonPose != null)
-        {
-            var cmd = goToPose_photon(photonPose);
-            if (cmd != null)
-            {
-                CommandScheduler.getInstance().schedule(cmd);
-            }
-        }
-    });
-    private final Command m_apriltag_2Steps = 
-        Commands.runOnce(()->
-        {
-            //CommandScheduler.getInstance().cancelAll();
-            tmpEndPose = null;
-            Pose2d photonPose = GetPhotonPose2d();
-            if (photonPose != null)
-            {
-                var cmd = goToPoseCommand();
-                if (cmd != null)
-                {
-                    CommandScheduler.getInstance().schedule(cmd);
-                }
-            }
-        });
-
-    private final Command m_gotoPose_photon_withDefaultPose = 
-        Commands.runOnce(()->
-        {
-            //var cmd1 = new CameraGoToPoseCommand(s_Swerve);
-            //* 
-
-            Pose2d photonPose = GetPhotonPose2d();
-            if (photonPose == null)
-                photonPose = tmpEndPose;
-            if (photonPose != null)
-            {
-                Pose2d endPose = photonPose;
-                SmartDashboard.putNumber("photonPose second step end_x", endPose.getX());
-                SmartDashboard.putNumber("photonPose second step end_y", endPose.getY());
-                SmartDashboard.putNumber("photonPose second step end_yaw", endPose.getRotation().getDegrees());
-
-                var cmd = new SequentialCommandGroup(
-                    goToPose_photon(endPose), 
-                    goToPose(endPose),
-                    goToPose(endPose),
-                    goToPose(endPose)
-                    );
-                //var cmd = goToPose_photon(endPose);
-                CommandScheduler.getInstance().schedule(cmd);
-            }
-            //*/
-        });
 
     //example of auto move
     DriveToPoseCommand autoMoveCommand = new DriveToPoseCommand(
@@ -199,9 +145,17 @@ public class RobotContainer {
         /* Driver Buttons */
         zeroGyro.onTrue(new InstantCommand(() -> s_Swerve.zeroGyro()));
 
-        YButton.onTrue(m_preplanned);
-        XButton.onTrue(m_apriltag_2Steps);
-        //XButton.onTrue(m_apriltag_1Steps);
+        YButton.onTrue(
+            PathPlannerHelper.GoToPoseCommand_Preplanned(s_Swerve, "turn 90")
+        );
+        XButton.onTrue(
+            PathPlannerHelper.GoToPoseCommand_AprilTag_2Steps(s_Swerve)
+        );
+        /*
+        XButton.onTrue(
+            PathPlannerHelper.GoToPoseCommand_AprilTag_1Step(s_Swerve)
+        );
+        */
         
         LeftBumperButton.onTrue(m_reset);
 
@@ -229,8 +183,6 @@ public class RobotContainer {
         return s_Swerve;
     }
 
-
-
     public void initializeAutoBuilder(){
         AutoBuilder.configureHolonomic(
             ()->s_Swerve.getPose(),
@@ -242,267 +194,18 @@ public class RobotContainer {
             s_Swerve
         );
     }
+    
+    public static BooleanSupplier getAllianceColorBooleanSupplier(){
+        return () -> {
+            // Boolean supplier that controls when the path will be mirrored for the red alliance
+            // This will flip the path being followed to the red side of the field.
+            // THE ORIGIN WILL REMAIN ON THE BLUE SIDE
 
-   public static BooleanSupplier getAllianceColorBooleanSupplier(){
-    return () -> {
-      // Boolean supplier that controls when the path will be mirrored for the red alliance
-      // This will flip the path being followed to the red side of the field.
-      // THE ORIGIN WILL REMAIN ON THE BLUE SIDE
-
-      var alliance = DriverStation.getAlliance();
-      if (alliance.isPresent()) {
-          return alliance.get() == DriverStation.Alliance.Red;
-      }
-      return false;
-    };
-  }
-
-    public void pathplanner_preplanned()
-    {
-        Command cmd1 = goToPoseCommand_preplanned(); 
-        Command cmd2 = goToPoseCommand_preplanned(); 
-        Command cmd3 = goToPoseCommand_preplanned(); 
-        Command cmd4 = goToPoseCommand_preplanned(); 
-        Command cmd5 = goToPoseCommand_preplanned(); 
-        Command cmd6 = goToPoseCommand_preplanned(); 
-        CommandScheduler.getInstance().schedule(
-            new SequentialCommandGroup( cmd1, cmd2, cmd3, cmd4, cmd5, cmd6)
-        );
-    } 
-
-    public Command goToPoseCommand_preplanned()
-    {
-        //s_Swerve.resetOdometry(s_Swerve.getPose());
-        PathPlannerPath path = PathPlannerPath.fromPathFile(
-            //"Example Path"
-            //"straight line x"
-            // "straight line y"
-            //"turn 90"
-            "Path Rotation Target"
-            //"turn big 90"
-            );
-        //path.preventFlipping =true;
-        var points = path.getAllPathPoints();
-        var lastP = points.get(points.size() - 1).position;
-        var curPose = s_Swerve.getPose().getTranslation();
-        var lastAngle = path.getGoalEndState().getRotation().getDegrees();
-        var curAngle = s_Swerve.getPose().getRotation().getDegrees();
-        if (curPose.getDistance(lastP) < 0.1)
-        {
-            if (Math.abs(curAngle - lastAngle) < 2)
-                return null;
-        }
-
-        // Create a path following command using AutoBuilder. This will also trigger event markers.
-        return AutoBuilder.followPath(path);
-    }
-
-    private Pose2d GetPhotonPose2d()
-    {
-        var photonPose = s_Swerve.GetPhotonvisionPose2d();
-        photonPose = ConvertToAbsolutePose(photonPose);
-        
-        SmartDashboard.putBoolean("photonPose found ", (photonPose != null));
-        return photonPose;
-    }
-
-    private Pose2d ConvertToAbsolutePose(Pose2d srcPose)
-    {
-        if (srcPose == null) return null;
-
-        var deltaPose = srcPose;
-        Pose2d startPose = s_Swerve.getPose();
-
-        Translation2d startTranslation2d = startPose.getTranslation();
-        Translation2d deltaTranslation2d = deltaPose.getTranslation();
-        Translation2d endTranslation2d = startTranslation2d.plus(deltaTranslation2d);
-        Rotation2d starRotation2d = startPose.getRotation();
-        Rotation2d deltaRotation2d = deltaPose.getRotation();
-        Rotation2d endRotation2d = starRotation2d.plus(deltaRotation2d);
-
-        Pose2d endPose = new Pose2d(endTranslation2d,endRotation2d);
-
-        return endPose;
-    }
-
-
-
-    public Command goToPoseCommand()
-    {
-        var photonPose = GetPhotonPose2d();
-        if (photonPose == null)
-            return null;
-
-        // output first photonview endpose
-        SmartDashboard.putNumber("photonPose first step end_x", photonPose.getX());
-        SmartDashboard.putNumber("photonPose first step end_y", photonPose.getY());
-        SmartDashboard.putNumber("photonPose first step end_yaw", photonPose.getRotation().getDegrees());
-
-        // clear second photonview endpose
-        SmartDashboard.putNumber("photonPose second step end_x", 0);
-        SmartDashboard.putNumber("photonPose second step end_y", 0);
-        SmartDashboard.putNumber("photonPose second step end_yaw", 0);
-
-        Pose2d endPose = photonPose;
-
-        var startPose = s_Swerve.getPose();
-        SmartDashboard.putNumber("from_x", startPose.getX());
-        SmartDashboard.putNumber("from_y", startPose.getY());
-        SmartDashboard.putNumber("from_yaw", startPose.getRotation().getDegrees());
-
-        SmartDashboard.putNumber("gotoP_x", endPose.getX());
-        SmartDashboard.putNumber("gotoP_y", endPose.getY());
-        SmartDashboard.putNumber("gotoP_yaw", endPose.getRotation().getDegrees());
-
-        return goToPose_photon_2Steps(endPose);
-    }
-
-    public Command goToPose_photon_2Steps(Pose2d endPose)
-    {
-        try
-        {
-            // get the endPose from photonvision
-            // if it very close, go there directly
-            // otherwise, go to the middle pose first, check photovision again, 
-            // get the new endPose, then go to the final endPose
-            Pose2d startPose = s_Swerve.getPose();
-            List<Translation2d> bezierPoints = PathPlannerPath.bezierFromPoses(
-                startPose,
-                endPose
-            );
-            double lengthToCompare = 1;
-            int size = bezierPoints.size();
-            var totalDistance = getTotalDistance(bezierPoints);
-            if (totalDistance < lengthToCompare || size < 3)
-            {
-                /*
-                return new SequentialCommandGroup(
-                    goToPose_photon(endPose),
-                    goToPose(endPose),
-                    goToPose(endPose),
-                    goToPose(endPose)
-                );
-                 */
-                return goToPose_photon(endPose);
+            var alliance = DriverStation.getAlliance();
+            if (alliance.isPresent()) {
+                return alliance.get() == DriverStation.Alliance.Red;
             }
-            else
-            {
-                double distance = 0; 
-                Translation2d midT = bezierPoints.get(0);
-                for(int i=1; i<size; i++)
-                {
-                    distance += bezierPoints.get(i).getDistance(bezierPoints.get(i-1));
-                    midT = bezierPoints.get(i);
-                    if(totalDistance - distance <= lengthToCompare)
-                        break;
-                }
-                Pose2d midPose = new Pose2d(midT, endPose.getRotation());
-                SmartDashboard.putNumber("midPose_x", midPose.getX());
-                SmartDashboard.putNumber("midPose_y", midPose.getY());
-                SmartDashboard.putNumber("midPose_yaw", midPose.getRotation().getDegrees());
-                tmpEndPose = endPose;
-
-                var cmd = goToPose_photon(midPose);
-                if (cmd != null)
-                {
-                    return new SequentialCommandGroup(
-                        cmd,
-                        //goToPose(midPose),
-                        m_gotoPose_photon_withDefaultPose
-                    );
-                }
-                else
-                    return null;
-            }
-        }
-        catch(Exception ex)
-        {
-            System.out.println("ERROR: " + ex.getMessage());
-            return null;
-        }
-    }
-
-    public Command goToPose_photon(Pose2d endPose)
-    {
-        // go to the endPose directly, finish cart heading rotation in the middle
-        Pose2d startPose = s_Swerve.getPose();
-        List<Translation2d> bezierPoints = PathPlannerPath.bezierFromPoses(
-            startPose,
-            endPose
-        );
-        
-        RotationTarget rt = new RotationTarget(
-            0.5, 
-            endPose.getRotation(), false);
-        List<RotationTarget> rts = Arrays.asList(rt);
-        List<ConstraintsZone> czs = Arrays.asList();
-        List<EventMarker> ems = Arrays.asList();
-        PathPlannerPath path = new PathPlannerPath(
-                bezierPoints,
-                rts,
-                czs, // list ConstraintsZone
-                ems, // list event marker
-                new PathConstraints(0.4, 1, Math.PI,  Math.PI), // The constraints for this path. If using a differential drivetrain, the angular constraints have no effect.
-                new GoalEndState(0.0, endPose.getRotation()), // Goal end state. You can set a holonomic rotation here. If using a differential drivetrain, the rotation will have no effect.
-                false
-        );
-        
-        path.preventFlipping =true;
-        
-        return AutoBuilder.followPath(path);
-    }
-
-    public Command goToPose(Pose2d endPose)
-    {
-        // go to the endPose directly
-        double endAngle=0;
-        //endAngle = SmartDashboard.getNumber("endAngle", 0);
-        Pose2d startPose = s_Swerve.getPose();
-        endAngle = endPose.getRotation().getDegrees();
-
-
-        var lastP = endPose.getTranslation();
-        var curPose = s_Swerve.getPose().getTranslation();
-        var lastAngle = endPose.getRotation().getDegrees();
-        var curAngle = s_Swerve.getPose().getRotation().getDegrees();
-        if (curPose.getDistance(lastP) < 0.05)
-        {
-            if (Math.abs(curAngle - lastAngle) < 1)
-                return null;
-        }
-
-        List<Translation2d> bezierPoints = PathPlannerPath.bezierFromPoses(
-            startPose,
-            endPose
-        );
-
-        // Create the path using the bezier points created above
-        PathPlannerPath path = new PathPlannerPath(
-                bezierPoints,
-                new PathConstraints(0.4, 1, Math.PI,  Math.PI), // The constraints for this path. If using a differential drivetrain, the angular constraints have no effect.
-                new GoalEndState(0.0, Rotation2d.fromDegrees(endAngle)) // Goal end state. You can set a holonomic rotation here. If using a differential drivetrain, the rotation will have no effect.
-        );
-
-        // Prevent the path from being flipped if the coordinates are already correct
-        path.preventFlipping =true;
-
-        // Create a path following command using AutoBuilder. This will also trigger event markers.
-        
-        return AutoBuilder.followPath(path);
-    }
-
-
-    public static double getTotalDistance(List<Translation2d> waypoints) {
-        double totalDistance = 0.0;
-
-        for (int i = 1; i < waypoints.size(); i++) {
-            Translation2d currentPoint = waypoints.get(i);
-            Translation2d prevPoint = waypoints.get(i - 1);
-
-            double distance = currentPoint.getDistance(prevPoint);
-            totalDistance += distance;
-        }
-
-        return totalDistance;
+            return false;
+        };
     }
 }
