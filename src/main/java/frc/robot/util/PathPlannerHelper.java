@@ -10,15 +10,18 @@ import com.pathplanner.lib.path.GoalEndState;
 import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.path.PathPlannerPath;
 import com.pathplanner.lib.path.RotationTarget;
+import java.util.function.BooleanSupplier;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
+import frc.robot.constants.AutoConstants;
 import frc.robot.subsystems.swerve.SwerveBase;
 
 public class PathPlannerHelper {
@@ -26,6 +29,31 @@ public class PathPlannerHelper {
     static Pose2d lastEndPose2d;
     static Pose2d lastMidPose2d;
 
+    public static BooleanSupplier getAllianceColorBooleanSupplier(){
+        return () -> {
+            // Boolean supplier that controls when the path will be mirrored for the red alliance
+            // This will flip the path being followed to the red side of the field.
+            // THE ORIGIN WILL REMAIN ON THE BLUE SIDE
+
+            var alliance = DriverStation.getAlliance();
+            if (alliance.isPresent()) {
+                return alliance.get() == DriverStation.Alliance.Red;
+            }
+            return false;
+        };
+    }
+
+    public static void initializeAutoBuilder(SwerveBase s_Swerve){
+        AutoBuilder.configureHolonomic(
+            ()->s_Swerve.getPose(),
+            (pose) -> {s_Swerve.resetOdometry(pose);},
+            ()->s_Swerve.getChassisSpeeds(),
+            (chassisSpeeds) -> {s_Swerve.setChassisSpeeds(chassisSpeeds,false);},
+            AutoConstants.config,
+            getAllianceColorBooleanSupplier(),
+            s_Swerve
+        );
+    }
     public static Command GoToPoseCommand_AprilTag_1Step(SwerveBase drivetrainSubsystem)
     {
         lastPhotonPose2d = null;
