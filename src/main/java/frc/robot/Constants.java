@@ -21,10 +21,10 @@ public final class Constants {
   public static final double SRC_WIDTH = 0.5;
 
 
-  public static final double cameraHeight = 0.64; //0.77 original
+  public static final double cameraHeight = 0.67; //0.77 original
   public static final double targetHeight = 0;
   //public static final double cameraPitch = -0.33144444;
-    public static final double cameraPitch = -0.355;
+    public static final double cameraPitch = -0.698;
 
   public static final double goalDistance = 0.0;
 

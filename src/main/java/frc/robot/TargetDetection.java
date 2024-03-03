@@ -4,6 +4,7 @@
 
 package frc.robot;
 
+import java.io.IOException;
 import java.util.Optional;
 
 //import java.util.List;
@@ -36,6 +37,8 @@ public class TargetDetection {
     private boolean IsOpen = false;
     private boolean already_turned_to_face_target = false;
     private String camera_name;
+    AprilTagFieldLayout aprilTagFieldLayout;
+    boolean Apriltaglayoutload = false;
 
     public enum PipeLineType {
         APRIL_TAG,
@@ -74,6 +77,12 @@ public class TargetDetection {
         camera = new PhotonCamera(camera_name);
         if(camera.isConnected()) {
             IsOpen = true;
+           //try {
+                //aprilTagFieldLayout = AprilTagFieldLayout.loadFromResource(AprilTagFields.k2024Crescendo.m_resourceFile);                
+            //} catch (IOException e) {
+                //e.printStackTrace();
+                //System.out.println("Load April Tag Layout Error");
+            //}
         } else {
             System.out.printf("Open Camera %s Fail !!!\n", camera_name);
         }
@@ -273,13 +282,23 @@ public class TargetDetection {
             targetDistance -= Constants.goalDistance;
           //Calculate Angle.
           double targetAngle = data.yaw;
+          double half_pi = (Math.PI / 2);
+          double camera_to_robot_center_distance = 0.35;
+         // double carema_install_angle = (23 * 3.1415926 / 180);
+          double carema_install_angle = (23 * Math.PI / 180);
 
           //Calculate translation2d.
           Translation2d targetTranslation = PhotonUtils.estimateCameraToTargetTranslation(targetDistance, Rotation2d.fromDegrees(-data.yaw));
-          para.move = targetTranslation;
+          Translation2d offset = new Translation2d(-camera_to_robot_center_distance * Math.sin(half_pi - carema_install_angle), 
+                                                   -camera_to_robot_center_distance * Math.cos(half_pi - carema_install_angle));
+          Translation2d targetTranslastionPlusOffset = targetTranslation.plus(offset);
+         // para.move = targetTranslation;
+          para.move = targetTranslastionPlusOffset;
 
          // below not sure if it is degree or radian
          // para.turn = Rotation2d.fromRadians(targetAngle)
+
+         // here have to add carema_install_angle;
           para.turn = Rotation2d.fromDegrees(data.yaw);
           
           //SmartDashboard.putNumber("targetDistance", targetDistance);
@@ -482,26 +501,45 @@ public class TargetDetection {
     }
 
     public Pose2d GetCurrentRobotFieldPose() {
+        for(int x = 0; x < 3; x++) {
+            try {
+            
+                if(!Apriltaglayoutload) {
+                    aprilTagFieldLayout = AprilTagFieldLayout.loadFromResource(AprilTagFields.k2024Crescendo.m_resourceFile);                
+                    System.out.printf("Tried to load, x %d\n", x);
+                    Apriltaglayoutload = true;
+                    break;
+                }
+            }
+                catch (IOException e) {
+                e.printStackTrace();
+                System.out.println("Load April Tag Layout Error");
+            }
+        }
         var result = camera.getLatestResult();
         // camera for robot center x, y, z
-        double camera_pos_for_robot_x = 0.8;
-        double camera_pos_for_robot_y = 0.4;
-        double camera_pos_for_robot_z = 0.5;
-        Transform3d cameraToRobot = new Transform3d(camera_pos_for_robot_x, 
-                                                    camera_pos_for_robot_y, 
-                                                    camera_pos_for_robot_z, 
-                                                    new Rotation3d(0,0,0));
+        double CAMERA_POS_FOR_ROBOT_X = -0.3; //0.4
+        double CAMERA_POS_FOR_ROBOT_Y = 0;
+        double CAMERA_POS_FOR_ROBOT_Z = 0.67;
+        double CAMERA_POS_FOR_ROBOT_ROLL = 0;
+        double CAMERA_POS_FOR_ROBOT_PITCH = 0.08;
+        double CAMERA_POS_FOR_ROBOT_YAW = -0;
+
+        Transform3d cameraToRobot = new Transform3d(CAMERA_POS_FOR_ROBOT_X, 
+                                                    CAMERA_POS_FOR_ROBOT_Y, 
+                                                    CAMERA_POS_FOR_ROBOT_Z, 
+                                                    new Rotation3d(CAMERA_POS_FOR_ROBOT_ROLL,
+                                                    CAMERA_POS_FOR_ROBOT_PITCH,
+                                                    CAMERA_POS_FOR_ROBOT_YAW));
+        
         if(result.hasTargets()) {
             PhotonTrackedTarget target = result.getBestTarget();
-            AprilTagFieldLayout aprilTagFieldLayout = AprilTagFields.k2024Crescendo.loadAprilTagLayoutField();
             Pose3d robotPose = PhotonUtils.estimateFieldToRobotAprilTag(
-                    target.getBestCameraToTarget(), 
-                    aprilTagFieldLayout.getTagPose(target.getFiducialId()).get(), 
-                    cameraToRobot);
-            return robotPose.toPose2d();
-        } else {
-            return null;
-        }
+                        target.getBestCameraToTarget(), 
+                        aprilTagFieldLayout.getTagPose(target.getFiducialId()).get(), 
+                        cameraToRobot);
+            return robotPose.toPose2d();            
+        } 
+        return null;
     }
-    
 }

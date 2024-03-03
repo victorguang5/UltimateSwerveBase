@@ -90,6 +90,7 @@ public class SwerveBase extends SubsystemBase {
         SmartDashboard.putNumber("endAngle", 0);
         PathPlannerLogging.setLogActivePathCallback((poses) -> field1.getObject("path").setPoses(poses));
         SmartDashboard.putData("field", field1);
+
     }
 
     public void wheelsIn() {
@@ -195,22 +196,33 @@ public class SwerveBase extends SubsystemBase {
      * @param time
      */
     private TargetDetection   m_TargetTest = new TargetDetection("HD_Pro_Webcam_C920", TargetDetection.PipeLineType.APRIL_TAG);
-    private TargetDetection   m_TargetGamePiece = new TargetDetection("photoncamera", TargetDetection.PipeLineType.COLORED_SHAPE);
+    private TargetDetection   m_TargetGamePiece = new TargetDetection("SL-Camera-1", TargetDetection.PipeLineType.COLORED_SHAPE);
 
     public Pose2d GetPhotonvisionPose2d()
     {
         // this is new for game piece
-        RobotMoveTargetParameters data = m_TargetTest.GetSwerveTrainMoveParameters();
-        if(!data.IsValid) {
+      // RobotMoveTargetParameters data = m_TargetTest.GetSwerveTrainMoveParameters();
+      //RobotMoveTargetParameters data = m_TargetGamePiece.GetRobotMoveforGamePiece();
+        Pose2d data = m_TargetTest.GetCurrentRobotFieldPose();
+         /*if(!data.IsValid) {
             System.out.println("Target not found");
             return null;
-        }
+        }*/
+        if(data == null) {
+             System.out.println("Target not found");
+            return null;
+        } 
         System.out.println("Target OK");
-        var angle = data.turn;
+     System.out.printf("new : x %f, y:%f, angle:%f\n", data.getX(), data.getY(), data.getRotation().getDegrees());
+       // var angle = data.turn;
+       // Translation2d move = data.move;
         
-        Translation2d myInputPosition =  data.move;
+      // Translation2d myInputPosition =  data.move;
+        // System.out.printf("Game piece : x %f, y:%f, turn: %f\n", move.getX(), move.getY(), data.turn.getDegrees());
 
-        return new Pose2d(myInputPosition, angle);
+       // return new Pose2d(myInputPosition, angle);
+       return null; //new Pose2d(myInputPosition, angle);
+        
     }
 
 
