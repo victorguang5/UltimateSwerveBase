@@ -201,19 +201,27 @@ public class SwerveBase extends SubsystemBase {
     public Pose2d GetPhotonvisionPose2d()
     {
         // this is new for game piece
-      // RobotMoveTargetParameters data = m_TargetTest.GetSwerveTrainMoveParameters();
+      RobotMoveTargetParameters data = m_TargetTest.GetSwerveTrainMoveParameters();
+      return new Pose2d(
+        new Translation2d(
+            -data.move.getX(),
+            -data.move.getY()
+        ),
+        data.turn
+      );
       //RobotMoveTargetParameters data = m_TargetGamePiece.GetRobotMoveforGamePiece();
-        Pose2d data = m_TargetTest.GetCurrentRobotFieldPose();
+        //Pose2d data = m_TargetTest.GetCurrentRobotFieldPose();
          /*if(!data.IsValid) {
             System.out.println("Target not found");
             return null;
         }*/
+        /*
         if(data == null) {
              System.out.println("Target not found");
             return null;
-        } 
-        System.out.println("Target OK");
-     System.out.printf("new : x %f, y:%f, angle:%f\n", data.getX(), data.getY(), data.getRotation().getDegrees());
+        }  */ 
+        //System.out.println("Target OK");
+     //System.out.printf("new : x %f, y:%f, angle:%f\n", data.getX(), data.getY(), data.getRotation().getDegrees());
        // var angle = data.turn;
        // Translation2d move = data.move;
         
@@ -221,7 +229,7 @@ public class SwerveBase extends SubsystemBase {
         // System.out.printf("Game piece : x %f, y:%f, turn: %f\n", move.getX(), move.getY(), data.turn.getDegrees());
 
        // return new Pose2d(myInputPosition, angle);
-       return data; //new Pose2d(myInputPosition, angle);
+       //return data; //new Pose2d(myInputPosition, angle);
         
     }
 

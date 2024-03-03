@@ -145,7 +145,8 @@ public class RobotContainer {
         zeroGyro.onTrue(new InstantCommand(() -> s_Swerve.zeroGyro()));
 
         YButton.onTrue(PathPlannerHelper.GoToPoseCommand_Preplanned(s_Swerve, "turn 90"));
-        XButton.onTrue(PathPlannerHelper.GoToCommand_AprilTag(s_Swerve, 14));
+        //XButton.onTrue(PathPlannerHelper.GoToCommand_AprilTag(s_Swerve, 14));
+        XButton.onTrue(PathPlannerHelper.GoToPoseCommand_AprilTag_1Step(s_Swerve));
         RightBumperButton.onTrue(PathPlannerHelper.GoToCommand_AprilTag(s_Swerve, 7));
 
         LeftBumperButton.onTrue(m_reset);
@@ -155,7 +156,7 @@ public class RobotContainer {
         //BackButton.onTrue(m_driveSmartPosition);
         //StartButton.onTrue(m_driveSmartPositionPoint);
         BackButton.onTrue(m_driveHeading);
-        StartButton.onTrue(PathPlannerHelper.SyncOdemeter(s_Swerve));
+        //StartButton.onTrue(PathPlannerHelper.SyncOdemeter(s_Swerve));
 
         //example of auto move
         autoMove.whileTrue(autoMoveCommand);

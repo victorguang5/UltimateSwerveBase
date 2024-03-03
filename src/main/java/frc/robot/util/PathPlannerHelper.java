@@ -464,7 +464,7 @@ public class PathPlannerHelper {
     private static Pose2d GetPhotonPose2d(SwerveBase s_Swerve)
     {
         var photonPose = s_Swerve.GetPhotonvisionPose2d();
-        //photonPose = ConvertToAbsolutePose(s_Swerve, photonPose);
+        photonPose = ConvertToAbsolutePose(s_Swerve, photonPose);
         
         SmartDashboard.putBoolean("photonPose found ", (photonPose != null));
         return photonPose;
