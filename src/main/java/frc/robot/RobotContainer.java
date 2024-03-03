@@ -34,6 +34,7 @@ import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import frc.robot.constants.AutoConstants;
 import frc.robot.commands.*;
 import frc.robot.subsystems.swerve.SwerveBase;
+import frc.robot.util.PathPlannerHelper;
 import pabeles.concurrency.ConcurrencyOps.Reset;
 
 /**
@@ -90,7 +91,6 @@ public class RobotContainer {
     private final Command m_driveSmartPosition = Commands.runOnce(()->s_Swerve.setSmartPosition());
     private final Command m_driveSmartDirection = Commands.runOnce(()->s_Swerve.setSmartAngle(90));
     private final Command m_reset = Commands.runOnce(()->s_Swerve.resetOdometry(new Pose2d()));
-    private final Command m_goToPose = Commands.runOnce(()->goToPoseCommand());
 
     //example of auto move
     DriveToPoseCommand autoMoveCommand = new DriveToPoseCommand(
@@ -127,7 +127,7 @@ public class RobotContainer {
         PortForwarder.add(5800, "10.75.20.40", 5800);
         PortForwarder.add(1181, "10.75.20.40", 1181);
 
-        initializeAutoBuilder();
+        PathPlannerHelper.initializeAutoBuilder(s_Swerve);
 
         // Configure the button bindings
         configureButtonBindings();
@@ -143,12 +143,8 @@ public class RobotContainer {
         /* Driver Buttons */
         zeroGyro.onTrue(new InstantCommand(() -> s_Swerve.zeroGyro()));
 
-        //cameraDriveMove.onTrue(new CameraDriveCommand(s_Swerve, s_Swerve::getPose));
-        //angleDriveMove.onTrue(new AngleDriveCommand(s_Swerve, s_Swerve::getPose));
-
-        //YButton.onTrue(goToPoseCommand_preplanned());
-        YButton.onTrue(my_seqcommands());
-        XButton.onTrue(m_goToPose);
+        YButton.onTrue(PathPlannerHelper.GoToPoseCommand_Preplanned(s_Swerve, "turn 90"));
+        XButton.onTrue(PathPlannerHelper.GoToCommand_AprilTag(s_Swerve, 3));
         
         LeftBumperButton.onTrue(m_reset);
 
@@ -174,199 +170,5 @@ public class RobotContainer {
 
     public SwerveBase getSwerveBase() {
         return s_Swerve;
-    }
-
-
-
-    public void initializeAutoBuilder(){
-        AutoBuilder.configureHolonomic(
-            ()->s_Swerve.getPose(),
-            (pose) -> {s_Swerve.resetOdometry(pose);},
-            ()->s_Swerve.getChassisSpeeds(),
-            (chassisSpeeds) -> {s_Swerve.setChassisSpeeds(chassisSpeeds,false);},
-            AutoConstants.config,
-            getAllianceColorBooleanSupplier(),
-            s_Swerve
-        );
-    }
-
-   public static BooleanSupplier getAllianceColorBooleanSupplier(){
-    return () -> {
-      // Boolean supplier that controls when the path will be mirrored for the red alliance
-      // This will flip the path being followed to the red side of the field.
-      // THE ORIGIN WILL REMAIN ON THE BLUE SIDE
-
-      var alliance = DriverStation.getAlliance();
-      if (alliance.isPresent()) {
-          return alliance.get() == DriverStation.Alliance.Red;
-      }
-      return false;
-    };
-  }
-
-  public Command my_seqcommands()
-  {
-    Command cmd1 = goToPoseCommand_preplanned(); 
-    Command cmd2 = goToPoseCommand_preplanned(); 
-    Command cmd3 = goToPoseCommand_preplanned(); 
-    Command cmd4 = goToPoseCommand_preplanned(); 
-    Command cmd5 = goToPoseCommand_preplanned(); 
-    Command cmd6 = goToPoseCommand_preplanned(); 
-    return new MySequentialCommands( cmd1, cmd2, cmd3, cmd4, cmd5, cmd6);
-  } 
-
-    public Command goToPoseCommand_preplanned()
-    {
-        //s_Swerve.resetOdometry(s_Swerve.getPose());
-        PathPlannerPath path = PathPlannerPath.fromPathFile(
-            //"Example Path"
-            //"straight line x"
-            // "straight line y"
-            "turn 90"
-            //"turn big 90"
-            );
-        //path.preventFlipping =true;
-        var points = path.getAllPathPoints();
-        var lastP = points.get(points.size() - 1).position;
-        var curPose = s_Swerve.getPose().getTranslation();
-        var lastAngle = path.getGoalEndState().getRotation().getDegrees();
-        var curAngle = s_Swerve.getPose().getRotation().getDegrees();
-        if (curPose.getDistance(lastP) < 0.1)
-        {
-            if (Math.abs(curAngle - lastAngle) < 2)
-                return null;
-        }
-
-        // Create a path following command using AutoBuilder. This will also trigger event markers.
-        return AutoBuilder.followPath(path);
-    }
-    public void goToPoseCommand()
-    {
-        var photonPose = s_Swerve.GetPhotonvisionPose2d();
-        
-        SmartDashboard.putBoolean("photonPose found ", (photonPose != null));
-        if (photonPose == null)
-        {
-            return;
-        }
-
-        SmartDashboard.putNumber("photonPose from_x", photonPose.getX());
-        SmartDashboard.putNumber("photonPose from_y", photonPose.getY());
-        SmartDashboard.putNumber("photonPose from_yaw", photonPose.getRotation().getDegrees());
-/* 
-        double x = SmartDashboard.getNumber("goto_x", 0);
-        double y = SmartDashboard.getNumber("goto_y", 0);
-        double yaw = SmartDashboard.getNumber("goto_yaw", 0);
-        Pose2d deltaPose = new Pose2d(
-            new Translation2d(x,y),
-            Rotation2d.fromDegrees(yaw)
-        );
-        */
-        var deltaPose = photonPose;
-        Pose2d startPose = s_Swerve.getPose();
-
-        Translation2d startTranslation2d = startPose.getTranslation();
-        Translation2d deltaTranslation2d = deltaPose.getTranslation();
-        Translation2d endTranslation2d = startTranslation2d.plus(deltaTranslation2d);
-        Rotation2d starRotation2d = startPose.getRotation();
-        Rotation2d deltaRotation2d = deltaPose.getRotation();
-        Rotation2d endRotation2d = starRotation2d.plus(deltaRotation2d);
-
-        Pose2d endPose = new Pose2d(endTranslation2d,endRotation2d);
-
-        SmartDashboard.putNumber("from_x", startPose.getX());
-        SmartDashboard.putNumber("from_y", startPose.getY());
-        SmartDashboard.putNumber("from_yaw", startPose.getRotation().getDegrees());
-        SmartDashboard.putNumber("gotoP_x", endPose.getX());
-        SmartDashboard.putNumber("gotoP_y", endPose.getY());
-        SmartDashboard.putNumber("gotoP_yaw", endPose.getRotation().getDegrees());
-
-        goToPose_photon(endPose);
-        //goToPose(endPose, false);
-        //goToPose(endPose, false);
-        //goToPose(endPose, false);
-
-/*
-            Command cmd1 = goToPoseCommand_preplanned(); 
-            Command cmd2 = goToPoseCommand_preplanned(); 
-            Command cmd3 = goToPoseCommand_preplanned(); 
-            Command cmd4 = goToPoseCommand_preplanned(); 
-            Command cmd5 = goToPoseCommand_preplanned(); 
-            Command cmd6 = goToPoseCommand_preplanned(); 
-            return new MySequentialCommands( cmd1, cmd2, cmd3, cmd4, cmd5, cmd6);
- */
-
-
-    }
-    public void goToPose_photon(Pose2d endPose)
-    {
-        Pose2d startPose = s_Swerve.getPose();
-        List<Translation2d> bezierPoints = PathPlannerPath.bezierFromPoses(
-            startPose,
-            endPose
-        );
-        var distance = getTotalDistance(bezierPoints);
-        
-        RotationTarget rt = new RotationTarget(
-            distance / 2.0, 
-            endPose.getRotation(), false);
-        List<RotationTarget> rts = Arrays.asList(rt);
-        //List<ConstraintsZone> czs = Arrays.asList();
-        //List<EventMarker> ems = Arrays.asList();
-        PathPlannerPath path = new PathPlannerPath(
-                bezierPoints,
-                rts,
-                null, //czs, // list ConstraintsZone
-                null, //ems, // list event marker
-                new PathConstraints(0.4, 1, Math.PI,  Math.PI), // The constraints for this path. If using a differential drivetrain, the angular constraints have no effect.
-                new GoalEndState(0.0, endPose.getRotation()), // Goal end state. You can set a holonomic rotation here. If using a differential drivetrain, the rotation will have no effect.
-                false
-        );
-        
-        path.preventFlipping =true;
-        CommandScheduler.getInstance().schedule(AutoBuilder.followPath(path));
-    }
-
-    public void goToPose(Pose2d endPose)
-    {
-        double endAngle=0;
-        //endAngle = SmartDashboard.getNumber("endAngle", 0);
-        Pose2d startPose = s_Swerve.getPose();
-        endAngle = endPose.getRotation().getDegrees();
-
-        List<Translation2d> bezierPoints = PathPlannerPath.bezierFromPoses(
-            startPose,
-            endPose
-        );
-
-        // Create the path using the bezier points created above
-        PathPlannerPath path = new PathPlannerPath(
-                bezierPoints,
-                new PathConstraints(0.4, 1, Math.PI,  Math.PI), // The constraints for this path. If using a differential drivetrain, the angular constraints have no effect.
-                new GoalEndState(0.0, Rotation2d.fromDegrees(endAngle)) // Goal end state. You can set a holonomic rotation here. If using a differential drivetrain, the rotation will have no effect.
-        );
-
-        // Prevent the path from being flipped if the coordinates are already correct
-        path.preventFlipping =true;
-
-        // Create a path following command using AutoBuilder. This will also trigger event markers.
-        
-        CommandScheduler.getInstance().schedule(AutoBuilder.followPath(path));
-
-    }
-
-
-    public static double getTotalDistance(List<Translation2d> waypoints) {
-        double totalDistance = 0.0;
-
-        for (int i = 1; i < waypoints.size(); i++) {
-            Translation2d currentPoint = waypoints.get(i);
-            Translation2d prevPoint = waypoints.get(i - 1);
-
-            double distance = currentPoint.getDistance(prevPoint);
-            totalDistance += distance;
-        }
-
-        return totalDistance;
     }
 }

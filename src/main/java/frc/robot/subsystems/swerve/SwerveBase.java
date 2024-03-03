@@ -221,7 +221,7 @@ public class SwerveBase extends SubsystemBase {
         // System.out.printf("Game piece : x %f, y:%f, turn: %f\n", move.getX(), move.getY(), data.turn.getDegrees());
 
        // return new Pose2d(myInputPosition, angle);
-       return null; //new Pose2d(myInputPosition, angle);
+       return data; //new Pose2d(myInputPosition, angle);
         
     }
 
