@@ -45,6 +45,18 @@ public class PathPlannerHelper {
         );
     }
 
+    public static Command SyncOdemeter(SwerveBase s_Swerve)
+    {
+        return new InstantCommand(()->{
+            var photonPose = s_Swerve.GetPhotonvisionPose2d();
+            if (photonPose != null)
+            {
+                s_Swerve.resetOdometry(photonPose); 
+                lastPhotonPose2d = photonPose;
+            }
+        });
+    }
+
     public static Command GoToCommand_AprilTagPose(SwerveBase s_Swerve, Pose2d aprilTagPose)
     {
         Pose2d endPose = aprilTagPose;
@@ -54,7 +66,8 @@ public class PathPlannerHelper {
             var photonPose = s_Swerve.GetPhotonvisionPose2d();
             if (photonPose != null)
             {
-                s_Swerve.resetOdometry(photonPose);                
+                s_Swerve.resetOdometry(photonPose);      
+                lastPhotonPose2d =  photonPose;     
             }
         })
         )
@@ -64,8 +77,9 @@ public class PathPlannerHelper {
             var photonPose = s_Swerve.GetPhotonvisionPose2d();
             if (photonPose != null)
             {
-                s_Swerve.resetOdometry(photonPose);                
-            }
+                s_Swerve.resetOdometry(photonPose);        
+                lastPhotonPose2d =  photonPose;     
+            }       
         })
         )
         .andThen(goToPose_photon(s_Swerve, endPose))
@@ -78,12 +92,12 @@ public class PathPlannerHelper {
         Dictionary<Integer, Pose2d> dict_Poses = new Hashtable<>();
         
         dict_Poses.put(3, new Pose2d(
-            new Translation2d(15.34, 5.55), 
-            Rotation2d.fromDegrees(180)
+            new Translation2d(15.74, 5.55), 
+            Rotation2d.fromDegrees(-180)
         ));
         dict_Poses.put(4, new Pose2d(
-            new Translation2d(15.34, 5.55), 
-            Rotation2d.fromDegrees(180)
+            new Translation2d(15.74, 5.55), 
+            Rotation2d.fromDegrees(-180)
         ));
         dict_Poses.put(5, new Pose2d(
             new Translation2d(14.7, 7.88), 
@@ -95,31 +109,40 @@ public class PathPlannerHelper {
             Rotation2d.fromDegrees(-90)
         ));
         dict_Poses.put(7, new Pose2d(
-            new Translation2d(1.2, 5.55), 
+            new Translation2d(0.90, 5.55), 
             Rotation2d.fromDegrees(0)
         ));
         dict_Poses.put(8, new Pose2d(
-            new Translation2d(1.2, 5.55), 
+            new Translation2d(0.95, 4.98), 
             Rotation2d.fromDegrees(0)
         ));
 
 
         dict_Poses.put(14, new Pose2d(
-            new Translation2d(6.32, 4.11), 
-            Rotation2d.fromDegrees(180)
+            new Translation2d(6, 4.11), 
+            Rotation2d.fromDegrees(0)
         ));
 
-        Pose2d endPose = dict_Poses.get(AprilTagId);
+        lastEndPose2d = dict_Poses.get(AprilTagId);
+        lastPhotonPose2d = null;
 
-        return (
+        return
+            /* ( 
             new InstantCommand(()->{
             var photonPose = s_Swerve.GetPhotonvisionPose2d();
             if (photonPose != null)
             {
-                s_Swerve.resetOdometry(photonPose);                
+                s_Swerve.resetOdometry(photonPose); 
+                lastPhotonPose2d = photonPose;
+            }
+            else
+            {
+                lastEndPose2d = null;
+                lastPhotonPose2d = null;
             }
         })
         )
+        */
         /*
         .andThen(goToPose_photon_midPose(s_Swerve, endPose))
         .andThen(
@@ -132,7 +155,9 @@ public class PathPlannerHelper {
         })
         )
         */
-        .andThen(goToPose_photon(s_Swerve, endPose))
+        //.andThen(
+            goToPose_photon(s_Swerve, lastEndPose2d)
+            //)
         ;
 
     }
@@ -230,16 +255,45 @@ public class PathPlannerHelper {
         if (endPose == null) return null;
 
         // go to the endPose directly, finish cart heading rotation in the middle
+        Pose2d mPose = null;
+
         Pose2d startPose = s_Swerve.getPose();
-        List<Translation2d> bezierPoints = PathPlannerPath.bezierFromPoses(
-            startPose,
-            endPose
-        );
+        //if (lastPhotonPose2d != null)
+        if (false)
+        {
+            Translation2d t0 = lastPhotonPose2d.getTranslation();
+            Translation2d t1 = endPose.getTranslation();
+            mPose = new Pose2d(
+                new Translation2d(
+                    (t0.getX() + t1.getX())/2.0,
+                    (t0.getY() + t1.getY())/2.0
+                ),
+                endPose.getRotation()
+            );
+        }
+        List<Translation2d> bezierPoints;
+        if (mPose != null)
+        {
+            bezierPoints = PathPlannerPath.bezierFromPoses(
+                startPose,
+                mPose,
+                endPose
+            );
+        }
+        else
+        {
+            bezierPoints = PathPlannerPath.bezierFromPoses(
+                startPose,
+                endPose
+            );
+        }
         
         RotationTarget rt = new RotationTarget(
             0.5, 
             endPose.getRotation(), false);
-        List<RotationTarget> rts = Arrays.asList(rt);
+        List<RotationTarget> rts = Arrays.asList(
+            rt
+            );
         List<ConstraintsZone> czs = Arrays.asList();
         List<EventMarker> ems = Arrays.asList();
         PathPlannerPath path = new PathPlannerPath(

@@ -66,6 +66,7 @@ public class RobotContainer {
     private final JoystickButton StartButton    = new JoystickButton(driver, XboxController.Button.kStart.value);
     private final JoystickButton BackButton    = new JoystickButton(driver, XboxController.Button.kBack.value);
     private final JoystickButton LeftBumperButton    = new JoystickButton(driver, XboxController.Button.kLeftBumper.value);
+    private final JoystickButton RightBumperButton    = new JoystickButton(driver, XboxController.Button.kRightBumper.value);
     
 
     /* Subsystems */
@@ -144,15 +145,17 @@ public class RobotContainer {
         zeroGyro.onTrue(new InstantCommand(() -> s_Swerve.zeroGyro()));
 
         YButton.onTrue(PathPlannerHelper.GoToPoseCommand_Preplanned(s_Swerve, "turn 90"));
-        XButton.onTrue(PathPlannerHelper.GoToCommand_AprilTag(s_Swerve, 3));
-        
+        XButton.onTrue(PathPlannerHelper.GoToCommand_AprilTag(s_Swerve, 14));
+        RightBumperButton.onTrue(PathPlannerHelper.GoToCommand_AprilTag(s_Swerve, 7));
+
         LeftBumperButton.onTrue(m_reset);
 
         // Manual method
         //StartButton.onTrue(m_driveSmartDirection);
         //BackButton.onTrue(m_driveSmartPosition);
-        StartButton.onTrue(m_driveSmartPositionPoint);
+        //StartButton.onTrue(m_driveSmartPositionPoint);
         BackButton.onTrue(m_driveHeading);
+        StartButton.onTrue(PathPlannerHelper.SyncOdemeter(s_Swerve));
 
         //example of auto move
         autoMove.whileTrue(autoMoveCommand);

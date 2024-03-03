@@ -518,12 +518,12 @@ public class TargetDetection {
         }
         var result = camera.getLatestResult();
         // camera for robot center x, y, z
-        double CAMERA_POS_FOR_ROBOT_X = -0.3; //0.4
+        double CAMERA_POS_FOR_ROBOT_X = 0.3; //0.4
         double CAMERA_POS_FOR_ROBOT_Y = 0;
         double CAMERA_POS_FOR_ROBOT_Z = 0.67;
         double CAMERA_POS_FOR_ROBOT_ROLL = 0;
         double CAMERA_POS_FOR_ROBOT_PITCH = 0.08;
-        double CAMERA_POS_FOR_ROBOT_YAW = -0;
+        double CAMERA_POS_FOR_ROBOT_YAW = 3.1415986;
 
         Transform3d cameraToRobot = new Transform3d(CAMERA_POS_FOR_ROBOT_X, 
                                                     CAMERA_POS_FOR_ROBOT_Y, 
