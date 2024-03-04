@@ -129,7 +129,7 @@ public class RobotContainer {
         PortForwarder.add(5800, "10.75.20.40", 5800);
         PortForwarder.add(1181, "10.75.20.40", 1181);
 
-        initializeAutoBuilder();
+        PathPlannerHelper.initializeAutoBuilder(s_Swerve);
 
         // Configure the button bindings
         configureButtonBindings();
@@ -183,29 +183,7 @@ public class RobotContainer {
         return s_Swerve;
     }
 
-    public void initializeAutoBuilder(){
-        AutoBuilder.configureHolonomic(
-            ()->s_Swerve.getPose(),
-            (pose) -> {s_Swerve.resetOdometry(pose);},
-            ()->s_Swerve.getChassisSpeeds(),
-            (chassisSpeeds) -> {s_Swerve.setChassisSpeeds(chassisSpeeds,false);},
-            AutoConstants.config,
-            getAllianceColorBooleanSupplier(),
-            s_Swerve
-        );
-    }
-    
-    public static BooleanSupplier getAllianceColorBooleanSupplier(){
-        return () -> {
-            // Boolean supplier that controls when the path will be mirrored for the red alliance
-            // This will flip the path being followed to the red side of the field.
-            // THE ORIGIN WILL REMAIN ON THE BLUE SIDE
 
-            var alliance = DriverStation.getAlliance();
-            if (alliance.isPresent()) {
-                return alliance.get() == DriverStation.Alliance.Red;
-            }
-            return false;
-        };
-    }
+    
+
 }

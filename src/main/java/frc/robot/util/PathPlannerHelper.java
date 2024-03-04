@@ -2,6 +2,7 @@ package frc.robot.util;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.BooleanSupplier;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.path.ConstraintsZone;
@@ -15,6 +16,7 @@ import java.util.function.BooleanSupplier;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.units.Distance;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -29,20 +31,6 @@ public class PathPlannerHelper {
     static Pose2d lastEndPose2d;
     static Pose2d lastMidPose2d;
 
-    public static BooleanSupplier getAllianceColorBooleanSupplier(){
-        return () -> {
-            // Boolean supplier that controls when the path will be mirrored for the red alliance
-            // This will flip the path being followed to the red side of the field.
-            // THE ORIGIN WILL REMAIN ON THE BLUE SIDE
-
-            var alliance = DriverStation.getAlliance();
-            if (alliance.isPresent()) {
-                return alliance.get() == DriverStation.Alliance.Red;
-            }
-            return false;
-        };
-    }
-
     public static void initializeAutoBuilder(SwerveBase s_Swerve){
         AutoBuilder.configureHolonomic(
             ()->s_Swerve.getPose(),
@@ -54,23 +42,31 @@ public class PathPlannerHelper {
             s_Swerve
         );
     }
-    public static Command GoToPoseCommand_AprilTag_1Step(SwerveBase drivetrainSubsystem)
+
+    public static Command GoToPoseCommand_AprilTag_1Step(SwerveBase s_Swerve)
     {
         lastPhotonPose2d = null;
         lastEndPose2d = null;
         lastMidPose2d = null;
-        SwerveBase s_Swerve = drivetrainSubsystem;
         return new SequentialCommandGroup(
             new InstantCommand(()->{
                 var photonPose = GetPhotonPose2d(s_Swerve);
                 lastPhotonPose2d = photonPose;
-                lastEndPose2d = lastPhotonPose2d;
+
+                if (lastPhotonPose2d != null)
+                {
+                    SmartDashboard.putNumber("photonPose first step endPose_x", lastPhotonPose2d.getX());
+                    SmartDashboard.putNumber("photonPose first step endPose_y", lastPhotonPose2d.getY());
+                    SmartDashboard.putNumber("photonPose first step endPose_yaw", lastPhotonPose2d.getRotation().getDegrees());
+                }
             }),
             new InstantCommand(()->{
                 if (lastPhotonPose2d != null)
                 {
-                    var cmd = goToPose_photon(s_Swerve, lastPhotonPose2d);
-                    CommandScheduler.getInstance().schedule(cmd);
+                    lastEndPose2d = lastPhotonPose2d;
+                    var cmd = goToPose_photon(s_Swerve, lastEndPose2d);
+                    if (cmd != null)
+                        CommandScheduler.getInstance().schedule(cmd);
                 }
             })
         );
@@ -86,46 +82,42 @@ public class PathPlannerHelper {
             new InstantCommand(()->{
                 var photonPose = GetPhotonPose2d(s_Swerve);
                 lastPhotonPose2d = photonPose;
-                lastEndPose2d = lastPhotonPose2d;
 
-                if (lastEndPose2d != null)
+                if (lastPhotonPose2d != null)
                 {
-                    SmartDashboard.putNumber("photonPose first step endPose_x", lastEndPose2d.getX());
-                    SmartDashboard.putNumber("photonPose first step endPose_y", lastEndPose2d.getY());
-                    SmartDashboard.putNumber("photonPose first step endPose_yaw", lastEndPose2d.getRotation().getDegrees());
+                    SmartDashboard.putNumber("photonPose first step endPose_x", lastPhotonPose2d.getX());
+                    SmartDashboard.putNumber("photonPose first step endPose_y", lastPhotonPose2d.getY());
+                    SmartDashboard.putNumber("photonPose first step endPose_yaw", lastPhotonPose2d.getRotation().getDegrees());
                 }
             }),
             new InstantCommand(()->{
                 if (lastPhotonPose2d != null)
                 {
-                    var cmd = goToPose_photon_midPose(s_Swerve, lastPhotonPose2d);
-                    CommandScheduler.getInstance().schedule(cmd);
+                    lastEndPose2d = lastPhotonPose2d;
+                    var cmd = goToPose_photon_midPose(s_Swerve, lastEndPose2d);
+                    if (cmd != null)
+                        CommandScheduler.getInstance().schedule(cmd);
                 }
             }),
             new InstantCommand(()->{
                 var photonPose = GetPhotonPose2d(s_Swerve);
                 if (photonPose != null)
                     lastPhotonPose2d = photonPose;
+
+                if (lastPhotonPose2d != null)
+                {
+                    SmartDashboard.putNumber("photonPose second step endPose_x", lastPhotonPose2d.getX());
+                    SmartDashboard.putNumber("photonPose second step endPose_y", lastPhotonPose2d.getY());
+                    SmartDashboard.putNumber("photonPose second step endPose_yaw", lastPhotonPose2d.getRotation().getDegrees());
+                }
             }),
             new InstantCommand(()->{
                 if (lastPhotonPose2d != null)
                 {
                     lastEndPose2d = lastPhotonPose2d;
-                    
-                    if (lastEndPose2d != null)
-                    {
-                        SmartDashboard.putNumber("photonPose second step endPose_x", lastEndPose2d.getX());
-                        SmartDashboard.putNumber("photonPose second step endPose_y", lastEndPose2d.getY());
-                        SmartDashboard.putNumber("photonPose second step endPose_yaw", lastEndPose2d.getRotation().getDegrees());
-                    }
-
-                    CommandScheduler.getInstance().schedule(
-                        new SequentialCommandGroup(
-                            goToPose_photon(s_Swerve, lastPhotonPose2d),
-                            goToPose(s_Swerve, lastEndPose2d),
-                            goToPose(s_Swerve, lastEndPose2d),
-                            goToPose(s_Swerve, lastEndPose2d)                        )
-                    );
+                    var cmd = goToPose_photon(s_Swerve, lastEndPose2d);
+                    if (cmd != null)
+                        CommandScheduler.getInstance().schedule(cmd);
                 }
             })
         );
@@ -136,46 +128,10 @@ public class PathPlannerHelper {
         lastPhotonPose2d = null;
         lastEndPose2d = null;
         lastMidPose2d = null;
-        return new SequentialCommandGroup(
-            goToPoseCommand_preplanned(s_Swerve, pathName),
-            goToPose(s_Swerve, lastEndPose2d),
-            goToPose(s_Swerve, lastEndPose2d),
-            goToPose(s_Swerve, lastEndPose2d)
-        );
+        return goToPoseCommand_preplanned(s_Swerve, pathName);
     } 
-    
 
-    private static Pose2d GetPhotonPose2d(SwerveBase s_Swerve)
-    {
-        var photonPose = s_Swerve.GetPhotonvisionPose2d();
-        photonPose = ConvertToAbsolutePose(s_Swerve, photonPose);
-        
-        SmartDashboard.putBoolean("photonPose found ", (photonPose != null));
-        return photonPose;
-    }
-
-    private static Pose2d ConvertToAbsolutePose(SwerveBase s_Swerve, Pose2d srcPose)
-    {
-        if (srcPose == null) return null;
-
-        var deltaPose = srcPose;
-        Pose2d startPose = s_Swerve.getPose();
-
-        Translation2d startTranslation2d = startPose.getTranslation();
-        Translation2d deltaTranslation2d = deltaPose.getTranslation();
-        Translation2d endTranslation2d = startTranslation2d.plus(deltaTranslation2d);
-        Rotation2d starRotation2d = startPose.getRotation();
-        Rotation2d deltaRotation2d = deltaPose.getRotation();
-        Rotation2d endRotation2d = starRotation2d.plus(deltaRotation2d);
-
-        Pose2d endPose = new Pose2d(endTranslation2d,endRotation2d);
-
-        return endPose;
-    }
-
-
-
-    private static Command goToPose_photon(SwerveBase s_Swerve, Pose2d endPose)
+    public static Command goToPose_photon(SwerveBase s_Swerve, Pose2d endPose)
     {
         if (endPose == null) return null;
 
@@ -204,10 +160,22 @@ public class PathPlannerHelper {
         
         path.preventFlipping =true;
         
-        return AutoBuilder.followPath(path);
+        return (AutoBuilder.followPath(path))
+            .andThen(goToPose(s_Swerve, endPose))
+            .andThen(goToPose(s_Swerve, endPose))
+            .andThen(goToPose(s_Swerve, endPose))
+            ;
     }
 
-    private static Command goToPose_photon_midPose(SwerveBase s_Swerve, Pose2d endPose)
+    public static Command goToPose_photon_midPose(
+        SwerveBase s_Swerve, Pose2d endPose)
+    {
+        return goToPose_photon_midPose(s_Swerve, endPose, 1);
+    }
+
+    public static Command goToPose_photon_midPose(
+        SwerveBase s_Swerve, Pose2d endPose, 
+        double distanceToEndPose)
     {
         if (endPose == null) return null;
 
@@ -222,17 +190,12 @@ public class PathPlannerHelper {
                 startPose,
                 endPose
             );
-            double lengthToCompare = 1;
+            double lengthToCompare = distanceToEndPose;
             int size = bezierPoints.size();
             var totalDistance = getTotalDistance(bezierPoints);
             if (totalDistance < lengthToCompare || size < 3)
             {
-                return new SequentialCommandGroup(
-                    goToPose_photon(s_Swerve, endPose),
-                    goToPose(s_Swerve, endPose),
-                    goToPose(s_Swerve, endPose),
-                    goToPose(s_Swerve, endPose)
-                );
+                return goToPose_photon(s_Swerve, endPose);
             }
             else
             {
@@ -260,20 +223,6 @@ public class PathPlannerHelper {
             System.out.println("ERROR: " + ex.getMessage());
             return null;
         }
-    }
-
-    private static double getTotalDistance(List<Translation2d> waypoints) {
-        double totalDistance = 0.0;
-
-        for (int i = 1; i < waypoints.size(); i++) {
-            Translation2d currentPoint = waypoints.get(i);
-            Translation2d prevPoint = waypoints.get(i - 1);
-
-            double distance = currentPoint.getDistance(prevPoint);
-            totalDistance += distance;
-        }
-
-        return totalDistance;
     }
     
     public static Command goToPose(SwerveBase s_Swerve, Pose2d endPose)
@@ -316,7 +265,7 @@ public class PathPlannerHelper {
         return AutoBuilder.followPath(path);
     }
 
-    private static Command goToPoseCommand_preplanned(SwerveBase s_Swerve, String pathName)
+    public static Command goToPoseCommand_preplanned(SwerveBase s_Swerve, String pathName)
     {
         //s_Swerve.resetOdometry(s_Swerve.getPose());
         PathPlannerPath path = PathPlannerPath.fromPathFile(
@@ -344,6 +293,65 @@ public class PathPlannerHelper {
         }
 
         // Create a path following command using AutoBuilder. This will also trigger event markers.
-        return AutoBuilder.followPath(path);
+        return AutoBuilder.followPath(path)
+            .andThen(goToPose(s_Swerve, lastEndPose2d))
+            .andThen(goToPose(s_Swerve, lastEndPose2d))
+            .andThen(goToPose(s_Swerve, lastEndPose2d));
+    }
+
+    private static BooleanSupplier getAllianceColorBooleanSupplier(){
+        return () -> {
+            // Boolean supplier that controls when the path will be mirrored for the red alliance
+            // This will flip the path being followed to the red side of the field.
+            // THE ORIGIN WILL REMAIN ON THE BLUE SIDE
+
+            var alliance = DriverStation.getAlliance();
+            if (alliance.isPresent()) {
+                return alliance.get() == DriverStation.Alliance.Red;
+            }
+            return false;
+        };
+    }
+    
+    private static Pose2d GetPhotonPose2d(SwerveBase s_Swerve)
+    {
+        var photonPose = s_Swerve.GetPhotonvisionPose2d();
+        photonPose = ConvertToAbsolutePose(s_Swerve, photonPose);
+        
+        SmartDashboard.putBoolean("photonPose found ", (photonPose != null));
+        return photonPose;
+    }
+
+    private static Pose2d ConvertToAbsolutePose(SwerveBase s_Swerve, Pose2d srcPose)
+    {
+        if (srcPose == null) return null;
+
+        var deltaPose = srcPose;
+        Pose2d startPose = s_Swerve.getPose();
+
+        Translation2d startTranslation2d = startPose.getTranslation();
+        Translation2d deltaTranslation2d = deltaPose.getTranslation();
+        Translation2d endTranslation2d = startTranslation2d.plus(deltaTranslation2d);
+        Rotation2d starRotation2d = startPose.getRotation();
+        Rotation2d deltaRotation2d = deltaPose.getRotation();
+        Rotation2d endRotation2d = starRotation2d.plus(deltaRotation2d);
+
+        Pose2d endPose = new Pose2d(endTranslation2d,endRotation2d);
+
+        return endPose;
+    }
+
+    private static double getTotalDistance(List<Translation2d> waypoints) {
+        double totalDistance = 0.0;
+
+        for (int i = 1; i < waypoints.size(); i++) {
+            Translation2d currentPoint = waypoints.get(i);
+            Translation2d prevPoint = waypoints.get(i - 1);
+
+            double distance = currentPoint.getDistance(prevPoint);
+            totalDistance += distance;
+        }
+
+        return totalDistance;
     }
 }
