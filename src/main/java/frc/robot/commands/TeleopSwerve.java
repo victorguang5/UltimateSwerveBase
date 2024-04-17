@@ -19,8 +19,6 @@ public class TeleopSwerve extends Command {
     private BooleanSupplier robotCentricSup;
     private BooleanSupplier speedCutoffSup;
     private Boolean speedCutoffVal = false;
-    boolean manualDriveState = false;
-    static int teleSwerveCounter = 0;
 
     public TeleopSwerve(
             SwerveBase s_Swerve,
@@ -49,31 +47,14 @@ public class TeleopSwerve extends Command {
         SmartDashboard.putNumber("translationVal", translationVal);
         SmartDashboard.putNumber("strafeVal", strafeVal);
         SmartDashboard.putNumber("rotationVal", rotationVal);
-       // SmartDashboard.putBoolean("Speed Cut Off", speedCutoffVal);
+        SmartDashboard.putBoolean("Speed Cut Off", speedCutoffVal);
 
         /* Drive */
-        if(Math.abs(translationVal) > 0.05  ||
-            Math.abs(strafeVal) > 0.05      ||
-            Math.abs(rotationVal) > 0.05)
-        {
-            manualDriveState = true;
-            SmartDashboard.putNumber("teleSwerve Counter",teleSwerveCounter++);
-            s_Swerve.drive(
-                new Translation2d(translationVal, strafeVal).times(Constants.Swerve.maxSpeed)
-                        .times(speedCutoffVal ? 0.5 : 1),
+        s_Swerve.drive(
+                new Translation2d(translationVal, strafeVal).times(Constants.Swerve.maxSpeed).times( speedCutoffVal ? 0.5 : 1),
                 rotationVal * Constants.Swerve.maxAngularVelocity * (speedCutoffVal ? 0.5 : 1),
                 !robotCentricSup.getAsBoolean(),
-                true);
-        }
-        else if(manualDriveState)
-        {
-                manualDriveState = false;
-                s_Swerve.drive(
-                    new Translation2d(0, 0),
-                    0,
-                    !robotCentricSup.getAsBoolean(),
-                    true);
-        }
+                true
+        );
     }
 }
-

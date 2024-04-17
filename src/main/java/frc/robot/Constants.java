@@ -1,19 +1,22 @@
 package frc.robot;
 
-
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.revrobotics.CANSparkMax;
 
-import edu.wpi.first.math.geometry.*;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
 import frc.lib.util.swerveUtil.COTSFalconSwerveConstants;
 import frc.lib.util.swerveUtil.RevSwerveModuleConstants;
 
-public final class Constants {
+public class Constants {
     public static final double stickDeadband = 0.05;
-
+    
     public static final class Swerve {
 
         // Spark Max Idle Modes
@@ -23,7 +26,6 @@ public final class Constants {
         // Max Output Powers
         public static final double drivePower = 1;
         public static final double anglePower = .9;
-
         
         // Gyro
         public static final boolean invertGyro = false; // Always ensure Gyro is CCW+ CW-
@@ -42,7 +44,7 @@ public final class Constants {
         public static final double DegreesPerTurnRotation = 360 / angleGearRatio;
         /* Module Gear Ratios */
         public static final double driveGearRatio = chosenModule.driveGearRatio;
-
+        
         // encoder setup
         // meters per rotation
         public static final double wheelCircumference = chosenModule.wheelCircumference;
@@ -54,6 +56,7 @@ public final class Constants {
         public static final double wheelBase = Units.inchesToMeters(23.75);
         public static final double WheelTurnDistance = 0.7400;       //Measure distance is 0.74m. But could only turn 80 degree
                                                                     // Increase to 0.75m, could achieve 90 degree
+
         /*
          * Swerve Kinematics
          * No need to ever change this unless you are not doing a traditional
@@ -74,12 +77,12 @@ public final class Constants {
         public static final double drivePeakCurrentDuration = 0.1;
         public static final boolean driveEnableCurrentLimit = true;
        
-           /* Drive Motor info */
-           public static final double kDrivingMotorFreeSpeedRps = NeoMotorConstants.kFreeSpeedRpm / 60;
+        /* Drive Motor info */
+        public static final double kDrivingMotorFreeSpeedRps = NeoMotorConstants.kFreeSpeedRpm / 60;
 
-           public static final double kDriveWheelFreeSpeedRps = (kDrivingMotorFreeSpeedRps * wheelCircumference)
-                   / driveGearRatio;
-   
+        public static final double kDriveWheelFreeSpeedRps = (kDrivingMotorFreeSpeedRps * wheelCircumference)
+                / driveGearRatio;
+
         /* Angle Motor PID Values */
         // Update this setting to accomodate smartMotion
         public static final double angleKP = 0.0005;
@@ -104,16 +107,17 @@ public final class Constants {
         public static final double driveKI = 0.0;
         public static final double driveKD = 0.0;
         public static final double driveKFF = 0.000156; // 1 / kDriveWheelFreeSpeedRps;
+
         /** Meters per Second */
         public static final double maxSpeed = 3; // 3.6576;
         /** Radians per Second */
-        public static final double maxAngularVelocity = 5; // 5.0;
+        public static final double maxAngularVelocity = 1; // 5.0;
         public static double angleRampRate = 0;
 
-        public static double maxDriveVel = 1;          // for velocity setting, using converted value m/s
+        public static double maxDriveVel = 0.5;          // for velocity setting, using converted value m/s
         public static double maxDrivePos = 200;          // for position setting, using raw encoder rpm/m
         public static double minVel = 0;
-        public static double maxDriveAccVel= 1;          // for velocity setting, using converted value m/ss
+        public static double maxDriveAccVel= 0.5;          // for velocity setting, using converted value m/ss
         public static double maxDriveAccPos = 200;        // for position setting, using raw encoder rpm/mm
         public static double allowedDriveErrVel = 0.21;
         public static double allowedDriveErrPos = 0.1;
@@ -167,15 +171,15 @@ public final class Constants {
         }
     }
 
+
     public static final class CameraConstants {
 
         public static final double ROLL = -Math.PI / 2;
         public static final double PITCH = 0.0;
         public static final double YAW = 0.0;
-        public static final Transform3d KCAMERA_TO_ROBOT = new Transform3d(
-                new Translation3d(Units.inchesToMeters(0), Units.inchesToMeters(8),
-                        Units.inchesToMeters(22.125)),
-                new Rotation3d(ROLL, PITCH, YAW)).inverse();
+        public static final Transform3d KCAMERA_TO_ROBOT =
+                new Transform3d(new Translation3d(Units.inchesToMeters(0), Units.inchesToMeters(8),
+                        Units.inchesToMeters(22.125)), new Rotation3d(ROLL, PITCH, YAW)).inverse();
 
         public static final String CAMERA_NAME = "CSI";
         public static final double LARGEST_DISTANCE = 0.1;
@@ -199,11 +203,13 @@ public final class Constants {
         public static final double THETA_kI = 0;
         public static final double THETA_kD = 0;
 
+
         // Motion profilied robot angle controller
-        public static final TrapezoidProfile.Constraints kThetaControllerConstraints = new TrapezoidProfile.Constraints(
-                kMaxAngularSpeedRadiansPerSecond,
-                kMaxAngularSpeedRadiansPerSecondSquared);
+        public static final TrapezoidProfile.Constraints kThetaControllerConstraints =
+                new TrapezoidProfile.Constraints(kMaxAngularSpeedRadiansPerSecond,
+                        kMaxAngularSpeedRadiansPerSecondSquared);
     }
+
 
     public static final class NeoMotorConstants {
         public static final double kFreeSpeedRpm = 5676;

@@ -2,7 +2,6 @@ package frc.lib.util.swerveUtil;
 
 import edu.wpi.first.math.util.Units;
 
-/* Contains values and required settings for common COTS swerve modules. */
 public class COTSFalconSwerveConstants {
     public final double wheelDiameter;
     public final double wheelCircumference;
@@ -16,7 +15,8 @@ public class COTSFalconSwerveConstants {
     public final boolean angleMotorInvert;
     public final boolean canCoderInvert;
 
-    public COTSFalconSwerveConstants(double wheelDiameter, double angleGearRatio, double driveGearRatio, double angleKP, double angleKI, double angleKD, double angleKF, boolean driveMotorInvert, boolean angleMotorInvert, boolean canCoderInvert){
+    public COTSFalconSwerveConstants(double wheelDiameter, double angleGearRatio, double driveGearRatio, double angleKP, double angleKI, double angleKD, double angleKF, boolean driveMotorInvert, boolean angleMotorInvert, boolean canCoderInvert)
+    {
         this.wheelDiameter = wheelDiameter;
         this.wheelCircumference = wheelDiameter * Math.PI;
         this.angleGearRatio = angleGearRatio;
@@ -111,5 +111,3 @@ public class COTSFalconSwerveConstants {
         public static final double SDSMK4i_L3 = (6.12 / 1.0);
     }
 }
-
-  
