@@ -10,10 +10,11 @@ import frc.lib.util.swerveUtil.RevSwerveModuleConstants;
 
 import com.ctre.phoenix.sensors.CANCoder;
 import com.revrobotics.CANSparkMax;
+import com.revrobotics.CANSparkBase.FaultID;
+import com.revrobotics.CANSparkBase.ControlType;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.SparkMaxPIDController;
-import com.revrobotics.CANSparkMax.ControlType;
-import com.revrobotics.CANSparkMax.FaultID;
+
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
 /**
