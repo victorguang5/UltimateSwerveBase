@@ -84,7 +84,7 @@ public class RevSwerveModule implements SwerveModule
         relAngleEncoder.setVelocityConversionFactor(RevSwerveConfig.DegreesPerTurnRotation / 60);
     
 
-        resetToAbsolute();
+        //resetToAbsolute();
         mDriveMotor.burnFlash();
         mAngleMotor.burnFlash();
         
@@ -175,6 +175,7 @@ public class RevSwerveModule implements SwerveModule
 
         }
         Rotation2d angle = desiredState.angle; 
+        System.out.println(angle.getDegrees());
         //Prevent rotating module if speed is less then 1%. Prevents Jittering.
         
         SparkMaxPIDController controller = mAngleMotor.getPIDController();
