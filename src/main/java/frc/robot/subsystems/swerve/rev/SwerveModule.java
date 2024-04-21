@@ -18,5 +18,6 @@ public interface SwerveModule
     public int getModuleNumber(); 
 
     public void setModuleNumber(int moduleNumber);
+    public  Rotation2d getAngle();
 
 }
