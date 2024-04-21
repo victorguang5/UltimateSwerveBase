@@ -64,9 +64,9 @@ public class RevSwerve extends SubsystemBase {
     public void drive(Translation2d translation, double rotation, boolean fieldRelative, boolean isOpenLoop) {
         ChassisSpeeds desiredChassisSpeeds =
         fieldRelative ? ChassisSpeeds.fromFieldRelativeSpeeds(
-        translation.getX(),
-        translation.getY(),
-        rotation,
+        translation.getX()/4,
+        translation.getY()/4,
+        rotation/4,
         getYaw())
         : new ChassisSpeeds(
                 translation.getX(),
