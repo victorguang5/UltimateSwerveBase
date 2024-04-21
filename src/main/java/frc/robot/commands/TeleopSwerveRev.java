@@ -36,7 +36,7 @@ public class TeleopSwerveRev extends Command {
         double strafeVal = MathUtil.applyDeadband(strafeSup.getAsDouble(), Constants.stickDeadband);
         double rotationVal = MathUtil.applyDeadband(rotationSup.getAsDouble(), Constants.stickDeadband);
 
-        /* Drive */
+        // Drive 
         s_Swerve.drive(
             new Translation2d(translationVal, strafeVal).times(RevSwerveConfig.maxSpeed), 
             rotationVal * RevSwerveConfig.maxAngularVelocity, 
