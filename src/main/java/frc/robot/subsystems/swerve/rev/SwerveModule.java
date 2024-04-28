@@ -18,6 +18,15 @@ public interface SwerveModule
     public int getModuleNumber(); 
 
     public void setModuleNumber(int moduleNumber);
+
     public  Rotation2d getAngle();
+    
+    public Rotation2d getAngleOffset();
+    
+    /**
+     * Added resetToAbsolute since nobody except Rev is using this java file.
+     * Made it public so swerve can access it
+     */
+    public void resetToAbsolute();
 
 }

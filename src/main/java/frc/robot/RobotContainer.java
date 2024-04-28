@@ -28,6 +28,8 @@ public class RobotContainer {
 
     /* Driver Buttons */
     private final JoystickButton zeroGyro = new JoystickButton(driver, XboxController.Button.kY.value);
+    private final JoystickButton syncEncoder = new JoystickButton(driver, XboxController.Button.kX.value);
+
 
     /* Subsystems */
     private final RevSwerve s_Swerve = new RevSwerve();
@@ -58,6 +60,7 @@ public class RobotContainer {
     private void configureButtonBindings() {
         /* Driver Buttons */
         zeroGyro.onTrue(new InstantCommand(() -> s_Swerve.zeroGyro()));
+        syncEncoder.onTrue(new InstantCommand(() -> s_Swerve.syncToAbsoluteAll()));
     }
 
     /**

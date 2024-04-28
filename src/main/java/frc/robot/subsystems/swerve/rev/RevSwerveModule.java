@@ -13,9 +13,8 @@ import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkBase.FaultID;
 import com.revrobotics.CANSparkBase.ControlType;
 import com.revrobotics.RelativeEncoder;
-import com.revrobotics.SparkMaxPIDController;
-
-import com.revrobotics.CANSparkMaxLowLevel.MotorType;
+import com.revrobotics.SparkPIDController;
+import com.revrobotics.CANSparkLowLevel.MotorType;
 
 /**
  * a Swerve Modules using REV Robotics motor controllers and CTRE CANcoder absolute encoders.
@@ -93,7 +92,7 @@ public class RevSwerveModule implements SwerveModule
     private void configAngleMotor()
     {
         mAngleMotor.restoreFactoryDefaults();
-        SparkMaxPIDController controller = mAngleMotor.getPIDController();
+        SparkPIDController controller = mAngleMotor.getPIDController();
         controller.setP(RevSwerveConfig.angleKP, 0);
         controller.setI(RevSwerveConfig.angleKI,0);
         controller.setD(RevSwerveConfig.angleKD,0);
@@ -111,7 +110,7 @@ public class RevSwerveModule implements SwerveModule
     private void configDriveMotor()
     {        
         mDriveMotor.restoreFactoryDefaults();
-        SparkMaxPIDController controller = mDriveMotor.getPIDController();
+        SparkPIDController controller = mDriveMotor.getPIDController();
         controller.setP(RevSwerveConfig.driveKP,0);
         controller.setI(RevSwerveConfig.driveKI,0);
         controller.setD(RevSwerveConfig.driveKD,0);
@@ -126,7 +125,9 @@ public class RevSwerveModule implements SwerveModule
        
     }
 
-
+    public Rotation2d getAngleOffset() {
+        return angleOffset;
+    }
 
     public void setDesiredState(SwerveModuleState desiredState, boolean isOpenLoop)
     {
@@ -134,6 +135,17 @@ public class RevSwerveModule implements SwerveModule
         
         /* This is a custom optimize function, since default WPILib optimize assumes continuous controller which CTRE and Rev onboard is not */
         // CTREModuleState actually works for any type of motor.
+
+        /* Robin: The swerve module has spasm everytime CANcode resets.
+         * When a desired state is passed into this method by the status of the joystick,
+         * optimize() is called to find a shortcut to the angle needed.
+         * Because the range of relative encoder has a maximum of 360 and cannot go
+         * beyond for it is periodically (every 20 ms) synced, if the REncoder resets
+         * while PID brings the module to the desired state, the REncoder's position is changed,
+         * and therefore path to required location changes (PID has a heart attack). 
+         * Optimization is called again, and calculates the shortcut, travels, resets, and
+         * has a spasm again. 
+         */
         desiredState = CTREModuleState.optimize(desiredState, getState().angle); 
         setAngle(desiredState);
         setSpeed(desiredState, isOpenLoop);
@@ -161,7 +173,7 @@ public class RevSwerveModule implements SwerveModule
  
         double velocity = desiredState.speedMetersPerSecond;
         
-        SparkMaxPIDController controller = mDriveMotor.getPIDController();
+        SparkPIDController controller = mDriveMotor.getPIDController();
         controller.setReference(velocity, ControlType.kVelocity, 0);
         
     }
@@ -177,12 +189,26 @@ public class RevSwerveModule implements SwerveModule
         Rotation2d angle = desiredState.angle; 
         //Prevent rotating module if speed is less then 1%. Prevents Jittering.
         
-        SparkMaxPIDController controller = mAngleMotor.getPIDController();
+        SparkPIDController controller = mAngleMotor.getPIDController();
         
-        double degReference = angle.getDegrees();
-     
+        double degReference = angle.getDegrees(); //degReference is correct, within -180 +180 bound
+        double lowerResetPos = -180 - angleOffset.getDegrees(); //negative zone
+        double upperResetPos = 180 - angleOffset.getDegrees(); //positive zone
+
+        double currentPos = getAngle().getDegrees();
+        // I only care about the heading, I don't care whether it is optimized or not because
+        // it only resets if the heading passes the boundary
+
+        // if (degReference > upperResetPos) {
+        //     degReference -= 360;
+        // } else if (degReference < lowerResetPos) {
+        //     degReference += 360; 
+        // }
+        
+        /* You need to build a model for this */
        
-        
+        /* This is the real problem: because PID is based off of RelEncoder,
+        so when CAN resets, the difference to reference varies */ 
         controller.setReference (degReference, ControlType.kPosition, 0);
         
     }
@@ -211,10 +237,10 @@ public class RevSwerveModule implements SwerveModule
         this.moduleNumber = moduleNumber;
     }
 
-    private void resetToAbsolute()
+    public void resetToAbsolute()
     {
     
-        double absolutePosition =getCanCoder().getDegrees() - angleOffset.getDegrees();
+        double absolutePosition = getCanCoder().getDegrees() - angleOffset.getDegrees();
         relAngleEncoder.setPosition(absolutePosition);
     }
 
