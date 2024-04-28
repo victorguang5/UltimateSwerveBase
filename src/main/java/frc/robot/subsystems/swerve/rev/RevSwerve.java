@@ -7,6 +7,8 @@ import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 
+import java.util.function.ToLongFunction;
+
 import com.ctre.phoenix.sensors.Pigeon2;
 
 import edu.wpi.first.math.geometry.Pose2d;
@@ -16,6 +18,9 @@ import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.WaitCommand;
+
+import java.lang.Math;
 
 public class RevSwerve extends SubsystemBase {
 
@@ -126,6 +131,66 @@ public class RevSwerve extends SubsystemBase {
         return positions;
     }
 
+
+    // d
+    public void allSwerveModsSetSpeed(SwerveModuleState desiredState){
+        for (SwerveModule mod : mSwerveMods){
+            mod.setDesiredState(desiredState,false);
+        }
+    }
+    public void TurnDegrees(double degrees, double speedMetersPerSecond){
+        // 360 degrees = 92.189821 inches
+        double metersPerDegree = (92.189821 * 0.0254)/360;
+
+        double metersDist = degrees * metersPerDegree;
+        double timeSeconds = metersDist/speedMetersPerSecond;
+
+        SwerveModuleState Mod0State = new SwerveModuleState(speedMetersPerSecond, Rotation2d.fromDegrees(135));
+        SwerveModuleState Mod1State = new SwerveModuleState(speedMetersPerSecond, Rotation2d.fromDegrees(45));
+        SwerveModuleState Mod2State = new SwerveModuleState(speedMetersPerSecond, Rotation2d.fromDegrees(225));
+        SwerveModuleState Mod3State = new SwerveModuleState(speedMetersPerSecond, Rotation2d.fromDegrees(315));
+
+        mSwerveMods[0].setDesiredState(Mod0State,false);
+        mSwerveMods[1].setDesiredState(Mod1State,false);
+        mSwerveMods[2].setDesiredState(Mod2State,false);
+        mSwerveMods[3].setDesiredState(Mod3State,false);
+
+        waitSleep(timeSeconds);
+
+        SwerveModuleState desiredState = new SwerveModuleState(0, Rotation2d.fromDegrees(0));
+        allSwerveModsSetSpeed(desiredState);
+    }
+
+    public void waitSleep(double seconds){
+        try {
+            Thread.sleep((long)(seconds*1000));
+        } catch (InterruptedException ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    public void DriveOneMeter(double travelDistMeters, double speedMetersPerSecond, double driveAngle){
+        double travelTimeSeconds = travelDistMeters/speedMetersPerSecond;
+        Rotation2d wheelRotation2d = Rotation2d.fromDegrees(driveAngle);
+        SwerveModuleState desiredState = new SwerveModuleState(speedMetersPerSecond, wheelRotation2d);
+
+        allSwerveModsSetSpeed(desiredState);
+        // new WaitCommand((long)travelTimeSeconds*1000)
+        waitSleep(travelTimeSeconds);
+        desiredState = new SwerveModuleState(0, wheelRotation2d);
+        allSwerveModsSetSpeed(desiredState);
+
+    }
+    public void DriveAll(){
+        double travelDistMeters = SmartDashboard.getNumber("Distance",1);
+        double driveAngle = SmartDashboard.getNumber("DriveAngle",0);
+        double speedMetersPerSecond = SmartDashboard.getNumber("Speed",0.2);
+        double TurnDegrees = SmartDashboard.getNumber("TurnDegrees",90);
+        DriveOneMeter(travelDistMeters, speedMetersPerSecond, driveAngle);
+        TurnDegrees(TurnDegrees, speedMetersPerSecond);
+    }
+    // d end
+    
     public void zeroGyro(double deg) {
         if(RevSwerveConfig.invertGyro) {
             deg = -deg;
