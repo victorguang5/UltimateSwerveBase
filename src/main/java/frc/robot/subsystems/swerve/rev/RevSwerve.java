@@ -29,32 +29,11 @@ public class RevSwerve extends SubsystemBase {
     public SwerveDriveOdometry swerveOdometry;
     public SwerveModule[] mSwerveMods;
     public Pigeon2 gyro;
-    
-    Translation2d m_frontLeftLocation = new Translation2d(0.381, 0.381);
-    Translation2d m_frontRightLocation = new Translation2d(0.381, -0.381);
-    Translation2d m_backLeftLocation = new Translation2d(-0.381, 0.381);
-    Translation2d m_backRightLocation = new Translation2d(-0.381, -0.381);
 
-    SwerveDriveKinematics m_kinematics = new SwerveDriveKinematics(
-        m_frontLeftLocation, m_frontRightLocation, m_backLeftLocation, m_backRightLocation
-    );
-
-    ChassisSpeeds speeds = new ChassisSpeeds(1.0, 3.0, 1.5);
-
-    // Convert to module states
-    SwerveModuleState[] moduleStates = m_kinematics.toSwerveModuleStates(speeds);
-
-    // Front left module state
-    SwerveModuleState frontLeft = moduleStates[0];
-
-    // Front right module state
-    SwerveModuleState frontRight = moduleStates[1];
-
-    // Back left module state
-    SwerveModuleState backLeft = moduleStates[2];
-
-    // Back right module state
-    SwerveModuleState backRight = moduleStates[3];
+    double velocityX = 1;
+    double velocityY = 0;
+    double rotation = 0;
+    double MillisecondsToWait = 0;
 
     public RevSwerve() {
         
@@ -73,7 +52,10 @@ public class RevSwerve extends SubsystemBase {
 
         swerveOdometry = new SwerveDriveOdometry(RevSwerveConfig.swerveKinematics, getYaw(), getModulePositions());
         zeroGyro();
-
+        SmartDashboard.putNumber("velocityX", velocityX);
+        SmartDashboard.putNumber("velocityY", velocityY);
+        SmartDashboard.putNumber("rotation", rotation);
+        SmartDashboard.putNumber("MillisecondsToWait", MillisecondsToWait);
     }
     private static ChassisSpeeds correctForDynamics(ChassisSpeeds originalSpeeds) {
         final double LOOP_TIME_S = 0.02;
@@ -92,8 +74,11 @@ public class RevSwerve extends SubsystemBase {
     }
 
     public void MoveWithKinematics() {
-        Translation2d translation = new Translation2d(0, 1);
-        double rotation = 0;
+        MillisecondsToWait = SmartDashboard.getNumber("MillisecondsToWait",1000);
+        velocityX = SmartDashboard.getNumber("velocityX",1);
+        velocityY = SmartDashboard.getNumber("velocityY",0);
+        rotation = SmartDashboard.getNumber("rotation",0);
+        Translation2d translation = new Translation2d(velocityX, velocityY);
         ChassisSpeeds desiredChassisSpeeds = new ChassisSpeeds(
                 translation.getX(),
                 translation.getY(),
@@ -104,7 +89,7 @@ public class RevSwerve extends SubsystemBase {
         for(SwerveModule mod : mSwerveMods){
             mod.setDesiredState(swerveModuleStates[mod.getModuleNumber()], false);
         }
-        WaitTime(3000);
+        WaitTime(MillisecondsToWait);
     }
 
     public void drive(Translation2d translation, double rotation, boolean fieldRelative, boolean isOpenLoop) {
