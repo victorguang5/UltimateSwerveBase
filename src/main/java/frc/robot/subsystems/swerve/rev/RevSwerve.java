@@ -1,19 +1,25 @@
 package frc.robot.subsystems.swerve.rev;
 
 import frc.lib.math.GeometryUtils;
+import frc.lib.util.swerveUtil.CTREModuleState;
 import frc.robot.constants.RevSwerveConstants;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 
+import java.sql.Time;
+
 import com.ctre.phoenix.sensors.Pigeon2;
+import com.revrobotics.CANSparkBase.FaultID;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.math.proto.Kinematics;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
@@ -23,8 +29,32 @@ public class RevSwerve extends SubsystemBase {
     public SwerveDriveOdometry swerveOdometry;
     public SwerveModule[] mSwerveMods;
     public Pigeon2 gyro;
+    
+    Translation2d m_frontLeftLocation = new Translation2d(0.381, 0.381);
+    Translation2d m_frontRightLocation = new Translation2d(0.381, -0.381);
+    Translation2d m_backLeftLocation = new Translation2d(-0.381, 0.381);
+    Translation2d m_backRightLocation = new Translation2d(-0.381, -0.381);
 
+    SwerveDriveKinematics m_kinematics = new SwerveDriveKinematics(
+        m_frontLeftLocation, m_frontRightLocation, m_backLeftLocation, m_backRightLocation
+    );
 
+    ChassisSpeeds speeds = new ChassisSpeeds(1.0, 3.0, 1.5);
+
+    // Convert to module states
+    SwerveModuleState[] moduleStates = m_kinematics.toSwerveModuleStates(speeds);
+
+    // Front left module state
+    SwerveModuleState frontLeft = moduleStates[0];
+
+    // Front right module state
+    SwerveModuleState frontRight = moduleStates[1];
+
+    // Back left module state
+    SwerveModuleState backLeft = moduleStates[2];
+
+    // Back right module state
+    SwerveModuleState backRight = moduleStates[3];
 
     public RevSwerve() {
         
@@ -61,6 +91,22 @@ public class RevSwerve extends SubsystemBase {
         return updatedSpeeds;
     }
 
+    public void MoveWithKinematics() {
+        Translation2d translation = new Translation2d(0, 1);
+        double rotation = 0;
+        ChassisSpeeds desiredChassisSpeeds = new ChassisSpeeds(
+                translation.getX(),
+                translation.getY(),
+                rotation);
+        desiredChassisSpeeds = correctForDynamics(desiredChassisSpeeds);
+        SwerveModuleState[] swerveModuleStates = RevSwerveConfig.swerveKinematics.toSwerveModuleStates(desiredChassisSpeeds);
+        SwerveDriveKinematics.desaturateWheelSpeeds(swerveModuleStates, RevSwerveConfig.maxSpeed);
+        for(SwerveModule mod : mSwerveMods){
+            mod.setDesiredState(swerveModuleStates[mod.getModuleNumber()], false);
+        }
+        WaitTime(3000);
+    }
+
     public void drive(Translation2d translation, double rotation, boolean fieldRelative, boolean isOpenLoop) {
         ChassisSpeeds desiredChassisSpeeds =
         fieldRelative ? ChassisSpeeds.fromFieldRelativeSpeeds(
@@ -79,7 +125,7 @@ public class RevSwerve extends SubsystemBase {
             mod.setDesiredState(swerveModuleStates[mod.getModuleNumber()], isOpenLoop);
         }
 
-        SmartDashboard.putNumber("CanEncoder FrontLeft", mSwerveMods[0].getCanCoder().getDegrees());
+        /*SmartDashboard.putNumber("CanEncoder FrontLeft", mSwerveMods[0].getCanCoder().getDegrees());
         SmartDashboard.putNumber("CanEncoder FrontRight", mSwerveMods[1].getCanCoder().getDegrees());
         SmartDashboard.putNumber("CanEncoder BackLeft", mSwerveMods[2].getCanCoder().getDegrees());
         SmartDashboard.putNumber("CanEncoder BackRight", mSwerveMods[3].getCanCoder().getDegrees());
@@ -88,7 +134,7 @@ public class RevSwerve extends SubsystemBase {
         SmartDashboard.putNumber("REncoder FrontRight", mSwerveMods[1].getAngle().getDegrees());
         SmartDashboard.putNumber("REncoder BackLeft", mSwerveMods[2].getAngle().getDegrees());
         SmartDashboard.putNumber("REncoder BackRight", mSwerveMods[3].getAngle().getDegrees());
-
+*/
     }    
     /* Used by SwerveControllerCommand in Auto */
     public void setModuleStates(SwerveModuleState[] desiredStates) {
@@ -136,6 +182,53 @@ public class RevSwerve extends SubsystemBase {
 
     public void zeroGyro() {  
        zeroGyro(0);
+    }
+
+    public void TurnAngle(double TurnSpeed, boolean isOpenLoop) {
+        SwerveModuleState Mod0 = new SwerveModuleState(TurnSpeed, Rotation2d.fromDegrees(135));
+        SwerveModuleState Mod1 = new SwerveModuleState(TurnSpeed, Rotation2d.fromDegrees(45));
+        SwerveModuleState Mod2 = new SwerveModuleState(TurnSpeed, Rotation2d.fromDegrees(225));
+        SwerveModuleState Mod3 = new SwerveModuleState(TurnSpeed, Rotation2d.fromDegrees(315));
+        mSwerveMods[0].setDesiredState(Mod0, false);
+        mSwerveMods[1].setDesiredState(Mod1, false);
+        mSwerveMods[2].setDesiredState(Mod2, false);
+        mSwerveMods[3].setDesiredState(Mod3, false);
+        WaitTime(1800);
+        Mod0 = new SwerveModuleState(0, Rotation2d.fromDegrees(0));
+        for(SwerveModule mod : mSwerveMods) {
+            mod.setDesiredState(Mod0, false);
+        }
+    }
+
+    private void WaitTime(double milliseconds) {
+        try {
+            Thread.sleep((int)milliseconds);
+        } catch (InterruptedException ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    public void DriveForward(double DriveSpeed, double Distance, boolean isOpenLoop) {
+        SwerveModuleState desiredState = new SwerveModuleState(DriveSpeed, Rotation2d.fromDegrees(0));
+        for(SwerveModule mod : mSwerveMods) {
+            mod.setDesiredState(desiredState, false);
+        }
+        WaitTime(Distance/DriveSpeed*1000);
+        desiredState = new SwerveModuleState(0, Rotation2d.fromDegrees(0));
+        for(SwerveModule mod : mSwerveMods) {
+            mod.setDesiredState(desiredState, false);
+        }
+    }
+
+    public void moveforward() {
+        double Distance = SmartDashboard.getNumber("Distance",1);
+        double DriveSpeed = SmartDashboard.getNumber("DriveSpeed",1);
+        double TurnAngleSpeed = SmartDashboard.getNumber("AngleSpeed",1);
+        DriveForward(DriveSpeed, Distance, false);
+        //WaitTime(2700);
+        WaitTime(500);
+        TurnAngle(TurnAngleSpeed, false);
+        //WaitTime(1800);
     }
 
     public Rotation2d getYaw() {

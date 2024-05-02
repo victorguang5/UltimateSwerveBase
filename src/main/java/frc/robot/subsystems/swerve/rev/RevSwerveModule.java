@@ -14,7 +14,7 @@ import com.revrobotics.CANSparkBase.FaultID;
 import com.revrobotics.CANSparkBase.ControlType;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.SparkMaxPIDController;
-
+import com.revrobotics.SparkPIDController;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
 /**
@@ -161,7 +161,7 @@ public class RevSwerveModule implements SwerveModule
  
         double velocity = desiredState.speedMetersPerSecond;
         
-        SparkMaxPIDController controller = mDriveMotor.getPIDController();
+        SparkPIDController controller = mDriveMotor.getPIDController();
         controller.setReference(velocity, ControlType.kVelocity, 0);
         
     }
@@ -172,12 +172,12 @@ public class RevSwerveModule implements SwerveModule
         {
             mAngleMotor.stopMotor();
             return;
-
+        
         }
         Rotation2d angle = desiredState.angle; 
         //Prevent rotating module if speed is less then 1%. Prevents Jittering.
         
-        SparkMaxPIDController controller = mAngleMotor.getPIDController();
+        SparkPIDController controller = mAngleMotor.getPIDController();
         
         double degReference = angle.getDegrees();
      
