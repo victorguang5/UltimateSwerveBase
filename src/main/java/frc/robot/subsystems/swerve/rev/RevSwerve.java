@@ -10,7 +10,7 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 
 import java.sql.Time;
 
-import com.ctre.phoenix.sensors.Pigeon2;
+import com.kauailabs.navx.frc.AHRS;
 import com.revrobotics.CANSparkBase.FaultID;
 
 import edu.wpi.first.math.geometry.Pose2d;
@@ -20,15 +20,15 @@ import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.proto.Kinematics;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class RevSwerve extends SubsystemBase {
 
-
     public SwerveDriveOdometry swerveOdometry;
     public SwerveModule[] mSwerveMods;
-    public Pigeon2 gyro;
+    public AHRS gyro;
 
     double velocityX = 1;
     double velocityY = 0;
@@ -37,8 +37,7 @@ public class RevSwerve extends SubsystemBase {
 
     public RevSwerve() {
         
-        gyro = new Pigeon2(RevSwerveConstants.REV.pigeonID);
-        gyro.configFactoryDefault();
+        gyro = new AHRS(SPI.Port.kMXP);
         
      
 
@@ -56,6 +55,9 @@ public class RevSwerve extends SubsystemBase {
         SmartDashboard.putNumber("velocityY", velocityY);
         SmartDashboard.putNumber("rotation", rotation);
         SmartDashboard.putNumber("MillisecondsToWait", MillisecondsToWait);
+        // SmartDashboard.putNumber("RobotYaw", gyro.getYaw());
+        // SmartDashboard.putNumber("RobotX", swerveOdometry.getPoseMeters().getX());
+        // SmartDashboard.putNumber("RobotY", swerveOdometry.getPoseMeters().getY());
     }
     private static ChassisSpeeds correctForDynamics(ChassisSpeeds originalSpeeds) {
         final double LOOP_TIME_S = 0.02;
@@ -100,9 +102,9 @@ public class RevSwerve extends SubsystemBase {
         rotation/4,
         getYaw())
         : new ChassisSpeeds(
-                translation.getX(),
-                translation.getY(),
-                rotation);
+                translation.getX()/4,
+                translation.getY()/4,
+                rotation/4);
         desiredChassisSpeeds = correctForDynamics(desiredChassisSpeeds);
         SwerveModuleState[] swerveModuleStates = RevSwerveConfig.swerveKinematics.toSwerveModuleStates(desiredChassisSpeeds);
         SwerveDriveKinematics.desaturateWheelSpeeds(swerveModuleStates, RevSwerveConfig.maxSpeed);
@@ -135,12 +137,12 @@ public class RevSwerve extends SubsystemBase {
         Pose2d p =  swerveOdometry.getPoseMeters();
         return new Pose2d(-p.getX(),-p.getY(),  p.getRotation());
     }
-    public void resetOdometry(Pose2d pose) {
+    // public void resetOdometry(Pose2d pose) {
         
-        swerveOdometry.resetPosition(new Rotation2d(), getModulePositions(), pose);
-        zeroGyro(pose.getRotation().getDegrees());
+    //     swerveOdometry.resetPosition(new Rotation2d(), getModulePositions(), pose);
+    //     zeroGyro(pose.getRotation().getDegrees());
        
-    }
+    // }
     public SwerveModuleState[] getModuleStates() {
         SwerveModuleState[] states = new SwerveModuleState[4];
         for(SwerveModule mod : mSwerveMods) {
@@ -157,16 +159,17 @@ public class RevSwerve extends SubsystemBase {
         return positions;
     }
 
-    public void zeroGyro(double deg) {
-        if(RevSwerveConfig.invertGyro) {
-            deg = -deg;
-        }
-        gyro.setYaw(deg);
-        swerveOdometry.update(getYaw(), getModulePositions());  
-    }
+    // public void zeroGyro(double deg) {
+    //     if(RevSwerveConfig.invertGyro) {
+    //         deg = -deg;
+    //     }
+    //     gyro.setYaw(deg);
+    //     swerveOdometry.update(getYaw(), getModulePositions());  
+    // }
 
     public void zeroGyro() {  
-       zeroGyro(0);
+       gyro.reset();
+       swerveOdometry.update(getYaw(), getModulePositions());
     }
 
     public void TurnAngle(double TurnSpeed, boolean isOpenLoop) {
@@ -222,10 +225,14 @@ public class RevSwerve extends SubsystemBase {
 
     @Override
     public void periodic() {
+        swerveOdometry.update(getYaw(), getModulePositions());
         for(SwerveModule mod : mSwerveMods) {
             SmartDashboard.putNumber("REV Mod " + mod.getModuleNumber() + " Cancoder", mod.getCanCoder().getDegrees());
             SmartDashboard.putNumber("REV Mod " + mod.getModuleNumber() + " Integrated", mod.getPosition().angle.getDegrees());
             SmartDashboard.putNumber("REV Mod " + mod.getModuleNumber() + " Velocity", mod.getState().speedMetersPerSecond);    
+            SmartDashboard.putNumber("RobotYaw", gyro.getYaw());
+            SmartDashboard.putNumber("RobotX", swerveOdometry.getPoseMeters().getX());
+            SmartDashboard.putNumber("RobotY", swerveOdometry.getPoseMeters().getY());
         }
     }
 }
