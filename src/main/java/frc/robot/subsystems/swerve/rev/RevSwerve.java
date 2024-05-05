@@ -233,7 +233,7 @@ public class RevSwerve extends SubsystemBase {
             SmartDashboard.putNumber("REV Mod " + mod.getModuleNumber() + " Cancoder", mod.getCanCoder().getDegrees());
             SmartDashboard.putNumber("REV Mod " + mod.getModuleNumber() + " Integrated", mod.getPosition().angle.getDegrees());
             SmartDashboard.putNumber("REV Mod " + mod.getModuleNumber() + " Velocity", mod.getState().speedMetersPerSecond);    
-            SmartDashboard.putNumber("RobotYaw", gyro.getYaw());
+            SmartDashboard.putNumber("RobotYaw", swerveOdometry.getPoseMeters().getRotation().getDegrees());
             SmartDashboard.putNumber("RobotX", swerveOdometry.getPoseMeters().getX());
             SmartDashboard.putNumber("RobotY", swerveOdometry.getPoseMeters().getY());
         }
