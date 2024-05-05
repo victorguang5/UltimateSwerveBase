@@ -9,6 +9,8 @@ public interface SwerveModule
  {
     public void setDesiredState(SwerveModuleState desiredState, boolean isOpenLoop);
 
+    public void setSpeed(SwerveModuleState desiredState, boolean isOpenLoop);
+
     public Rotation2d getCanCoder();
 
     public SwerveModuleState getState();
