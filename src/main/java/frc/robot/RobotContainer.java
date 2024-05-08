@@ -1,12 +1,14 @@
 package frc.robot;
 
+import edu.wpi.first.math.path.TravelingSalesman;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
-
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.commands.*;
 import frc.robot.subsystems.swerve.falcon.CTRESwerve;
 import frc.robot.subsystems.swerve.rev.RevSwerve;
@@ -20,19 +22,24 @@ import frc.robot.subsystems.swerve.rev.RevSwerve;
 public class RobotContainer {
     /* Controllers */
     private final Joystick driver = new Joystick(0);
-
     /* Drive Controls */
     private final int translationAxis = XboxController.Axis.kLeftY.value;
     private final int strafeAxis = XboxController.Axis.kLeftX.value;
     private final int rotationAxis = XboxController.Axis.kRightX.value;
-
     /* Driver Buttons */
+    private final JoystickButton moveforward = new JoystickButton(driver, XboxController.Button.kX.value);
     private final JoystickButton zeroGyro = new JoystickButton(driver, XboxController.Button.kY.value);
+<<<<<<< HEAD
     private final JoystickButton syncEncoder = new JoystickButton(driver, XboxController.Button.kX.value);
 
 
+=======
+    private final JoystickButton MoveWithKinematics = new JoystickButton(driver, XboxController.Button.kA.value);
+>>>>>>> ad07e2ce00615c343219afa265d54c0743fbf6be
     /* Subsystems */
     private final RevSwerve s_Swerve = new RevSwerve();
+
+    
 
 
     /** The container for the robot. Contains subsystems, OI devices, and commands. */
@@ -43,14 +50,14 @@ public class RobotContainer {
                 () -> -driver.getRawAxis(translationAxis), 
                 () -> -driver.getRawAxis(strafeAxis), 
                 () -> -driver.getRawAxis(rotationAxis), 
-                () -> false
+                () -> true
             )
         );
-
+        
         // Configure the button bindings
         configureButtonBindings();
     }
-
+    
     /**
      * Use this method to define your button->command mappings. Buttons can be created by
      * instantiating a {@link GenericHID} or one of its subclasses ({@link
@@ -60,7 +67,12 @@ public class RobotContainer {
     private void configureButtonBindings() {
         /* Driver Buttons */
         zeroGyro.onTrue(new InstantCommand(() -> s_Swerve.zeroGyro()));
+<<<<<<< HEAD
         syncEncoder.onTrue(new InstantCommand(() -> s_Swerve.syncToAbsoluteAll()));
+=======
+        moveforward.onTrue(new InstantCommand(() -> s_Swerve.moveforward()));
+        MoveWithKinematics.onTrue(new InstantCommand(() -> s_Swerve.MoveWithKinematics()));
+>>>>>>> ad07e2ce00615c343219afa265d54c0743fbf6be
     }
 
     /**
