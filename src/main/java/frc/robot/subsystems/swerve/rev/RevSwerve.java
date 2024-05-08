@@ -8,15 +8,10 @@ import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 
-<<<<<<< HEAD
-import com.ctre.phoenix.sensors.Pigeon2;
-//import com.ctre.phoenix6.hardware.Pigeon2;
-=======
 import java.sql.Time;
 
 import com.kauailabs.navx.frc.AHRS;
 import com.revrobotics.CANSparkBase.FaultID;
->>>>>>> ad07e2ce00615c343219afa265d54c0743fbf6be
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -36,13 +31,9 @@ public class RevSwerve extends SubsystemBase {
 
     public SwerveDriveOdometry swerveOdometry;
     public SwerveModule[] mSwerveMods;
-<<<<<<< HEAD
-    public Pigeon2 gyro;
     boolean syncDelay[] = {false, false, false, false};
 
-=======
     public AHRS gyro;
->>>>>>> ad07e2ce00615c343219afa265d54c0743fbf6be
 
     double velocityX = 1;
     double velocityY = 0;
@@ -109,24 +100,11 @@ public class RevSwerve extends SubsystemBase {
     }
 
     public void drive(Translation2d translation, double rotation, boolean fieldRelative, boolean isOpenLoop) {
-<<<<<<< HEAD
         /* Depending on boolean, create chassis speed relative to bot or field */
         ChassisSpeeds desiredChassisSpeeds = fieldRelative ?
             ChassisSpeeds.fromFieldRelativeSpeeds(translation.getX()/4, translation.getY()/4, rotation/4,  getYaw())
             : new ChassisSpeeds(translation.getX(), translation.getY(), rotation);
 
-=======
-        ChassisSpeeds desiredChassisSpeeds =
-        fieldRelative ? ChassisSpeeds.fromFieldRelativeSpeeds(
-        translation.getX()/4,
-        translation.getY()/4,
-        rotation/4,
-        getYaw())
-        : new ChassisSpeeds(
-                translation.getX()/4,
-                translation.getY()/4,
-                rotation/4);
->>>>>>> ad07e2ce00615c343219afa265d54c0743fbf6be
         desiredChassisSpeeds = correctForDynamics(desiredChassisSpeeds);
         SwerveModuleState[] swerveModuleStates = RevSwerveConfig.swerveKinematics.toSwerveModuleStates(desiredChassisSpeeds);
         SwerveDriveKinematics.desaturateWheelSpeeds(swerveModuleStates, RevSwerveConfig.maxSpeed);
@@ -134,15 +112,11 @@ public class RevSwerve extends SubsystemBase {
             mod.setDesiredState(swerveModuleStates[mod.getModuleNumber()], isOpenLoop);
         }
 
-<<<<<<< HEAD
         syncToAbsoluteAll();
         /* When the CanCoder resets from + to -, the module begins spazzing out. because offset is constant and
         Rencoder changes and resets in 1:1 proportion. Could the problem be in setDesiredState()   */
 
         SmartDashboard.putNumber("CanEncoder FrontLeft", mSwerveMods[0].getCanCoder().getDegrees());
-=======
-        /*SmartDashboard.putNumber("CanEncoder FrontLeft", mSwerveMods[0].getCanCoder().getDegrees());
->>>>>>> ad07e2ce00615c343219afa265d54c0743fbf6be
         SmartDashboard.putNumber("CanEncoder FrontRight", mSwerveMods[1].getCanCoder().getDegrees());
         SmartDashboard.putNumber("CanEncoder BackLeft", mSwerveMods[2].getCanCoder().getDegrees());
         SmartDashboard.putNumber("CanEncoder BackRight", mSwerveMods[3].getCanCoder().getDegrees());

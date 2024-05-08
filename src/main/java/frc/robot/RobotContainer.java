@@ -29,13 +29,10 @@ public class RobotContainer {
     /* Driver Buttons */
     private final JoystickButton moveforward = new JoystickButton(driver, XboxController.Button.kX.value);
     private final JoystickButton zeroGyro = new JoystickButton(driver, XboxController.Button.kY.value);
-<<<<<<< HEAD
     private final JoystickButton syncEncoder = new JoystickButton(driver, XboxController.Button.kX.value);
 
 
-=======
     private final JoystickButton MoveWithKinematics = new JoystickButton(driver, XboxController.Button.kA.value);
->>>>>>> ad07e2ce00615c343219afa265d54c0743fbf6be
     /* Subsystems */
     private final RevSwerve s_Swerve = new RevSwerve();
 
@@ -67,12 +64,9 @@ public class RobotContainer {
     private void configureButtonBindings() {
         /* Driver Buttons */
         zeroGyro.onTrue(new InstantCommand(() -> s_Swerve.zeroGyro()));
-<<<<<<< HEAD
         syncEncoder.onTrue(new InstantCommand(() -> s_Swerve.syncToAbsoluteAll()));
-=======
         moveforward.onTrue(new InstantCommand(() -> s_Swerve.moveforward()));
         MoveWithKinematics.onTrue(new InstantCommand(() -> s_Swerve.MoveWithKinematics()));
->>>>>>> ad07e2ce00615c343219afa265d54c0743fbf6be
     }
 
     /**

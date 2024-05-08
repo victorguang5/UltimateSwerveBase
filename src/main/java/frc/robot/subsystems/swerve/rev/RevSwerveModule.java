@@ -13,14 +13,8 @@ import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkBase.FaultID;
 import com.revrobotics.CANSparkBase.ControlType;
 import com.revrobotics.RelativeEncoder;
-<<<<<<< HEAD
 import com.revrobotics.SparkPIDController;
 import com.revrobotics.CANSparkLowLevel.MotorType;
-=======
-import com.revrobotics.SparkMaxPIDController;
-import com.revrobotics.SparkPIDController;
-import com.revrobotics.CANSparkMaxLowLevel.MotorType;
->>>>>>> ad07e2ce00615c343219afa265d54c0743fbf6be
 
 /**
  * a Swerve Modules using REV Robotics motor controllers and CTRE CANcoder absolute encoders.
