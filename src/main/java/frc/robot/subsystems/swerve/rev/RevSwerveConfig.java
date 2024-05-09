@@ -23,14 +23,14 @@ public class RevSwerveConfig
     public static final double anglePower = .9;
 
 
-    public static final boolean invertGyro = false; // Always ensure Gyro is CCW+ CW-
+    public static final boolean invertGyro = true; // Always ensure Gyro is CCW+ CW-
 
     public static final COTSFalconSwerveConstants chosenModule =  
-        COTSFalconSwerveConstants.SDSMK4i(COTSFalconSwerveConstants.driveGearRatios.SDSMK4i_L2);
+        COTSFalconSwerveConstants.SDSMK4i(COTSFalconSwerveConstants.driveGearRatios.SDSMK4i_L1);
 
     /* Drivetrain Constants */
-    public static final double trackWidth = Units.inchesToMeters(23.75); 
-    public static final double wheelBase = Units.inchesToMeters(23.75); 
+    public static final double trackWidth = Units.inchesToMeters(53); 
+    public static final double wheelBase = Units.inchesToMeters(53); 
     public static final double wheelCircumference = chosenModule.wheelCircumference;
 
 
@@ -44,7 +44,7 @@ public class RevSwerveConfig
 
 
     /* Module Gear Ratios */
-    public static final double driveGearRatio = chosenModule.driveGearRatio;
+    public static final double driveGearRatio = chosenModule.driveGearRatio*1.08; //*1.28 for L2
     public static final double angleGearRatio = chosenModule.angleGearRatio;
 
     // encoder setup
@@ -79,7 +79,7 @@ public class RevSwerveConfig
     public static final double closedLoopRamp = 0.0;
 
     /* Angle Motor PID Values */
-    public static final double angleKP = 0.05;
+    public static final double angleKP = 0.02; //0.05 before
     public static final double angleKI = 0;
     public static final double angleKD = 0;
     public static final double angleKF = 0;

@@ -1,5 +1,6 @@
 package frc.robot;
 
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.path.TravelingSalesman;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.Joystick;
@@ -29,10 +30,11 @@ public class RobotContainer {
     /* Driver Buttons */
     private final JoystickButton moveforward = new JoystickButton(driver, XboxController.Button.kX.value);
     private final JoystickButton zeroGyro = new JoystickButton(driver, XboxController.Button.kY.value);
-    private final JoystickButton syncEncoder = new JoystickButton(driver, XboxController.Button.kX.value);
+    private final JoystickButton syncEncoder = new JoystickButton(driver, XboxController.Button.kA.value);
+    private final JoystickButton zeroOdom = new JoystickButton(driver, XboxController.Button.kB.value);
 
 
-    private final JoystickButton MoveWithKinematics = new JoystickButton(driver, XboxController.Button.kA.value);
+    private final JoystickButton moveWithKinematics = new JoystickButton(driver, XboxController.Button.kA.value);
     /* Subsystems */
     private final RevSwerve s_Swerve = new RevSwerve();
 
@@ -47,7 +49,7 @@ public class RobotContainer {
                 () -> -driver.getRawAxis(translationAxis), 
                 () -> -driver.getRawAxis(strafeAxis), 
                 () -> -driver.getRawAxis(rotationAxis), 
-                () -> true
+                () -> false
             )
         );
         
@@ -66,7 +68,8 @@ public class RobotContainer {
         zeroGyro.onTrue(new InstantCommand(() -> s_Swerve.zeroGyro()));
         syncEncoder.onTrue(new InstantCommand(() -> s_Swerve.syncToAbsoluteAll()));
         moveforward.onTrue(new InstantCommand(() -> s_Swerve.moveforward()));
-        MoveWithKinematics.onTrue(new InstantCommand(() -> s_Swerve.MoveWithKinematics()));
+        moveWithKinematics.onTrue(new InstantCommand(() -> s_Swerve.moveWithKinematics()));
+        zeroOdom.onTrue(new InstantCommand(() -> s_Swerve.resetOdometry(new Pose2d())));
     }
 
     /**
