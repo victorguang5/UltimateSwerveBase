@@ -80,7 +80,7 @@ public class RevSwerve extends SubsystemBase {
         return updatedSpeeds;
     }
 
-    public void MoveWithKinematics() {
+    public void moveWithKinematics() {
         MillisecondsToWait = SmartDashboard.getNumber("MillisecondsToWait",1000);
         velocityX = SmartDashboard.getNumber("velocityX",1);
         velocityY = SmartDashboard.getNumber("velocityY",0);
@@ -125,7 +125,7 @@ public class RevSwerve extends SubsystemBase {
         SmartDashboard.putNumber("REncoder FrontRight", mSwerveMods[1].getAngle().getDegrees());
         SmartDashboard.putNumber("REncoder BackLeft", mSwerveMods[2].getAngle().getDegrees());
         SmartDashboard.putNumber("REncoder BackRight", mSwerveMods[3].getAngle().getDegrees());
-*/
+
     }    
 
     /**
@@ -184,12 +184,12 @@ public class RevSwerve extends SubsystemBase {
         Pose2d p =  swerveOdometry.getPoseMeters();
         return new Pose2d(-p.getX(),-p.getY(),  p.getRotation());
     }
-    // public void resetOdometry(Pose2d pose) {
+    public void resetOdometry(Pose2d pose) {
         
-    //     swerveOdometry.resetPosition(new Rotation2d(), getModulePositions(), pose);
-    //     zeroGyro(pose.getRotation().getDegrees());
+        swerveOdometry.resetPosition(new Rotation2d(), getModulePositions(), pose);
+        zeroGyro();
        
-    // }
+    }
     public SwerveModuleState[] getModuleStates() {
         SwerveModuleState[] states = new SwerveModuleState[4];
         for(SwerveModule mod : mSwerveMods) {
