@@ -9,6 +9,7 @@ import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 
 import frc.robot.commands.*;
 import frc.robot.subsystems.swerve.falcon.CTRESwerve;
+import frc.robot.subsystems.swerve.rev.RevSwerve;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -27,9 +28,13 @@ public class RobotContainer {
 
     /* Driver Buttons */
     private final JoystickButton zeroGyro = new JoystickButton(driver, XboxController.Button.kY.value);
+    private final JoystickButton DriveAndTurn = new JoystickButton(driver, XboxController.Button.kA.value);
+
+
 
     /* Subsystems */
-    private final CTRESwerve s_Swerve = new CTRESwerve();
+    private final RevSwerve s_Swerve = new RevSwerve();
+
 
 
     /** The container for the robot. Contains subsystems, OI devices, and commands. */
@@ -57,6 +62,8 @@ public class RobotContainer {
     private void configureButtonBindings() {
         /* Driver Buttons */
         zeroGyro.onTrue(new InstantCommand(() -> s_Swerve.zeroGyro()));
+        DriveAndTurn.onTrue(new InstantCommand(() -> s_Swerve.DriveTurn()));
+
     }
 
     /**

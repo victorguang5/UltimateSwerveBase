@@ -35,10 +35,10 @@ public class RevSwerve extends SubsystemBase {
 
         mSwerveMods = new SwerveModule[] {
            
-            new RevSwerveModule(0, RevSwerveConstants.Swerve.Mod0.constants),
-            new RevSwerveModule(1, RevSwerveConstants.Swerve.Mod1.constants),
-            new RevSwerveModule(2, RevSwerveConstants.Swerve.Mod2.constants),
-            new RevSwerveModule(3, RevSwerveConstants.Swerve.Mod3.constants)
+            new RevSwerveModule(0, RevSwerveConstants.Swerve.Mod1.constants),
+            new RevSwerveModule(1, RevSwerveConstants.Swerve.Mod2.constants),
+            new RevSwerveModule(2, RevSwerveConstants.Swerve.Mod3.constants),
+            new RevSwerveModule(3, RevSwerveConstants.Swerve.Mod4.constants)
         };
 
         swerveOdometry = new SwerveDriveOdometry(RevSwerveConfig.swerveKinematics, getYaw(), getModulePositions());
@@ -130,6 +130,84 @@ public class RevSwerve extends SubsystemBase {
 
     public Rotation2d getYaw() {
         return (RevSwerveConfig.invertGyro) ? Rotation2d.fromDegrees(360 - gyro.getYaw()) : Rotation2d.fromDegrees(gyro.getYaw());
+    }
+
+    public void DriveTurn() {
+        SwerveModuleState state = new SwerveModuleState(1, Rotation2d.fromDegrees(0));
+        for(SwerveModule mod : mSwerveMods) {
+            mod.setDesiredState(state, false);
+        }
+        try {
+            Thread.sleep(3000); 
+        } catch (InterruptedException ex) {
+            ex.printStackTrace();
+        }
+        state = new SwerveModuleState(0, Rotation2d.fromDegrees(0));
+        for(SwerveModule mod : mSwerveMods) {
+            mod.setDesiredState(state, false);
+        }
+    }
+
+    public void WaitTime(double milliseconds) {
+      try {
+            Thread.sleep((int)milliseconds); 
+        } catch (InterruptedException ex) {
+            ex.printStackTrace();
+        }  
+    }
+
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ////                                                                                                                  ////
+    ////                                           /*Explanation of Code*/                                                ////
+    ////                                                                                                                  ////
+    //// /*Drive Forward, turn on the spot, before driving forward again. !!ONE!! second of pause in between each step*/  ////
+    ////                                                                                                                  ////
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    public void DriveAndTurn() {
+        SwerveModuleState state = new SwerveModuleState(0.5, Rotation2d.fromDegrees(0));
+        for(SwerveModule mod : mSwerveMods) {
+            mod.setDesiredState(state, false);
+        }
+        try {
+            Thread.sleep(2); 
+        } catch (InterruptedException ex) {
+            ex.printStackTrace();
+        }
+        SwerveModuleState states = new SwerveModuleState(0.5, Rotation2d.fromDegrees(45));
+        SwerveModuleState desiredstate = new SwerveModuleState(0.5, Rotation2d.fromDegrees(180));
+        mSwerveMods[0].setDesiredState(state, false);
+        mSwerveMods[1].setDesiredState(state, false);
+        mSwerveMods[2].setDesiredState(desiredstate, false);
+        mSwerveMods[3].setDesiredState(desiredstate, false);
+        try {
+            Thread.sleep(2000); 
+        } catch (InterruptedException ex) {
+            ex.printStackTrace();
+        }
+        states = new SwerveModuleState(0, Rotation2d.fromDegrees(0));
+        for(SwerveModule mod : mSwerveMods) {
+            mod.setDesiredState(states, false);
+        }
+        try {
+            Thread.sleep(1000); 
+        } catch (InterruptedException ex) {
+            ex.printStackTrace();
+        }
+        state = new SwerveModuleState(0.5, Rotation2d.fromDegrees(0));
+        for(SwerveModule mod : mSwerveMods) {
+            mod.setDesiredState(states, false);
+        }
+        try {
+            Thread.sleep(2000); 
+        } catch (InterruptedException ex) {
+            ex.printStackTrace();
+        }
+        state = new SwerveModuleState(0, Rotation2d.fromDegrees(0));
+        for(SwerveModule mod : mSwerveMods) {
+            mod.setDesiredState(state, false);
+        }
+
     }
 
     @Override
