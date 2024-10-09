@@ -33,7 +33,9 @@ public class RobotContainer {
 
 
     /* Subsystems */
-    private final RevSwerve s_Swerve = new RevSwerve();
+    private final CTRESwerve s_Swerve = new CTRESwerve();
+    private final RevSwerve m_Swerve = new RevSwerve();
+
 
 
 
