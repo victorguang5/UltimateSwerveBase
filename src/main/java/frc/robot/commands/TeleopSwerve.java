@@ -15,13 +15,13 @@ import edu.wpi.first.wpilibj2.command.Command;
 
 
 public class TeleopSwerve extends Command {    
-    private CTRESwerve s_Swerve;    
+    private RevSwerve s_Swerve;    
     private DoubleSupplier translationSup;
     private DoubleSupplier strafeSup;
     private DoubleSupplier rotationSup;
     private BooleanSupplier robotCentricSup;
 
-    public TeleopSwerve(CTRESwerve s_Swerve, DoubleSupplier translationSup, DoubleSupplier strafeSup, DoubleSupplier rotationSup, BooleanSupplier robotCentricSup) {
+    public TeleopSwerve(RevSwerve s_Swerve, DoubleSupplier translationSup, DoubleSupplier strafeSup, DoubleSupplier rotationSup, BooleanSupplier robotCentricSup) {
         this.s_Swerve = s_Swerve;
         addRequirements(s_Swerve);
 
@@ -40,8 +40,8 @@ public class TeleopSwerve extends Command {
 
         /* Drive */
         s_Swerve.drive(
-            new Translation2d(translationVal, strafeVal).times(CTRESwerveConfig.maxSpeed), 
-            rotationVal * CTRESwerveConfig.maxAngularVelocity, 
+            new Translation2d(translationVal, strafeVal).times(RevSwerveConfig.maxSpeed), 
+            rotationVal * RevSwerveConfig.maxAngularVelocity, 
             !robotCentricSup.getAsBoolean(), 
             true
         );

@@ -35,10 +35,10 @@ public class RevSwerve extends SubsystemBase {
 
         mSwerveMods = new SwerveModule[] {
            
-            new RevSwerveModule(0, RevSwerveConstants.Swerve.Mod1.constants),
-            new RevSwerveModule(1, RevSwerveConstants.Swerve.Mod2.constants),
-            new RevSwerveModule(2, RevSwerveConstants.Swerve.Mod3.constants),
-            new RevSwerveModule(3, RevSwerveConstants.Swerve.Mod4.constants)
+            new RevSwerveModule(0, RevSwerveConstants.Swerve.Mod0.constants),
+            new RevSwerveModule(1, RevSwerveConstants.Swerve.Mod1.constants),
+            new RevSwerveModule(2, RevSwerveConstants.Swerve.Mod2.constants),
+            new RevSwerveModule(3, RevSwerveConstants.Swerve.Mod3.constants)
         };
 
         swerveOdometry = new SwerveDriveOdometry(RevSwerveConfig.swerveKinematics, getYaw(), getModulePositions());
@@ -132,7 +132,7 @@ public class RevSwerve extends SubsystemBase {
         return (RevSwerveConfig.invertGyro) ? Rotation2d.fromDegrees(360 - gyro.getYaw()) : Rotation2d.fromDegrees(gyro.getYaw());
     }
 
-    public void DriveTurn() {
+    public void DriveTest() {
         SwerveModuleState state = new SwerveModuleState(1, Rotation2d.fromDegrees(0));
         for(SwerveModule mod : mSwerveMods) {
             mod.setDesiredState(state, false);
@@ -156,58 +156,43 @@ public class RevSwerve extends SubsystemBase {
         }  
     }
 
-    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    ////                                                                                                                  ////
-    ////                                           /*Explanation of Code*/                                                ////
-    ////                                                                                                                  ////
-    //// /*Drive Forward, turn on the spot, before driving forward again. !!ONE!! second of pause in between each step*/  ////
-    ////                                                                                                                  ////
-    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
     public void DriveAndTurn() {
+        //Move forward for 2 seconds, stop for 1 second
         SwerveModuleState state = new SwerveModuleState(0.5, Rotation2d.fromDegrees(0));
         for(SwerveModule mod : mSwerveMods) {
             mod.setDesiredState(state, false);
         }
-        try {
-            Thread.sleep(2); 
-        } catch (InterruptedException ex) {
-            ex.printStackTrace();
-        }
-        SwerveModuleState states = new SwerveModuleState(0.5, Rotation2d.fromDegrees(45));
-        SwerveModuleState desiredstate = new SwerveModuleState(0.5, Rotation2d.fromDegrees(180));
-        mSwerveMods[0].setDesiredState(state, false);
-        mSwerveMods[1].setDesiredState(state, false);
-        mSwerveMods[2].setDesiredState(desiredstate, false);
-        mSwerveMods[3].setDesiredState(desiredstate, false);
-        try {
-            Thread.sleep(2000); 
-        } catch (InterruptedException ex) {
-            ex.printStackTrace();
-        }
-        states = new SwerveModuleState(0, Rotation2d.fromDegrees(0));
-        for(SwerveModule mod : mSwerveMods) {
-            mod.setDesiredState(states, false);
-        }
-        try {
-            Thread.sleep(1000); 
-        } catch (InterruptedException ex) {
-            ex.printStackTrace();
-        }
-        state = new SwerveModuleState(0.5, Rotation2d.fromDegrees(0));
-        for(SwerveModule mod : mSwerveMods) {
-            mod.setDesiredState(states, false);
-        }
-        try {
-            Thread.sleep(2000); 
-        } catch (InterruptedException ex) {
-            ex.printStackTrace();
-        }
+        WaitTime(2000);
         state = new SwerveModuleState(0, Rotation2d.fromDegrees(0));
         for(SwerveModule mod : mSwerveMods) {
             mod.setDesiredState(state, false);
         }
-
+        WaitTime(1000);
+        //Turn for 2 seconds, stop for 1 second
+        //Angles could be wrong, but since you aren't working on this right now, it doesn't matter right?
+        SwerveModuleState state1 = new SwerveModuleState(0.5, Rotation2d.fromDegrees(45));
+        SwerveModuleState state2 = new SwerveModuleState(0.5, Rotation2d.fromDegrees(225));
+        SwerveModuleState state3 = new SwerveModuleState(0.5, Rotation2d.fromDegrees(135));
+        SwerveModuleState state4 = new SwerveModuleState(0.5, Rotation2d.fromDegrees(315));
+        mSwerveMods[0].setDesiredState(state1, false);
+        mSwerveMods[1].setDesiredState(state2, false);
+        mSwerveMods[2].setDesiredState(state3, false);
+        mSwerveMods[3].setDesiredState(state4, false);
+        WaitTime(2000);
+        for(SwerveModule mod : mSwerveMods) {
+            mod.setDesiredState(state, false);
+        }
+        WaitTime(1000);
+        //Move for 2 seconds, stop
+        state = new SwerveModuleState(0.5, Rotation2d.fromDegrees(0));
+        for(SwerveModule mod : mSwerveMods) {
+            mod.setDesiredState(state, false);
+        }
+        WaitTime(2000);
+        state = new SwerveModuleState(0, Rotation2d.fromDegrees(0));
+        for(SwerveModule mod : mSwerveMods) {
+            mod.setDesiredState(state, false);
+        }
     }
 
     @Override

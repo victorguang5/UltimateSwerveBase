@@ -28,13 +28,12 @@ public class RobotContainer {
 
     /* Driver Buttons */
     private final JoystickButton zeroGyro = new JoystickButton(driver, XboxController.Button.kY.value);
-    private final JoystickButton DriveAndTurn = new JoystickButton(driver, XboxController.Button.kA.value);
+    private final JoystickButton DriveAndTurn = new JoystickButton(driver, XboxController.Button.kX.value);
 
 
 
     /* Subsystems */
-    private final CTRESwerve s_Swerve = new CTRESwerve();
-    private final RevSwerve m_Swerve = new RevSwerve();
+    private final RevSwerve s_Swerve = new RevSwerve();
 
 
 
@@ -64,7 +63,7 @@ public class RobotContainer {
     private void configureButtonBindings() {
         /* Driver Buttons */
         zeroGyro.onTrue(new InstantCommand(() -> s_Swerve.zeroGyro()));
-        DriveAndTurn.onTrue(new InstantCommand(() -> s_Swerve.DriveTurn()));
+        DriveAndTurn.onTrue(new InstantCommand(() -> s_Swerve.DriveAndTurn()));
 
     }
 

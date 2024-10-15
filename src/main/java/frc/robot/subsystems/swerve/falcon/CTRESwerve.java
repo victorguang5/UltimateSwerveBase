@@ -132,10 +132,6 @@ public class CTRESwerve extends SubsystemBase {
         return gyro.getTemp();
     }
 
-    public void DriveTurn() {
-        System.out.print("Sorry buddy, wrong place, go find and fix");
-    }
-
     @Override
     public void periodic() {
         robotPose = swervePose.update(getYaw(), getModulePositions());        
