@@ -24,7 +24,23 @@ public class RevSwerve extends SubsystemBase {
     public SwerveModule[] mSwerveMods;
     public Pigeon2 gyro;
 
+    Translation2d m_frontLeftlocation = new Translation2d(0.381, 0.381);
+    Translation2d m_frontrightlocation = new Translation2d(0.381, -0.381);
+    Translation2d m_backLeftlocation = new Translation2d(-0.381, 0.381);
+    Translation2d m_backrightlocation = new Translation2d(-0.381, -0.381);
+    
+    SwerveDriveKinematics m_Kinematics = new SwerveDriveKinematics(
+        m_frontLeftlocation, m_frontrightlocation, m_backLeftlocation, m_backrightlocation
+    );
 
+    ChassisSpeeds speeds = new ChassisSpeeds(1.0, 3.0, 1.5);
+
+    SwerveModuleState[] moduleStates = m_Kinematics.toSwerveModuleStates(speeds);
+
+    SwerveModuleState frontLeft = moduleStates[0];
+    SwerveModuleState frontright = moduleStates[1];
+    SwerveModuleState backLeft = moduleStates[2];
+    SwerveModuleState backright = moduleStates[3];
 
     public RevSwerve() {
         
@@ -60,6 +76,57 @@ public class RevSwerve extends SubsystemBase {
                 twistForPose.dtheta / LOOP_TIME_S);
         return updatedSpeeds;
     }
+    public void MovewithKinematics() {
+        Translation2d translation = new Translation2d(2, 1);    
+        double rotation = 0;
+        ChassisSpeeds desireChassisSpeeds = new ChassisSpeeds(
+            translation.getX(),
+            translation.getY(),
+            rotation);
+            desireChassisSpeeds = correctForDynamics(desireChassisSpeeds);
+        SwerveModuleState[] SwerveModuleStates = RevSwerveConfig.swerveKinematics.toSwerveModuleStates(desireChassisSpeeds);
+        SwerveDriveKinematics.desaturateWheelSpeeds(SwerveModuleStates, RevSwerveConfig.maxSpeed);
+        for(SwerveModule mod : mSwerveMods){
+            mod.setDesiredState(SwerveModuleStates[mod.getModuleNumber()], false);
+            }
+        WaitTime(3000);
+    }
+
+    public void dosomething() {
+                Translation2d translation = new Translation2d(2, 0);    
+        double rotation = 0;
+        ChassisSpeeds desireChassisSpeeds = new ChassisSpeeds(
+            translation.getX(),
+            translation.getY(),
+            rotation);
+            desireChassisSpeeds = correctForDynamics(desireChassisSpeeds);
+        SwerveModuleState[] SwerveModuleStates = RevSwerveConfig.swerveKinematics.toSwerveModuleStates(desireChassisSpeeds);
+        SwerveDriveKinematics.desaturateWheelSpeeds(SwerveModuleStates, RevSwerveConfig.maxSpeed);
+        for(SwerveModule mod : mSwerveMods){
+            mod.setDesiredState(SwerveModuleStates[mod.getModuleNumber()], false);
+            }
+        double distance = SmartDashboard.getNumber("Movedistance", 0);
+        double speed = SmartDashboard.getNumber("RobotSpeed", 0);
+        WaitTime(distance/speed);
+        SwerveModuleState state1 = new SwerveModuleState(0.5328, Rotation2d.fromDegrees(135));
+        SwerveModuleState state2 = new SwerveModuleState(0.5328, Rotation2d.fromDegrees(45));
+        SwerveModuleState state3 = new SwerveModuleState(0.5328, Rotation2d.fromDegrees(225));
+        SwerveModuleState state4 = new SwerveModuleState(0.5328, Rotation2d.fromDegrees(315));
+        mSwerveMods[0].setDesiredState(state1, false);
+        mSwerveMods[1].setDesiredState(state2, false);
+        mSwerveMods[2].setDesiredState(state3, false);
+        mSwerveMods[3].setDesiredState(state4, false);
+        WaitTime(1000);
+        new SwerveModuleState(0, Rotation2d.fromDegrees(45));
+        new SwerveModuleState(0, Rotation2d.fromDegrees(225));
+        new SwerveModuleState(0, Rotation2d.fromDegrees(135));
+        new SwerveModuleState(0, Rotation2d.fromDegrees(315));
+        mSwerveMods[0].setDesiredState(state1, false);
+        mSwerveMods[1].setDesiredState(state2, false);
+        mSwerveMods[2].setDesiredState(state3, false);
+        mSwerveMods[3].setDesiredState(state4, false);
+        WaitTime(1000);
+    }
 
     public void drive(Translation2d translation, double rotation, boolean fieldRelative, boolean isOpenLoop) {
         ChassisSpeeds desiredChassisSpeeds =
@@ -78,6 +145,11 @@ public class RevSwerve extends SubsystemBase {
         for(SwerveModule mod : mSwerveMods){
             mod.setDesiredState(swerveModuleStates[mod.getModuleNumber()], isOpenLoop);
         }
+        SmartDashboard.putNumber("CanEncoder frontleft", mSwerveMods[0].getCanCoder().getDegrees());
+        SmartDashboard.putNumber("CanEncoder frontright", mSwerveMods[1].getCanCoder().getDegrees());
+        SmartDashboard.putNumber("CanEncoder backleft", mSwerveMods[2].getCanCoder().getDegrees());
+        SmartDashboard.putNumber("CanEncoder backtright", mSwerveMods[3].getCanCoder().getDegrees());
+
 
     }    
     /* Used by SwerveControllerCommand in Auto */
@@ -158,41 +230,78 @@ public class RevSwerve extends SubsystemBase {
 
     public void DriveAndTurn() {
         //Move forward for 2 seconds, stop for 1 second
-        SwerveModuleState state = new SwerveModuleState(0.5, Rotation2d.fromDegrees(0));
+        double distance = SmartDashboard.getNumber("Movedistance", 0);
+        double speed = SmartDashboard.getNumber("robotspeed", 0);
+        double spin = SmartDashboard.getNumber("robotspin", 0);
+        double speedspin = SmartDashboard.getNumber("robotspeen", 0);
+        double distance1 = SmartDashboard.getNumber("Movedistance", 0);
+        double speed1 = SmartDashboard.getNumber("robotspeed", 0);
+        double spin1 = SmartDashboard.getNumber("robotspin", 0);
+        double speedspin1 = SmartDashboard.getNumber("robotspeen", 0);
+
+        System.out.printf("Distance is: %f Speed is: %f", distance, speed);
+        SwerveModuleState state = new SwerveModuleState(speed, Rotation2d.fromDegrees(0));
         for(SwerveModule mod : mSwerveMods) {
             mod.setDesiredState(state, false);
         }
-        WaitTime(2000);
+        WaitTime(distance/speed*2500);
         state = new SwerveModuleState(0, Rotation2d.fromDegrees(0));
         for(SwerveModule mod : mSwerveMods) {
             mod.setDesiredState(state, false);
         }
+        
         WaitTime(1000);
         //Turn for 2 seconds, stop for 1 second
         //Angles could be wrong, but since you aren't working on this right now, it doesn't matter right?
-        SwerveModuleState state1 = new SwerveModuleState(0.5, Rotation2d.fromDegrees(45));
-        SwerveModuleState state2 = new SwerveModuleState(0.5, Rotation2d.fromDegrees(225));
-        SwerveModuleState state3 = new SwerveModuleState(0.5, Rotation2d.fromDegrees(135));
-        SwerveModuleState state4 = new SwerveModuleState(0.5, Rotation2d.fromDegrees(315));
+        SwerveModuleState state1 = new SwerveModuleState(speedspin, Rotation2d.fromDegrees(135));
+        SwerveModuleState state2 = new SwerveModuleState(speedspin, Rotation2d.fromDegrees(45));
+        SwerveModuleState state3 = new SwerveModuleState(speedspin, Rotation2d.fromDegrees(225));
+        SwerveModuleState state4 = new SwerveModuleState(speedspin, Rotation2d.fromDegrees(315));
         mSwerveMods[0].setDesiredState(state1, false);
-        mSwerveMods[1].setDesiredState(state2, false);
+          mSwerveMods[1].setDesiredState(state2, false);
         mSwerveMods[2].setDesiredState(state3, false);
         mSwerveMods[3].setDesiredState(state4, false);
-        WaitTime(2000);
+        WaitTime(34.375 / speedspin * spin / 2);
         for(SwerveModule mod : mSwerveMods) {
             mod.setDesiredState(state, false);
         }
-        WaitTime(1000);
-        //Move for 2 seconds, stop
-        state = new SwerveModuleState(0.5, Rotation2d.fromDegrees(0));
+        System.out.printf("Distance1 is: %f Speed1 is: %f", distance1, speed1);
+        SwerveModuleState state = new SwerveModuleState(speed1, Rotation2d.fromDegrees(0));
         for(SwerveModule mod : mSwerveMods) {
             mod.setDesiredState(state, false);
         }
-        WaitTime(2000);
+        WaitTime(distance/speed*2500);
         state = new SwerveModuleState(0, Rotation2d.fromDegrees(0));
         for(SwerveModule mod : mSwerveMods) {
             mod.setDesiredState(state, false);
         }
+        
+        WaitTime(1000);
+        //Turn for 2 seconds, stop for 1 second
+        //Angles could be wrong, but since you aren't working on this right now, it doesn't matter right?
+        SwerveModuleState state1 = new SwerveModuleState(speedspin, Rotation2d.fromDegrees(135));
+        SwerveModuleState state2 = new SwerveModuleState(speedspin, Rotation2d.fromDegrees(45));
+        SwerveModuleState state3 = new SwerveModuleState(speedspin, Rotation2d.fromDegrees(225));
+        SwerveModuleState state4 = new SwerveModuleState(speedspin, Rotation2d.fromDegrees(315));
+        mSwerveMods[0].setDesiredState(state1, false);
+          mSwerveMods[1].setDesiredState(state2, false);
+        mSwerveMods[2].setDesiredState(state3, false);
+        mSwerveMods[3].setDesiredState(state4, false);
+        WaitTime(34.375 / speedspin * spin / 2);
+        for(SwerveModule mod : mSwerveMods) {
+            mod.setDesiredState(state, false);
+        }
+        // WaitTime(1000);
+        // //Move for 2 seconds, stop
+        // state = new SwerveModuleState(0.5, Rotation2d.fromDegrees(0));
+        // for(SwerveModule mod : mSwerveMods) {
+        //     mod.setDesiredState(state, false);
+        // }
+        // WaitTime(2000);
+        // state = new SwerveModuleState(0, Rotation2d.fromDegrees(0));
+        // for(SwerveModule mod : mSwerveMods) {
+        //     mod.setDesiredState(state, false);
+        // }
     }
 
     @Override

@@ -27,8 +27,10 @@ public class RobotContainer {
     private final int rotationAxis = XboxController.Axis.kRightX.value;
 
     /* Driver Buttons */
-    private final JoystickButton zeroGyro = new JoystickButton(driver, XboxController.Button.kY.value);
+    private final JoystickButton zeroGyro = new JoystickButton(driver, XboxController.Button.kA.value);
     private final JoystickButton DriveAndTurn = new JoystickButton(driver, XboxController.Button.kX.value);
+    private final JoystickButton MovewithKinematics = new JoystickButton(driver, XboxController.Button.kB.value);
+    private final JoystickButton dosomething = new JoystickButton(driver, XboxController.Button.kY.value);
 
 
 
@@ -64,6 +66,8 @@ public class RobotContainer {
         /* Driver Buttons */
         zeroGyro.onTrue(new InstantCommand(() -> s_Swerve.zeroGyro()));
         DriveAndTurn.onTrue(new InstantCommand(() -> s_Swerve.DriveAndTurn()));
+        MovewithKinematics.onTrue(new InstantCommand(() -> s_Swerve.MovewithKinematics()));
+        dosomething.onTrue(new InstantCommand(() -> s_Swerve.dosomething()));
 
     }
 
